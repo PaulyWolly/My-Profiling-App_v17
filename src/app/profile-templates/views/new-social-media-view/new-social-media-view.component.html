@@ -1,0 +1,36 @@
+<div class="new-social-media-container" style="max-width: 1400px; width: 70%; margin: 0 auto;">
+    <!-- Title and buttons section -->
+    <div class="d-flex justify-content-between align-items-center" style="margin-bottom: 25px;">
+        <app-title [text]="'Social Media Template'" [level]="1" [marginBottom]="'none'"></app-title>
+        <div style="display: flex; gap: 16px;">
+            <button mat-raised-button style="background: #4759B2; color: white; padding: 0 24px; border-radius: 6px; height: 44px;" (click)="useTemplate()">
+                <mat-icon style="margin-right: 8px;">check_circle</mat-icon>
+                Use This Template
+            </button>
+            <button mat-button style="color: #FF4081; padding: 0 24px; height: 44px;" (click)="previewTemplate()">
+                <mat-icon style="margin-right: 8px;">preview</mat-icon>
+                Live Preview
+            </button>
+        </div>
+    </div>
+
+    <!-- Content section with white background -->
+    <div style="background: #fff; border-radius: 18px; box-shadow: 0 2px 16px rgba(0,0,0,0.08); padding: 32px; width: 100%; display: flex; align-items: flex-start; gap: 32px;">
+        <img src="assets/images/profile-templates/social-media-template.png" alt="Social Media Template Preview" style="max-width: 725px; width: 100%; height: auto; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+        <div class="preview-description" style="flex: 1; min-width: 220px;margin-top:20px;">
+            <p>
+                This is our new social media template, featuring a modern, social-inspired layout for your professional profile.
+            </p>
+            <div class="features-list">
+                <h3>Features:</h3>
+                <ul>
+                    <li>Large profile image and header</li>
+                    <li>Followers and following counts</li>
+                    <li>Social links and contact info</li>
+                    <li>Followers you know preview</li>
+                    <li>Modern, card-based design</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div> 

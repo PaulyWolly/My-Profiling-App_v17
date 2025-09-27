@@ -1,0 +1,31 @@
+<div class="chat-dock" [class.open]="dockOpen">
+  <div class="chat-dock-header">
+    <h3>Online Users</h3>
+    <button class="close-button" (click)="closeDock.emit()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+  
+  <div class="chat-dock-content">
+    <!-- Online Users List -->
+    <div class="online-users-list">
+      <div *ngFor="let user of onlineUsers$ | async" class="user-item">
+        <img [src]="user.profileImage" [alt]="user.name" class="user-avatar">
+        <span class="user-name">{{ user.name }}</span>
+        <span class="online-indicator"></span>
+        <span *ngIf="pendingChatRequests.has(user.id)" class="pending-dot"></span>
+        <button class="start-chat-btn" (click)="startChat(user)">Chat</button>
+      </div>
+    </div>
+
+    <!-- Minimized Chats -->
+    <div class="minimized-chats">
+      <app-minimized-chat
+        *ngFor="let chat of minimizedChats; let i = index"
+        [chat]="chat"
+        (maximize)="maximizeChat(chat.id)"
+        (close)="closeChat(chat.id)">
+      </app-minimized-chat>
+    </div>
+  </div>
+</div> 

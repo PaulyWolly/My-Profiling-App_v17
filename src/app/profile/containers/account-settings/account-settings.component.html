@@ -1,0 +1,26 @@
+<h1>Account Settings</h1>
+<p class="lead mb-4">Update your password and account information</p>
+
+<div class="container">
+  <app-new-account-edit
+    [account]="account"
+    [loading]="loading"
+    [submitted]="submitted"
+    [submitting]="submitting"
+    [isAdmin]="false"
+    [isAdminView]="false"
+    (save)="onSave($event)"
+    (cancel)="onCancel()"
+    (imageChange)="onImageChange($event)"
+    (imageRemove)="onImageRemove()">
+  </app-new-account-edit>
+
+  <!-- Add this button near your profile image section -->
+  <button *ngIf="account?.profileImage && !account.profileImage.includes('uploads/profiles/profileImage-')"
+          mat-button
+          color="primary"
+          (click)="fixProfileImage()">
+      <mat-icon>build</mat-icon>
+      Fix Image Path
+  </button>
+</div> 

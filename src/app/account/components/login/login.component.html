@@ -1,0 +1,79 @@
+<app-welcome></app-welcome>
+<div class="centered-form-container">
+    <div class="login-card">
+        <div class="card-body">
+            <h2 class="sign-in-title">Sign In</h2>
+            <form [formGroup]="form" (ngSubmit)="onSubmit()" class="login-form">
+                <!-- Email Field -->
+                <div class="form-group">
+                    <div class="input-field">
+                        <div class="icon-container">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <input type="text" formControlName="email" class="form-control" placeholder="Email"
+                            [ngClass]="{ 'is-invalid': submitted && f.email.errors }" />
+                    </div>
+                    <div *ngIf="submitted && f.email.errors" class="invalid-feedback">
+                        <div *ngIf="f.email.errors.required">Email is required</div>
+                        <div *ngIf="f.email.errors.email">Email must be a valid email address</div>
+                    </div>
+                </div>
+
+                <!-- Password Field -->
+                <div class="form-group">
+                    <div class="input-field">
+                        <div class="icon-container">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <input type="password" formControlName="password" class="form-control" placeholder="Password"
+                            [ngClass]="{ 'is-invalid': submitted && f.password.errors }" />
+                    </div>
+                    <div *ngIf="submitted && f.password.errors" class="invalid-feedback">
+                        <div *ngIf="f.password.errors.required">Password is required</div>
+                    </div>
+                </div>
+
+                <!-- Remember Me Checkbox -->
+                <div class="form-group">
+                    <div class="checkbox-container" style="display: flex; align-items: center; margin-bottom: 10px;">
+                        <input type="checkbox" formControlName="rememberMe" id="rememberMe" style="width: 16px; height: 16px; margin-right: 8px;" />
+                        <label for="rememberMe" style="font-size: 14px; cursor: pointer;">Remember my email</label>
+                    </div>
+                </div>
+
+                <!-- Login Button -->
+                <button [disabled]="loading" class="btn btn-success btn-block">
+                    <span *ngIf="loading" class="spinner-border spinner-border-sm me-1"></span>
+                    Login
+                </button>
+
+                <!-- Social Login Options -->
+                <div class="social-login">
+                    <button type="button" class="btn btn-google" (click)="loginWithGoogle()" [disabled]="loading">
+                        <i class="fab fa-google me-1"></i> Continue with Google
+                    </button>
+                </div>
+
+                <!-- Links -->
+                <div class="text-center">
+                    <p class="mb-1">Don't have an account? <a routerLink="../register" class="sign-up-link">Sign Up Here</a></p>
+                    <a routerLink="../forgot-password" class="forgot-password-link">Forgot Password?</a>
+                </div>
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- Auth0 Loading Message - Show below the form when returning from Auth0 -->
+    <div *ngIf="loading" class="auth0-loading-message">
+        <div class="loading-spinner"></div>
+        <span>Logging you in...</span>
+    </div>
+    <!-- Disclaimer shown only when Remember Me is checked, below the form, with fixed height -->
+    <div style="height: 18px; margin-top: 8px;">
+      <span *ngIf="form.get('rememberMe')?.value" class="text-muted small" style="font-size: 11px;">
+        We'll remember your email for next time, but you'll need to log in again for security.
+      </span>
+    </div>
+</div>

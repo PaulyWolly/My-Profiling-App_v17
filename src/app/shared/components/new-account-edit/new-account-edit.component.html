@@ -1,0 +1,144 @@
+<!-- Edit container -->
+<div class="edit-container" *ngIf="!loading">
+  <!-- Helper message for new accounts -->
+  <div class="alert alert-info mb-3" *ngIf="!account?.id">
+    <i class="material-icons small-icon align-middle">info</i>
+    Please enter an email address FIRST, before uploading a profile image. This ensures your image is properly linked to your account.
+  </div>
+
+  <div class="row">
+    <!-- Left column - profile image (always on the left) -->
+    <div class="col-md-4 d-flex align-items-start">
+      <div class="card profile-image-card w-100">
+        <div class="card-header">
+          <h5 class="mb-0">Profile Image</h5>
+        </div>
+        <div class="card-body">
+          <div class="profile-image-container mb-3">
+            <img *ngIf="imageUrl" [src]="imageUrl" class="profile-image" alt="Profile picture">
+            <div *ngIf="!imageUrl" class="text-muted d-flex flex-column align-items-center justify-content-center h-100 w-100">
+              <i class="material-icons" style="font-size: 48px; color: #ccc;">account_circle</i>
+              <span>No profile image</span>
+            </div>
+          </div>
+          <div class="d-flex justify-content-center gap-2 mt-3">
+            <input type="file" class="form-control" (change)="onImageChange($event)" #fileInput hidden accept="image/*" [disabled]="isImageControlsDisabled()">
+            <button type="button" class="btn btn-primary" (click)="fileInput.click()" [disabled]="isImageControlsDisabled()">
+              <i class="material-icons">cloud_upload</i> Upload Image
+            </button>
+            <button type="button" *ngIf="imageUrl" class="btn btn-sm btn-outline-danger" (click)="onImageRemove()" [disabled]="isImageControlsDisabled()">
+              Remove
+            </button>
+          </div>
+          <div *ngIf="error" class="alert alert-danger mt-3">
+            {{error}}
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Right column with form -->
+    <div class="col-md-8">
+      <div class="scrolling-div">
+        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+          <!-- Command bar at the top with role badge -->
+          <div class="command-bar mb-3 d-flex justify-content-between align-items-center">
+            <div>
+              <button type="submit" [disabled]="isSaveDisabled()" class="btn btn-primary me-2">
+                <span *ngIf="submitting" class="spinner-border spinner-border-sm me-1"></span>
+                Save Changes
+              </button>
+              <button type="button" (click)="onCancel()" class="btn btn-secondary">Cancel</button>
+            </div>
+            <!-- Role badge and dropdown -->
+            <div class="d-flex align-items-center">
+              <div class="form-group mb-0 me-3" *ngIf="(currentUserRole === Role.Admin || currentUserRole === Role.SuperAdmin) && form.get('role')?.value !== Role.SuperAdmin">
+                <select class="form-select" formControlName="role" [disabled]="isFormDisabled()">
+                  <option *ngFor="let role of availableRoles" [value]="role">{{ role }}</option>
+                </select>
+              </div>
+              <span class="badge role-badge" [ngClass]="getRoleBadgeClass()">
+                <ng-container *ngIf="form.get('role')?.value === Role.SuperAdmin">
+                  <i class="material-icons" style="font-size: 1.2em; vertical-align: middle; margin-right: 0.3em;">emoji_events</i>
+                </ng-container>
+                {{ form.get('role')?.value }}
+              </span>
+            </div>
+          </div>
+          <div class="card mb-3">
+            <div class="card-header">
+              <h5 class="mb-0">Basic Account Information</h5>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">First Name</label>
+                  <input type="text" formControlName="firstName" class="form-control" 
+                         [ngClass]="{ 'is-invalid': submitted && f.firstName.errors }"
+                         [disabled]="isFormDisabled()">
+                  <div *ngIf="submitted && f.firstName.errors" class="invalid-feedback">
+                    <div *ngIf="f.firstName.errors.required">First Name is required</div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Last Name</label>
+                  <input type="text" formControlName="lastName" class="form-control" 
+                         [ngClass]="{ 'is-invalid': submitted && f.lastName.errors }"
+                         [disabled]="isFormDisabled()">
+                  <div *ngIf="submitted && f.lastName.errors" class="invalid-feedback">
+                    <div *ngIf="f.lastName.errors.required">Last Name is required</div>
+                  </div>
+                </div>
+                <div class="col-md-7">
+                  <label class="form-label">Email</label>
+                  <input type="text" formControlName="email" class="form-control" 
+                         [ngClass]="{ 'is-invalid': submitted && f.email.errors }"
+                         [disabled]="isFormDisabled()">
+                  <div *ngIf="submitted && f.email.errors" class="invalid-feedback">
+                    <div *ngIf="f.email.errors.required">Email is required</div>
+                    <div *ngIf="f.email.errors.email">Email must be a valid email address</div>
+                  </div>
+                </div>
+              </div>
+              <!-- Password section -->
+              <div class="row g-3 mt-3">
+                <div class="col-12">
+                  <h5 class="mb-0">
+                    {{ account?.id ? 'Change Password' : 'Set Password' }}
+                  </h5>
+                  <p class="text-muted small" *ngIf="account?.id">Leave blank to keep your current password.</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Password</label>
+                  <input type="password" formControlName="password" class="form-control" 
+                         [ngClass]="{ 'is-invalid': submitted && f.password.errors }"
+                         [disabled]="isFormDisabled()">
+                  <div *ngIf="submitted && f.password.errors" class="invalid-feedback">
+                    <div *ngIf="f.password.errors.required">Password is required</div>
+                    <div *ngIf="f.password.errors.minlength">Password must be at least 6 characters</div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Confirm Password</label>
+                  <input type="password" formControlName="confirmPassword" class="form-control" 
+                         [ngClass]="{ 'is-invalid': (f.confirmPassword.touched || submitted) && f.confirmPassword.errors }"
+                         [disabled]="isFormDisabled()">
+                  <div *ngIf="(f.confirmPassword.touched || submitted) && f.confirmPassword.errors" class="invalid-feedback">
+                    <div *ngIf="f.confirmPassword.errors.required">Confirm Password is required</div>
+                    <div *ngIf="f.confirmPassword.errors.mustMatch">Passwords must match</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading spinner -->
+<div *ngIf="loading" class="d-flex justify-content-center">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+</div> 

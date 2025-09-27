@@ -1,0 +1,259 @@
+.p-4 {
+    padding: 1.5rem !important;
+}
+
+:host {
+    display: block;
+    background-color: #f5f5f5;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+h1 {
+    color: #333;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 0.5rem;
+}
+
+.card {
+    margin-bottom: 1.5rem;
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.card-header {
+    background-color: #fff;
+    border-bottom: 1px solid rgba(0,0,0,.125);
+    padding: 0.75rem 1.25rem;
+}
+
+.card-body {
+    padding: 1.25rem;
+    background-color: #fff;
+}
+
+.card-body p:last-child {
+    margin-bottom: 0;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-control {
+    border-radius: 0.25rem;
+    border: 1px solid #ced4da;
+    padding: 0.5rem 0.75rem;
+}
+
+.table-responsive {
+    margin-top: 1rem;
+}
+
+.badge {
+    padding: 0.5rem 0.75rem;
+    border-radius: 30px;
+    font-weight: 500;
+}
+
+.badge.bg-success {
+    background-color: #198754 !important;
+}
+
+.badge.bg-warning {
+    background-color: #ffc107 !important;
+}
+
+.badge.bg-info {
+    background-color: #0dcaf0 !important;
+    color: #000 !important;
+}
+
+.badge.bg-dark {
+    background-color: #212529 !important;
+    color: white !important;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    border-radius: 0.2rem;
+}
+
+.table-warning {
+    background-color: rgba(255, 193, 7, 0.1);
+}
+
+/* Empty state styling */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 0;
+    color: #6c757d;
+}
+
+.empty-state p {
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+/* Make sure the table is responsive */
+@media (max-width: 768px) {
+    .table-responsive {
+        overflow-x: auto;
+    }
+}
+
+/* Smooth transition for badge changes */
+.badge {
+    transition: background-color 0.3s ease;
+}
+
+/* Animation for new sessions */
+@keyframes highlight {
+    0% { background-color: rgba(25, 135, 84, 0.2); }
+    100% { background-color: transparent; }
+}
+
+tr.new-session {
+    animation: highlight 2s ease;
+}
+
+/* Refresh button styles */
+.btn-outline-primary {
+    color: #0d6efd;
+    border-color: #0d6efd;
+    transition: all 0.2s ease;
+}
+
+.btn-outline-primary:hover {
+    color: #fff;
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+/* Disabled button styles */
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+.text-muted small i {
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+
+/* Main layout structure - REMOVED as using Bootstrap container now */
+/*
+.admin-overview-container {
+    padding: 1.5rem;
+    height: 100%;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+*/
+
+.admin-header {
+    flex: 0 0 auto;
+    padding-bottom: 1rem;
+}
+
+.admin-header h1 {
+    color: #333;
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 0.5rem;
+    font-size: 1.6rem;
+}
+
+.admin-header p {
+    margin-bottom: 1.5rem;
+    color: #6c757d;
+    font-size: 0.95rem;
+}
+
+/* Sessions table container with scrolling */
+.sessions-table-container {
+    max-height: 400px;
+    overflow-y: auto;
+    border-radius: 4px;
+    border: 1px solid #eee;
+    background-color: #fff;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
+}
+
+/* Ensure the table header stays fixed */
+.table-responsive {
+    margin-top: 0;
+}
+
+.table thead th {
+    position: sticky;
+    top: 0;
+    background-color: #f8f9fa;
+    z-index: 1;
+    border-bottom: 2px solid #dee2e6;
+}
+
+/* Quick Links Adjustments */
+.quick-link-card .card-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    text-align: left;
+    padding: 1rem;
+}
+
+.quick-link-card .quick-link-icon {
+    flex-shrink: 0;
+    font-size: 1.8rem;
+    width: 35px;
+    text-align: center;
+    margin-top: 0.25rem;
+}
+
+.quick-link-card .quick-link-text h3 {
+    /* REMOVE as h3 inside app-title will handle this, unless specific override needed */
+    /* 
+    margin-top: 0; 
+    margin-bottom: 0.25rem;
+    font-size: 1.05rem; 
+    */
+}
+
+.quick-link-card .quick-link-text p {
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.quick-link-card .quick-link-text .btn {
+    margin-top: 0.25rem;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.8rem;
+}
+
+/* Admin Tools List Group */
+.list-group-item {
+    padding: 0.75rem 1.25rem;
+    border-color: rgba(0,0,0,.08);
+}
+
+.list-group-item i {
+    color: #6c757d;
+}
+
+/* Remove default browser focus outline, rely on hover/active states */
+a:focus, button:focus {
+    outline: none;
+    box-shadow: none;
+}

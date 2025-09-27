@@ -1,0 +1,637 @@
+.chat-window {
+  display: flex;
+  flex-direction: column;
+  width: 400px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: height 0.3s ease, width 0.3s ease;
+
+  &.minimized {
+    min-height: 64px;
+    width: 200px !important;
+    min-width: 200px !important;
+    max-width: 200px !important;
+  }
+}
+
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: steelblue;
+  color: white;
+  border-bottom: 1px solid #e0e0e0;
+  cursor: pointer;
+  transition: padding 0.2s, height 0.2s;
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .user-name {
+      font-weight: 500;
+      color: white;
+    }
+
+    .online-status {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #ccc;
+      margin-left: 4px;
+      transition: all 0.3s ease;
+
+      &.online {
+        background: #4caf50;
+        box-shadow: 0 0 8px rgba(76, 175, 80, 0.6);
+      }
+    }
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+
+    button {
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.04);
+      }
+
+      mat-icon {
+        color: #666;
+      }
+    }
+
+    // Add animation for refresh button when new messages are available
+    button[mat-icon-button] {
+      &:has(mat-icon:contains('refresh')) {
+        animation: pulse 2s infinite;
+      }
+    }
+  }
+}
+
+.chat-window.minimized {
+  height: 40px !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
+}
+
+.chat-window.minimized .chat-header {
+  padding: 0 8px !important;
+  min-height: 40px !important;
+  height: 40px !important;
+  align-items: center;
+}
+
+.chat-window.minimized .user-info .user-avatar {
+  width: 24px;
+  height: 24px;
+}
+
+.chat-window.minimized .user-info .user-name {
+  font-size: 0.95rem;
+}
+
+.chat-window.minimized .icon-circle {
+  width: 24px;
+  height: 24px;
+  font-size: 14px;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.chat-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.messages {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  /* Restore scrollbar styling */
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+
+  .message {
+    display: flex;
+    width: 100%;
+    margin-bottom: 8px;
+  }
+
+  .message.sent {
+    justify-content: flex-end;
+  }
+
+  .message.received {
+    justify-content: flex-start;
+  }
+
+  .sent-content, .received-content {
+    max-width: 70%;
+  }
+
+  .sent-content {
+    background: #e3f2fd;
+    border-radius: 16px 0 16px 16px;
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+  }
+
+  .received-content {
+    background: #f5f5f5;
+    border-radius: 0 16px 16px 16px;
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .sent-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-left: 8px;
+    margin-right: 0;
+    align-self: flex-end;
+    position: relative;
+    top: -25px;
+  }
+
+  .received-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 8px;
+    margin-left: 0;
+    align-self: flex-start;
+  }
+
+  .sent-time {
+    font-size: 0.75rem;
+    color: #666;
+    margin-bottom: 2px;
+    margin-top: 0;
+    text-align: right;
+  }
+
+  .received-time {
+    font-size: 0.75rem;
+    color: #666;
+    margin-bottom: 2px;
+    margin-top: 0;
+    text-align: left;
+  }
+
+  .sent-text {
+    // font-size: 1rem;
+    color: #1976d2;
+    background: transparent;
+  }
+
+  .received-text {
+    // font-size: 1rem;
+    color: #333;
+    background: transparent;
+  }
+}
+
+.message-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-top: 5px;
+}
+
+.sent-avatar {
+  order: 2;
+  margin-left: 8px;
+  margin-right: 0;
+}
+
+.message-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.message-meta-row.sent {
+  flex-direction: row-reverse;
+}
+
+.message-meta-row.received {
+  flex-direction: row;
+}
+
+.message-content-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.message-content-block.sent {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.message-content-block.received {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.message.sent {
+  align-self: flex-end !important;
+  justify-content: flex-end !important;
+  text-align: right !important;
+}
+
+.message.received {
+  align-self: flex-start !important;
+  justify-content: flex-start !important;
+  text-align: left !important;
+}
+
+.message-time {
+  font-size: 0.75rem;
+  color: #666;
+  margin-bottom: 2px;
+  margin-top: 0;
+  text-align: left;
+  align-self: flex-start;
+}
+
+.chat-input {
+  padding: 12px;
+  border-top: 1px solid #e0e0e0;
+  background: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  mat-form-field {
+    width: 80%;
+  }
+
+  button {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    margin-top: -20px;
+  }
+}
+
+// Add styles for the Material Dialog
+::ng-deep .chat-dialog-container {
+  position: fixed !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  max-width: none !important;
+  transition: all 0.3s ease;
+  
+  .mat-mdc-dialog-container {
+    padding: 0 !important;
+    border-radius: 8px 8px 0 0 !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
+  }
+}
+
+::ng-deep .chat-dialog-container.minimized {
+  width: 200px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
+  transition: all 0.3s ease;
+  overflow: visible;
+  box-shadow: none !important;
+  background: transparent !important;
+  z-index: 1200 !important;
+}
+
+// Ensure minimized chat dialog is flush right
+::ng-deep .cdk-overlay-pane.chat-dialog-container.minimized {
+  // right: 0 !important;
+  left: auto !important;
+  position: fixed !important;
+  bottom: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 200px !important;
+  max-width: 200px !important;
+  min-width: 200px !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  z-index: 1200 !important;
+}
+
+// Stack minimized chats horizontally
+::ng-deep .cdk-overlay-container {
+  .cdk-overlay-pane.chat-dialog-container.minimized {
+    position: fixed !important;
+    bottom: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 200px !important;
+    max-width: 200px !important;
+    min-width: 200px !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    z-index: 1200 !important;
+    transform: none !important;
+    transition: transform 0.3s ease !important;
+  }
+}
+
+// Position each minimized chat with a transform
+::ng-deep .cdk-overlay-pane.chat-dialog-container.minimized:nth-child(1) { transform: translateX(0) !important; }
+::ng-deep .cdk-overlay-pane.chat-dialog-container.minimized:nth-child(2) { transform: translateX(-210px) !important; }
+::ng-deep .cdk-overlay-pane.chat-dialog-container.minimized:nth-child(3) { transform: translateX(-420px) !important; }
+::ng-deep .cdk-overlay-pane.chat-dialog-container.minimized:nth-child(4) { transform: translateX(-630px) !important; }
+::ng-deep .cdk-overlay-pane.chat-dialog-container.minimized:nth-child(5) { transform: translateX(-840px) !important; }
+
+// Make the button background transparent and remove border
+.icon-btn {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  margin: 0 2px;
+  outline: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Blue circular background for the icon
+.icon-circle {
+  background: #1976d2; // Material blue
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25), 0 1.5px 4px rgba(0,0,0,0.10);
+  transition: transform 0.15s cubic-bezier(0.4,0,0.2,1);
+}
+
+// White icon
+.icon-circle i.fa {
+  color: #fff !important;
+  font-size: 18px;
+  line-height: 32px;
+}
+
+// Animate icon circle on hover
+.icon-btn:hover .icon-circle {
+  transform: scale(1.2);
+}
+
+.chat-body.hidden {
+  display: none;
+}
+
+::ng-deep .chat-dialog-container.minimized.mat-mdc-dialog-panel {
+  height: 40px !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: flex-start !important;
+}
+
+::ng-deep .chat-dialog-container.minimized .chat-window {
+  height: 40px !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
+}
+
+// Force all dialog containers and overlays to shrink when minimized
+::ng-deep .cdk-overlay-pane.chat-dialog-container.minimized,
+::ng-deep .cdk-overlay-pane.chat-dialog-container.minimized .mat-mdc-dialog-container,
+::ng-deep .cdk-overlay-pane.chat-dialog-container.minimized .chat-window,
+::ng-deep .chat-dialog-container.minimized .mat-mdc-dialog-container,
+::ng-deep .chat-dialog-container.minimized .chat-window {
+  height: 40px !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  transition: height 0.3s;
+  box-sizing: border-box;
+}
+
+.message-grid.received {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  align-items: start;
+  column-gap: 8px;
+  margin-bottom: 4px;
+  justify-items: start;
+}
+
+.avatar-cell {
+  grid-row: 1 / span 2;
+  grid-column: 1;
+  display: flex;
+  align-items: flex-start;
+}
+
+.meta-cell {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.meta-cell .message-time {
+  font-size: 0.75rem;
+  color: #666;
+  margin-bottom: 2px;
+  margin-top: 0;
+  text-align: left;
+}
+
+.meta-cell .message-content {
+  text-align: left;
+}
+
+.message-grid.sent {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  align-items: start;
+  column-gap: 8px;
+  margin-bottom: 4px;
+  justify-items: end;
+}
+
+.avatar-cell.sent {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+
+.meta-cell.sent {
+  grid-row: 1 / span 2;
+  grid-column: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.meta-cell.sent .message-time {
+  font-size: 0.75rem;
+  color: #666;
+  margin-bottom: 2px;
+  margin-top: 0;
+  text-align: right;
+  align-self: flex-end;
+  margin-right: 8px;
+}
+
+.meta-cell.sent .message-content {
+  text-align: right;
+}
+
+.time-received {
+  /* Custom styles for received time */
+  font-size: x-small;
+}
+
+.time-sent {
+  /* Custom styles for sent time */
+  font-size: x-small;
+}
+
+.avatar-received {
+  /* Custom styles for received avatar */
+  height: 40px;
+  width: 40px;  
+}
+
+.avatar-sent {
+  /* Custom styles for sent avatar */
+  height: 40px;
+  width: 40px;
+}
+
+.text-received {
+  /* Custom styles for received text */
+  font-size: medium;
+}
+
+.text-sent {
+  /* Custom styles for sent text */
+  font-size: medium;
+}
+
+// Add styles for minimized badge
+.minimized-badge {
+  margin-left: 8px;
+  
+  ::ng-deep .mat-badge-content {
+    background-color: #ff4081; // Material accent color
+    color: white;
+    font-size: 10px;
+    width: 8px;
+    height: 8px;
+    line-height: 8px;
+    right: -4px;
+    top: -4px;
+  }
+}
+
+.new-message-badge {
+  position: absolute;
+  left: 50%;
+  bottom: 60px;
+  transform: translateX(-50%);
+  background: #ff9800;
+  color: #fff;
+  border: none;
+  border-radius: 16px;
+  padding: 6px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  cursor: pointer;
+  z-index: 10;
+  transition: background 0.2s;
+}
+
+.new-message-badge:hover {
+  background: #fb8c00;
+}
+
+::ng-deep emoji-picker {
+  --emoji-size: 2.5rem;
+}
+
+::ng-deep emoji-picker .emoji-picker__emoji {
+  font-size: 2.5rem !important;
+}
+
+.sent-text, .received-text {
+  font-size: 1.5rem;
+}
+
+::ng-deep .mat-badge-content {
+  background-color: #4caf50 !important; /* Material Green 500 */
+  color: #fff !important;
+}

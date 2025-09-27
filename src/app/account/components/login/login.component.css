@@ -1,0 +1,291 @@
+.login-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 85vh;
+    background-color: #ecedee;
+    padding: 0.5rem;
+    margin-top: 0rem;
+    overflow: visible !important;
+    overflow-y: hidden !important;
+    scrollbar-width: none !important;
+}
+
+.login-container::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+.login-card {
+    width: 420px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e0e0e0;
+    position: relative;
+    margin-top: 0;
+    overflow: visible !important;
+    overflow-y: hidden !important;
+    scrollbar-width: none !important;
+}
+
+.login-card::-webkit-scrollbar {
+    display: none !important;
+}
+
+.login-card .card-body {
+    padding: 1.5rem;
+    overflow: visible !important;
+    overflow-y: hidden !important;
+    scrollbar-width: none !important;
+}
+
+.login-form {
+    overflow: visible !important;
+    overflow-y: hidden !important;
+    scrollbar-width: none !important;
+}
+
+.sign-in-title {
+    text-align: center;
+    color: #333;
+    margin-bottom: 1.25rem;
+    font-size: 16px;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+/* Form labels */
+label {
+    display: block;
+    margin-bottom: 5px;
+    color: #495057;
+    font-size: 14px;
+}
+
+/* New input field layout */
+.input-field {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.4rem;
+    width: 100%;
+    height: 38px;
+}
+
+.icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    background-color: white;
+    border-right: 1px solid #e0e0e0;
+    flex-shrink: 0;
+}
+
+.icon-container i {
+    color: #6c757d;
+    font-size: 14px;
+    text-align: center;
+}
+
+/* Style specifically for .form-control inputs */
+.input-field .form-control {
+    border: none;
+    border-radius: 0;
+    padding: 10px;
+    height: 38px;
+    box-sizing: border-box;
+    width: 100%;
+    flex-grow: 1;
+    font-size: 14px;
+}
+
+.input-field .form-control:focus {
+    box-shadow: none;
+    outline: none;
+}
+
+/* Add focus style to the entire input-field */
+.input-field:focus-within {
+    border-color: #adb5bd;
+    box-shadow: 0 0 0 0.1rem rgba(173, 181, 189, 0.25);
+}
+
+.form-check {
+    margin-bottom: 0.75rem !important;
+    display: flex;
+    align-items: center;
+    padding-left: 1px;
+}
+
+.form-check-input {
+    margin-top: 0;
+    margin-right: 0.35rem;
+    width: 16px !important;
+    height: 16px !important;
+    cursor: pointer;
+    opacity: 1 !important;
+    position: static !important;
+    appearance: checkbox !important;
+    -webkit-appearance: checkbox !important;
+    -moz-appearance: checkbox !important;
+    visibility: visible !important;
+    display: inline-block !important;
+}
+
+.form-check-label {
+    color: #495057;
+    font-size: 14px;
+    margin-bottom: 0;
+    display: inline;
+    cursor: pointer;
+}
+
+.btn-block {
+    width: 100%;
+    margin-bottom: 0.75rem;
+}
+
+.btn-success {
+    background-color: #4CAF50;
+    border-color: #4CAF50;
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 4px;
+}
+
+.btn-success:hover {
+    background-color: #45a049;
+    border-color: #45a049;
+}
+
+.social-login {
+    margin: 1.25rem 0;
+}
+
+.btn-facebook {
+    background-color: #3b5998;
+    color: white;
+    margin-bottom: 0.5rem;
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 4px;
+}
+
+.btn-facebook:hover {
+    background-color: #344e86;
+    color: white;
+}
+
+.btn-google {
+    background-color: #3f51b5;
+    color: white;
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-google i {
+    font-size: 16px;
+    line-height: 1;
+    vertical-align: middle;
+}
+
+.btn-google:hover {
+    background-color: #344e86;
+    color: white;
+}
+
+.sign-up-link {
+    color: #4CAF50;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.sign-up-link:hover {
+    text-decoration: underline;
+}
+
+.forgot-password-link {
+    color: #6c757d;
+    text-decoration: none;
+    font-size: 14px;
+    display: inline-block;
+    margin-top: 0.4rem;
+}
+
+.forgot-password-link:hover {
+    color: #5a6268;
+    text-decoration: underline;
+}
+
+/* Invalid feedback styling */
+.invalid-feedback {
+    display: block;
+    width: 100%;
+    margin-top: 0.25rem;
+    font-size: 12px;
+    color: #dc3545;
+}
+
+.center-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh; /* or 100vh for full vertical centering */
+}
+
+.centered-form-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: #f8f9fa;
+}
+
+/* Auth0 Loading Message */
+.auth0-loading-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 15px;
+  padding: 12px 20px;
+  background-color: #e3f2fd;
+  border: 1px solid #2196f3;
+  border-radius: 8px;
+  color: #1976d2;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e3f2fd;
+  border-top: 2px solid #2196f3;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

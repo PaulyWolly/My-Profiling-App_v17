@@ -1,0 +1,103 @@
+<div class="container-fluid px-4 pb-4">
+  <app-title [text]="'Admin Scripts'" [level]="1" [marginBottom]="'small'"></app-title>
+  <p class="mb-4 mt-0">Run admin scripts and view script run history.</p>
+
+  <div class="card mb-4">
+    <div class="card-header">
+      <h2>Available Scripts</h2>
+    </div>
+    <div class="card-body">
+      <div *ngIf="loading" class="text-center">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+      <div *ngIf="!loading && scripts.length === 0" class="empty-state">
+        <p>No scripts found.</p>
+      </div>
+      <div *ngIf="!loading && scripts.length > 0" class="table-responsive">
+        <table class="table table-bordered table-hover">
+          <thead>
+            <tr>
+              <th>Script Name</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let script of scripts">
+              <td>{{ script }}</td>
+              <td>
+                <button class="btn btn-sm btn-primary" (click)="runScript(script)" [disabled]="runningScript === script">
+                  <span *ngIf="runningScript === script" class="spinner-border spinner-border-sm me-1"></span>
+                  Run
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script Output Modal -->
+  <div class="modal fade show" tabindex="-1" style="display: block; background: rgba(0,0,0,0.3);" *ngIf="showModal">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Script Output</h5>
+          <button type="button" class="btn-close" (click)="closeModal()"></button>
+        </div>
+        <div class="modal-body">
+          <div *ngIf="scriptOutput">
+            <h6>Output:</h6>
+            <pre>{{ scriptOutput }}</pre>
+          </div>
+          <div *ngIf="scriptError">
+            <h6 class="text-danger">Error:</h6>
+            <pre class="text-danger">{{ scriptError }}</pre>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeModal()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mt-4">
+    <div class="card-header">
+      <h2>Script Run History</h2>
+    </div>
+    <div class="card-body table-responsive">
+      <table class="table table-bordered table-hover">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Script</th>
+            <th>Executed By</th>
+            <th>Status</th>
+            <th>Output</th>
+            <th>Error</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let run of history">
+            <td>{{ run.date | date:'medium' }}</td>
+            <td>{{ run.script }}</td>
+            <td>{{ run.executedBy }}</td>
+            <td>
+              <span [ngClass]="{'badge bg-success': run.status === 'success', 'badge bg-danger': run.status === 'error'}">
+                {{ run.status }}
+              </span>
+            </td>
+            <td><pre style="max-width: 200px; max-height: 80px; overflow: auto;">{{ run.output }}</pre></td>
+            <td><pre style="max-width: 200px; max-height: 80px; overflow: auto; color: #c00;">{{ run.error }}</pre></td>
+          </tr>
+        </tbody>
+      </table>
+      <div *ngIf="history.length === 0" class="empty-state">
+        <p>No script run history found.</p>
+      </div>
+    </div>
+  </div>
+</div> 

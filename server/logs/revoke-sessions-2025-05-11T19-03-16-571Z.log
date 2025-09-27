@@ -1,0 +1,20 @@
+[USER] Paul Welby <pwelby@gmail.com>
+  Keeping session: cb99efcd7742f2d51c83b34d4bc0fe36d7fbe8de823a800223551bde54fdbd5e84531ac545e0d49a (created: Sun May 11 2025 11:26:43 GMT-0700 (Pacific Daylight Time))
+  Found session: a397c378b54c7e500dae70af737c28f4b52537e6db092f39cacd9e1bd358219bb7e15ba5f3853a82 (created: Sun May 11 2025 11:23:04 GMT-0700 (Pacific Daylight Time))
+  Revoked session: a397c378b54c7e500dae70af737c28f4b52537e6db092f39cacd9e1bd358219bb7e15ba5f3853a82 (created: Sun May 11 2025 11:23:04 GMT-0700 (Pacific Daylight Time))
+[SKIP] Bugs Bunny <bugs@looney.com> - Only 1 or 0 active sessions.
+[USER] Daffy Duck <dduck@looney.com>
+  Keeping session: c1289a738cd17a5738f2a84c521a575bf8c88d04f5a5ff176528677e33e005131969bf79ddfe55d3 (created: Sat May 10 2025 07:41:54 GMT-0700 (Pacific Daylight Time))
+  Found session: 957b2a7f98e25bad3e180507d4950e50ad29c003a7e1c1db2f98210b326360adf0e25c7f893c42d7 (created: Sat May 10 2025 06:37:48 GMT-0700 (Pacific Daylight Time))
+  Revoked session: 957b2a7f98e25bad3e180507d4950e50ad29c003a7e1c1db2f98210b326360adf0e25c7f893c42d7 (created: Sat May 10 2025 06:37:48 GMT-0700 (Pacific Daylight Time))
+[SKIP] UserID: 681e178dacfacea90b91ffdc - Only 1 or 0 active sessions.
+[SKIP] UserID: 681e1935acfacea90b92003a - Only 1 or 0 active sessions.
+[SKIP] UserID: 681e267cacfacea90b9204de - Only 1 or 0 active sessions.
+[SKIP] UserID: 681e36a43f73c825b015df5d - Only 1 or 0 active sessions.
+[SKIP] UserID: 681e36d03f73c825b015df7d - Only 1 or 0 active sessions.
+[USER] Tweety Bird <tbird@looney.com>
+  Keeping session: 48b4b6239c38d20b7cbef632e0aed70a540602d74bb981294f8314c540d952b6a9c0e21d30e4c2a6 (created: Sun May 11 2025 07:20:36 GMT-0700 (Pacific Daylight Time))
+  Found session: fc2ad87df83ca208c6a9c2aaec581e46dbcf85f131278ded6e8d9ca9cc8eabc9fc8675d2ecef3af8 (created: Sat May 10 2025 19:59:22 GMT-0700 (Pacific Daylight Time))
+  Revoked session: fc2ad87df83ca208c6a9c2aaec581e46dbcf85f131278ded6e8d9ca9cc8eabc9fc8675d2ecef3af8 (created: Sat May 10 2025 19:59:22 GMT-0700 (Pacific Daylight Time))
+
+Summary: Processed 9 users, revoked 3 sessions.

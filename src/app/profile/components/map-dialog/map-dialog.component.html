@@ -1,0 +1,50 @@
+<div class="map-dialog-container">
+  <h2 mat-dialog-title>Location</h2>
+  <mat-dialog-content>
+    <div *ngIf="fullAddress">
+      <p class="address-text">{{ fullAddress }}</p>
+      
+      <!-- Loading indicator -->
+      <div *ngIf="loadingMap" class="loading-container">
+        <p>Loading map...</p>
+        <mat-progress-spinner 
+          color="primary" 
+          mode="indeterminate" 
+          diameter="40">
+        </mat-progress-spinner>
+      </div>
+      
+      <!-- Error message -->
+      <div *ngIf="!loadingMap && errorMessage" class="error-container">
+        <p class="error-message">{{ errorMessage }}</p>
+      </div>
+      
+      <!-- Show iframe map if API key is available -->
+      <div *ngIf="!loadingMap && apiKeyAvailable && mapUrl" class="map-container">
+        <iframe 
+          [src]="mapUrl"
+          loading="lazy"
+          class="full-width-map"
+          width="100%"
+          height="100%"
+          allowfullscreen>
+        </iframe>
+      </div>
+      
+      <!-- Show link to Google Maps if API key is not available -->
+      <div *ngIf="!loadingMap && !apiKeyAvailable && !errorMessage" class="map-link-container">
+        <p>Use the link below to view this location on Google Maps</p>
+        <a [href]="directMapUrl" target="_blank" class="map-link mat-raised-button mat-primary">Open in Google Maps</a>
+      </div>
+    </div>
+    
+    <div *ngIf="!fullAddress" class="no-address-message">
+      No address information available for this profile.
+    </div>
+  </mat-dialog-content>
+  
+  <mat-dialog-actions class="center-buttons">
+    <button mat-button (click)="closeDialog()">Close</button>
+    <a mat-raised-button color="primary" [href]="directMapUrl" target="_blank">Open in Google Maps</a>
+  </mat-dialog-actions>
+</div> 

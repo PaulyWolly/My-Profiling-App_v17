@@ -1,0 +1,12 @@
+<div class="confirm-dialog">
+  <h2 *ngIf="data.title" class="confirm-dialog-title" [innerHTML]="data.title"></h2>
+  <div class="confirm-dialog-message">
+    <p>{{ data.message }}</p>
+  </div>
+  <div class="confirm-dialog-actions-bg">
+    <div class="confirm-dialog-actions">
+      <button mat-button (click)="onCancel()" class="confirm-dialog-cancel">{{ data.cancelText || 'Cancel' }}</button>
+      <button mat-raised-button color="warn" (click)="onConfirm()" class="confirm-dialog-confirm">{{ data.confirmText || 'Delete' }}</button>
+    </div>
+  </div>
+</div> 

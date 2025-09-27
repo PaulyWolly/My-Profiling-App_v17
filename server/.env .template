@@ -1,0 +1,2 @@
+MONGODB_URI=<MONGODB_URI>
+SMTP_APP_PASSWORD=<SMTP PASSWORD> #Can be retrieved from Google App Paswords

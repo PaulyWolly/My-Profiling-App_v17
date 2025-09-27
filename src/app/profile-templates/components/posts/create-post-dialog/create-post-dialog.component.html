@@ -1,0 +1,28 @@
+<h2 mat-dialog-title>{{ isResponse ? 'Respond to Post' : 'Create Post' }}</h2>
+<div mat-dialog-content>
+  <mat-form-field appearance="outline" class="w-100">
+    <mat-label>Recipient</mat-label>
+    <mat-select [(ngModel)]="recipientId" required>
+      <mat-option *ngFor="let user of data.users" [value]="user.id">
+        {{ user.name }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="w-100">
+    <mat-label>Message</mat-label>
+    <textarea matInput [(ngModel)]="content" required rows="4"></textarea>
+  </mat-form-field>
+
+  <div *ngIf="isResponse" class="response-info">
+    <p>Responding to: {{ data.respondingTo.sender.firstName }} {{ data.respondingTo.sender.lastName }}</p>
+    <p class="original-content">{{ data.respondingTo.content }}</p>
+  </div>
+</div>
+
+<div mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="!recipientId || !content.trim()">
+    {{ isResponse ? 'Send Response' : 'Create Post' }}
+  </button>
+</div> 
