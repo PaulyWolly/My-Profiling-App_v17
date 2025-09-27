@@ -47,13 +47,15 @@ Thumbs.db
 /server/config-bkup.json
 .env
 .env.*
-# Allow tracking main environment files, but ignore custom ones
-# /src/environments/*.ts
+# Ignore all environment files with actual secrets
+/src/environments/environment.ts
+/src/environments/environment.prod.ts
 /src/environments/environment.custom.ts
 /src/environments/environment.local.ts
 /src/environments/environment.dev.ts
-!/src/environments/environment.ts
-!/src/environments/environment.prod.ts
+# Only track example files
+!/src/environments/environment.example.ts
+!/src/environments/environment.prod.example.ts
 
 # Reference repo
 /reference_repo
