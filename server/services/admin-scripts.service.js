@@ -7,7 +7,7 @@ const router = express.Router();
 const ScriptRun = require('../models/scriptRun.model'); // We'll create this model next
 const SCRIPTS_DIR = path.join(__dirname, '../scripts');
 const jwt = require('jsonwebtoken');
-const { secret } = require('../config.json');
+const { secret } = require('../secrets/config.json');
 const { v4: uuidv4 } = require('uuid');
 const processes = {};
 

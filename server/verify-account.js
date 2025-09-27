@@ -1,6 +1,6 @@
-require('dotenv').config();
+require('dotenv').config({ path: './secrets/.env' });
 const mongoose = require('mongoose');
-const config = require('./config.json');
+const config = require('./secrets/config.json');
 
 async function showAndVerifyAccount() {
     try {

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const config = require('../config.json');
+const config = require('../secrets/config.json');
 
 // Use environment variable for MongoDB connection string if available
 const connectionString = process.env.MONGODB_URI || config.connectionString;

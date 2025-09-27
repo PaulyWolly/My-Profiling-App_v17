@@ -1,4 +1,4 @@
-﻿require('dotenv').config();
+﻿require('dotenv').config({ path: './secrets/.env' });
 const express = require('express');
 const path = require('path');
 const app = express();
@@ -35,7 +35,7 @@ setInterval(() => {
 }, 700);
 
 // get DB name from config.json
-const config = require('./config.json');
+const config = require('./secrets/config.json');
 const DBName = config.DBName;
 
 const PORT = process.env.PORT || 5001;

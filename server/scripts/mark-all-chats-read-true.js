@@ -2,7 +2,7 @@
 const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
-const config = require('../config.json');
+const config = require('../secrets/config.json');
 
 const chatCollection = 'chat'; // Collection name
 

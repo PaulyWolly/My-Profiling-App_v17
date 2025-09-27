@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
-const { secret } = require('../config.json');
+const { secret } = require('../secrets/config.json');
 const db = require('../_helpers/db');
 const Role = require('../_helpers/role');
 const path = require('path');

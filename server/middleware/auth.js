@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const config = require('../config.json');
+const config = require('../secrets/config.json');
 
 function extractToken(req) {
   let token = null;

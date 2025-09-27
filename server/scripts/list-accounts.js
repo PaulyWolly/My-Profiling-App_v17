@@ -1,8 +1,8 @@
 const chalk = require('chalk');
 const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '../.env') });
+require('dotenv').config({ path: path.join(__dirname, '../secrets/.env') });
 const mongoose = require('mongoose');
-const config = require('../config.json');
+const config = require('../secrets/config.json');
 
 // Default pagination settings
 const DEFAULT_PAGE_SIZE = 10;

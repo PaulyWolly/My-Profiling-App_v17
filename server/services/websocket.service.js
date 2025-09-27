@@ -1,7 +1,7 @@
 const db = require('../_helpers/db');
 const { WebSocket } = require('ws');
 const jwt = require('jsonwebtoken');
-const config = require('../config.json');
+const config = require('../secrets/config.json');
 const Chat = require('../models/chat.model');
 const SessionInfo = require('../models/session-info.model');
 

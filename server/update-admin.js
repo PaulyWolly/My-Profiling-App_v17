@@ -1,6 +1,6 @@
-require('dotenv').config();
+require('dotenv').config({ path: './secrets/.env' });
 const mongoose = require('mongoose');
-const config = require('./config.json');
+const config = require('./secrets/config.json');
 const Role = require('./_helpers/role');
 
 // Use environment variable for MongoDB connection string if available

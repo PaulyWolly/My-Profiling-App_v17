@@ -1,4 +1,4 @@
-const config = require('../config.json');
+const config = require('../secrets/config.json');
 const mongoose = require('mongoose');
 const connectionOptions = { 
     useNewUrlParser: true, 

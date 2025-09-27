@@ -2,7 +2,7 @@
 const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
-const config = require('../config.json');
+const config = require('../secrets/config.json');
 const db = require('../_helpers/db'); // Just require, do not call connect()
 const RefreshToken = require('../accounts/refresh-token.model');
 const Account = require('../accounts/account.model');

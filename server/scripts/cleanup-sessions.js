@@ -1,7 +1,7 @@
 const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '../.env') });
+require('dotenv').config({ path: path.join(__dirname, '../secrets/.env') });
 const mongoose = require('mongoose');
-const config = require('../config.json');
+const config = require('../secrets/config.json');
 
 // MongoDB Schema
 const RefreshTokenSchema = new mongoose.Schema({

@@ -1,5 +1,5 @@
 const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '../.env') });
+require('dotenv').config({ path: path.join(__dirname, '../secrets/.env') });
 const mongoose = require('mongoose');
 const chalk = require('chalk');
 const bcrypt = require('bcrypt');
