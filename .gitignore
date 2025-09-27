@@ -65,3 +65,9 @@ clone_of_working_profiling_app2/
 
 # Local reference repo (exclude from git)
 reference_repo_5-11-25/
+
+# Large files and archives
+*.zip
+*.tar.gz
+*.rar
+*.7z
