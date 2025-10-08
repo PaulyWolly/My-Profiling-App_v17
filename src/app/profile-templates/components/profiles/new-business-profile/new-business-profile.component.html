@@ -20,15 +20,11 @@
             </div>
           </div>
           <div class="profile-image-container" [class.loading]="imageLoading">
-            <img *ngIf="profile.profileImage"
-                [src]="profile.profileImage"
+            <img [src]="getProfileImageUrl()"
                 alt="Profile picture"
                 class="img-fluid rounded profile-img mb-3"
                 (load)="onImageLoaded()"
-                (error)="onImageError()">
-            <div *ngIf="!profile.profileImage && !imageLoading" class="default-avatar">
-              <mat-icon class="large-icon">person</mat-icon>
-            </div>
+                (error)="onImageError($event)">
             <div *ngIf="imageLoading" class="loading-spinner">
               <mat-spinner diameter="40"></mat-spinner>
             </div>

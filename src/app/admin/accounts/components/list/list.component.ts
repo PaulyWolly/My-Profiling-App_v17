@@ -234,5 +234,18 @@ export class ListComponent implements OnInit, AfterViewInit {
                 }
             });
     }
+
+    getRoleBadgeClass(role: string): string {
+        switch (role) {
+            case 'Super-Admin':
+                return 'role-badge-super-admin';
+            case 'Admin':
+                return 'role-badge-admin';
+            case 'User':
+                return 'role-badge-user';
+            default:
+                return 'role-badge-default';
+        }
+    }
 }
 

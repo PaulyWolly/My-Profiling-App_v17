@@ -65,7 +65,8 @@
 
 .mat-column-role {
     padding-left: 16px;
-    width: 130px;
+    width: 140px;
+    min-width: 140px;
 }
 
 /* Header styling */
@@ -119,7 +120,47 @@
 .profile-thumbnail img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+}
+
+/* Role Badge Styles */
+.role-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: normal;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: white;
+    min-width: 60px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.role-badge-super-admin {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #8B4513;
+    box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+}
+
+.role-badge-admin {
+    background: linear-gradient(135deg, #DC143C, #B22222);
+    color: white;
+    box-shadow: 0 2px 4px rgba(220, 20, 60, 0.3);
+}
+
+.role-badge-user {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+}
+
+.role-badge-default {
+    background: linear-gradient(135deg, #6c757d, #5a6268);
+    color: white;
+    box-shadow: 0 2px 4px rgba(108, 117, 125, 0.3);
 }
 
 .profile-thumbnail .placeholder-icon {

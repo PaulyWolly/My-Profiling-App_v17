@@ -141,6 +141,14 @@ export class NewBusinessProfileComponent implements OnInit, AfterViewInit, OnCha
     }
   }
 
+  getProfileImageUrl(): string {
+    if (this.profile?.profileImage) {
+      return this.profile.profileImage;
+    }
+    // Fallback to a data URL for a simple default avatar
+    return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjRTVFN0VCIi8+CjxjaXJjbGUgY3g9IjUwIiBjeT0iMzUiIHI9IjE1IiBmaWxsPSIjOUI5QkE1Ii8+CjxwYXRoIGQ9Ik0yMCA4MEMyMCA2NS42NDA2IDMyLjY0MDYgNTMgNDcgNTNINjNDNzcuMzU5NCA1MyA5MCA2NS42NDA2IDkwIDgwVjEwMEgyMFY4MFoiIGZpbGw9IiM5QjlCQTUiLz4KPC9zdmc+';
+  }
+
   ngAfterViewInit() {
     setTimeout(() => this.syncTabHeights(), 0);
   }
@@ -204,11 +212,15 @@ export class NewBusinessProfileComponent implements OnInit, AfterViewInit, OnCha
     console.log('[BusinessCard] Profile image loaded successfully');
   }
 
-  onImageError() {
+  onImageError(event: any) {
     this.imageLoading = false;
     // Clear the profile image URL in case of error
     if (this.profile) {
-      console.error('[BusinessCard] Error loading profile image');
+      console.error('[BusinessCard] Error loading profile image:', {
+        url: this.profile.profileImage,
+        error: event,
+        profileId: this.profile.id
+      });
       this.profile.profileImage = undefined;
     }
   }
