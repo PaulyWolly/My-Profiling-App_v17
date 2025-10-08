@@ -106,22 +106,15 @@ export class NewSocialMediaPreviewComponent implements OnInit {
 
   private loadProfile() {
     this.loading = true;
-    this.accountService.account$.subscribe({
-      next: (account) => {
-        if (account) {
-          this.profile = account;
-          this.error = '';
-        } else {
-          this.error = 'Profile not found';
-        }
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error('Error loading profile:', err);
-        this.error = 'Error loading profile';
-        this.loading = false;
-      }
-    });
+    // Use Signals instead of Observable subscription
+    const account = this.accountService.account();
+    if (account) {
+      this.profile = account;
+      this.error = '';
+    } else {
+      this.error = 'Profile not found';
+    }
+    this.loading = false;
   }
 
   useTemplate(): void {

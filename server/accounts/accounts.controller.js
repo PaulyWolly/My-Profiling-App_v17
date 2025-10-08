@@ -888,10 +888,15 @@ async function handleAuth0Authenticate(req, res, next) {
                 role: isSuperAdmin ? 'Super-Admin' : existingAccount.role // Preserve existing role or set to Super-Admin
             };
 
-            // Only include profileImage in update if we have a valid URL
-            if (profileImageUrl) {
+            // Preserve local profile image if it exists, only use Auth0 image if no local image
+            if (existingAccount.profileImage && existingAccount.profileImage.includes('/uploads/profiles/')) {
+                // Keep the existing local profile image
+                console.log('[Auth0] Preserving existing local profile image:', existingAccount.profileImage);
+                updateData.profileImage = existingAccount.profileImage;
+            } else if (profileImageUrl) {
+                // Only use Auth0 image if no local image exists
                 updateData.profileImage = profileImageUrl;
-                console.log('[Auth0] Updating profileImage to:', profileImageUrl);
+                console.log('[Auth0] No local profile image found, using Auth0 image:', profileImageUrl);
             } else if (!existingAccount.profileImage) {
                 // If no existing profile image and none provided by Auth0, use default
                 updateData.profileImage = '/assets/images/default-avatar.png';

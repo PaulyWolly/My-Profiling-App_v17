@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, effect } from '@angular/core';
 import { Subscription } from 'rxjs';
 
 import { AccountService, ProfileTemplateService } from '@app/_services';
@@ -23,19 +23,19 @@ export class DetailsComponent implements OnInit, OnDestroy {
     private profileTemplateService: ProfileTemplateService
   ) {
     console.log('DetailsComponent constructor called');
+
+    // Use Angular Signals with effect() for reactive account state changes
+    effect(() => {
+      const x = this.accountService.account();
+      console.log('DetailsComponent - Account updated:', x);
+      this.account = x;
+    });
   }
 
   ngOnInit() {
     console.log('DetailsComponent ngOnInit called');
 
-    // Subscribe to account changes
-    const accountSub = this.accountService.account$.subscribe(x => {
-      console.log('DetailsComponent - Account updated:', x);
-      this.account = x;
-    });
-    this.subscriptions.add(accountSub);
-
-    // Subscribe to template changes
+    // Subscribe to template changes (keeping as Observable for now)
     const templateSub = this.profileTemplateService.currentTemplate.subscribe(template => {
       console.log('DetailsComponent - Template changed to:', template);
       this.currentTemplate = template;

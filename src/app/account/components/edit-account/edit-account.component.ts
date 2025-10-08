@@ -35,7 +35,7 @@ export class EditAccountComponent implements OnInit, OnChanges {
   ) {}
 
   ngOnInit(): void {
-    this.isCurrentUserAdmin = this.accountService.legacyIsAdmin;
+    this.isCurrentUserAdmin = this.accountService.isAdmin();
     this.form = this.formBuilder.group({
       firstName: ['', Validators.required],
       lastName: ['', Validators.required],

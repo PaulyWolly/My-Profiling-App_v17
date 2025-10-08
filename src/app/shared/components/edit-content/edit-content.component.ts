@@ -100,8 +100,8 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
     // this.id = this.route.snapshot.params['id']; // REMOVE - Not needed for profile edit, parent provides data
     // this.isAddMode = !this.id; // REMOVE - isAddMode is an @Input
 
-    // Check if current user is admin
-    this.isCurrentUserAdmin = this.accountService.legacyIsAdmin;
+    // Check if current user is admin using Signals
+    this.isCurrentUserAdmin = this.accountService.isAdmin();
     console.log('Current user admin status:', this.isCurrentUserAdmin);
 
     this.initializeForm();

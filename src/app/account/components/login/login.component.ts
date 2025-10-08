@@ -77,6 +77,14 @@ export class LoginComponent implements OnInit, OnDestroy {
             rememberMe: [!!savedEmail] // Pre-check if we loaded an email
         });
 
+        // Watch for changes to the rememberMe checkbox
+        this.form.get('rememberMe')?.valueChanges.subscribe(rememberMe => {
+            if (!rememberMe) {
+                // User unchecked "Remember my email" - clear stored data
+                this.accountService.clearRememberedEmail();
+            }
+        });
+
         // get return url from route parameters or default to '/'
         this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
     }

@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, HostListener, Renderer2, ViewEncapsulation, AfterViewInit, OnDestroy } from '@angular/core';
+﻿import { Component, OnInit, HostListener, Renderer2, ViewEncapsulation, AfterViewInit, OnDestroy, effect } from '@angular/core';
 import { Router, NavigationEnd, Event } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { AccountService, Auth0Service } from '@app/_services';
@@ -27,7 +27,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         private router: Router,
         private renderer: Renderer2
     ) {
-        this.accountService.account$.subscribe(x => {
+        // Use Angular Signals with effect() for reactive account state changes
+        effect(() => {
+            const x = this.accountService.account();
             this.account = x;
 
             // Get the current URL

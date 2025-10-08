@@ -175,7 +175,7 @@ export class ChatDialogComponent implements OnInit, OnDestroy, AfterViewInit, Af
     const profileImage = this.accountService.accountValue?.profileImage;
     this.currentUserProfileImage = profileImage
       ? (profileImage.startsWith('http') ? profileImage : `${environment.apiUrl}/${profileImage}`)
-      : 'assets/default-avatar.png';
+      : 'assets/images/default-avatar.svg';
 
     // Subscribe to messages
     this.subscribeToMessages();

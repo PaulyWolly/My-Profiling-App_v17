@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
@@ -38,12 +38,15 @@ export class MonitorComponent implements OnInit, OnDestroy {
         private accountService: AccountService,
         private http: HttpClient,
         private alertService: AlertService
-    ) {}
-
-    ngOnInit(): void {
-        this.accountService.account$.subscribe(account => {
+    ) {
+        // Use Angular Signals with effect() for reactive account state changes
+        effect(() => {
+            const account = this.accountService.account();
             this.currentAccountId = account?.id || null;
         });
+    }
+
+    ngOnInit(): void {
         this.loadSessions(); // Initial load for page 1
     }
 

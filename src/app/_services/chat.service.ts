@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, effect } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, Subject, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -63,8 +63,9 @@ export class ChatService {
     this.sessionId = 'session_' + new Date().getTime() + '_' + Math.random().toString(36).substr(2, 9);
     this.initializeWebSocket();
 
-    // Subscribe to account changes to handle login/logout
-    this.accountService.account$.subscribe(account => {
+    // Use Angular Signals with effect() for reactive account state changes
+    effect(() => {
+      const account = this.accountService.account();
       if (account) {
         const token = sessionStorage.getItem('jwt_token') || localStorage.getItem('jwt_token');
         if (token && (!this.ws || this.ws.readyState !== WebSocket.OPEN)) {
