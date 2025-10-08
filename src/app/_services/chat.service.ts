@@ -64,7 +64,7 @@ export class ChatService {
     this.initializeWebSocket();
 
     // Subscribe to account changes to handle login/logout
-    this.accountService.account.subscribe(account => {
+    this.accountService.account$.subscribe(account => {
       if (account) {
         const token = sessionStorage.getItem('jwt_token') || localStorage.getItem('jwt_token');
         if (token && (!this.ws || this.ws.readyState !== WebSocket.OPEN)) {

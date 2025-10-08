@@ -55,38 +55,38 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
   @Input() loading: boolean = false;
   @Input() submitted: boolean = false;
   @Input() accountId: string | null = null;
-  
+
   @Output() save = new EventEmitter<any>();
   @Output() cancel = new EventEmitter<void>();
   @Output() imageChange = new EventEmitter<any>();
   @Output() imageRemove = new EventEmitter<void>();
-  
+
   form!: FormGroup;
   profileTemplates: ProfileTemplate[] = PROFILE_TEMPLATES;
   imageUrl: string | null = null;
   isCurrentUserAdmin: boolean = false;
   Role = Role; // Expose Role enum to template
-  
+
   // Follower management
   followers: Follower[] = [];
   showFollowerDialog: boolean = false;
   currentFollower: Follower = { name: '', title: '', imageUrl: '', path: '', email: '' };
   editingFollowerIndex: number = -1;
-  
+
   // Image upload properties
   imageConflict: boolean = false;
   imageConflictMessage: string = '';
   error: string = '';
   selectedFile: File | null = null;
   pendingFormData: FormData | null = null;
-  
+
   id?: string;
   title: string = '';
-  
+
   environment = environment;
-  
+
   profileImageFile: File | null = null;
-  
+
   constructor(
     private formBuilder: FormBuilder,
     private uploadService: UploadService,
@@ -101,7 +101,7 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
     // this.isAddMode = !this.id; // REMOVE - isAddMode is an @Input
 
     // Check if current user is admin
-    this.isCurrentUserAdmin = this.accountService.isAdmin;
+    this.isCurrentUserAdmin = this.accountService.legacyIsAdmin;
     console.log('Current user admin status:', this.isCurrentUserAdmin);
 
     this.initializeForm();
@@ -133,7 +133,7 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
     }
     */
   }
-  
+
   ngOnChanges(changes: SimpleChanges): void {
     // If initialData changes and the component is already initialized
     if (changes.initialData && this.form) {
@@ -146,7 +146,7 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
        }
     }
   }
-  
+
   /**
    * Prevents wheel scrolling on the main container
    * This stops the page from scrolling up and covering the menu
@@ -157,7 +157,7 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
       event.stopPropagation();
     }
   }
-  
+
   /**
    * Handles keyboard events within the scrollable form container
    * This enables proper keyboard navigation within the form
@@ -168,7 +168,7 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
     // if it's a navigation key that would cause page scrolling
     event.stopPropagation();
   }
-  
+
   /**
    * Allows wheel scrolling within the scrollable form container
    * This enables scrolling of form content while preventing the page scroll
@@ -178,7 +178,7 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
     // This allows scrolling within the container
     event.stopPropagation();
   }
-  
+
   private updateDataFromInput(): void {
     if (this.initialData) {
       // Ensure this.id is set from initialData when editing
@@ -186,7 +186,7 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
         this.id = this.initialData.id;
       }
       console.log('EditContentComponent - Initial data received, updating form:', this.initialData); // Modified log
-      
+
       // Patch the form with all available data
       this.patchFormValues(this.initialData); // ADDED THIS LINE
 
@@ -197,19 +197,19 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
         this.imageUrl = null;
       }
       console.log('EditContentComponent - Image URL set to:', this.imageUrl);
-      
+
       // Load existing followers if available
       this.followers = []; // Clear existing followers before loading new ones
       if (this.initialData.followerImages && Array.isArray(this.initialData.followerImages)) {
         // Ensure we have a deep copy to avoid modifying the original input data
-        this.followers = JSON.parse(JSON.stringify(this.initialData.followerImages)); 
+        this.followers = JSON.parse(JSON.stringify(this.initialData.followerImages));
       }
        console.log('EditContentComponent - Followers set to:', this.followers);
     } else {
        console.log('EditContentComponent - Initial data is null, cannot update form.');
     }
   }
-  
+
   private initializeForm() {
     const roleControl = {
       value: Role.User,
@@ -223,10 +223,10 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
       role: [roleControl.value, { disabled: roleControl.disabled }],
       password: ['', [Validators.minLength(6), ...(!this.isAddMode ? [] : [Validators.required])]],
       confirmPassword: [''],
-      
+
       // Profile template type
       profileTemplateType: [ProfileTemplateType.STANDARD],
-      
+
       // Contact Information
       address: [''],
       city: [''],
@@ -234,13 +234,13 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
       zipCode: [''],
       phone: [''],
       mobile: [''],
-      
+
       // Professional Information
       position: [''],
       company: [''],
       bio: [''],
       skills: [{ value: '', disabled: true }], // Initially disabled, enabled for Business Card template
-      
+
       // Social Media Information
       website: [''],
       twitter: [''],
@@ -259,18 +259,18 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
 
     console.log('Form initialized with role control disabled:', !this.isCurrentUserAdmin);
   }
-  
+
   private patchFormValues(account?: Account) {
     if (!account) {
         console.warn('No account data provided for patch');
         return;
     }
-    
+
     console.log('Patching form values with account:', account);
-    
+
     // Use getRawValue to include disabled fields like 'role' if needed during patching
-    const currentFormValues = this.form.getRawValue(); 
-    
+    const currentFormValues = this.form.getRawValue();
+
     // Prepare the values to patch, including all fields from the Account model
     const formValuesToPatch: Partial<Account> & { profileTemplateType?: ProfileTemplateType } = {
         firstName: account.firstName || '',
@@ -303,7 +303,7 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
     // This avoids overwriting user input unnecessarily if patchFormValues is called multiple times.
     const finalPatchValues: any = {};
     for (const key in formValuesToPatch) {
-      if (formValuesToPatch.hasOwnProperty(key) && 
+      if (formValuesToPatch.hasOwnProperty(key) &&
           (currentFormValues[key] !== formValuesToPatch[key as keyof typeof formValuesToPatch] || account.hasOwnProperty(key))) {
             finalPatchValues[key] = formValuesToPatch[key as keyof typeof formValuesToPatch];
       }
@@ -311,10 +311,10 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
 
     console.log('Final values being patched:', finalPatchValues);
     this.form.patchValue(finalPatchValues);
-    
+
     // Re-evaluate template-based field states after patching
-    this.onTemplateChange(); 
-    
+    this.onTemplateChange();
+
     // Ensure role is correctly set and disabled status is maintained
     const roleControl = this.form.get('role');
     if (roleControl) {
@@ -325,13 +325,13 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
             roleControl.enable({ emitEvent: false });
         }
     }
-    
+
     console.log('Role value after patch:', this.form.get('role')?.value, 'Disabled:', this.form.get('role')?.disabled);
   }
 
   // convenience getter for easy access to form fields
   get f() { return this.form.controls; }
-  
+
   // Template type checkers
   isBusinessCardTemplate() {
     return this.form.get('profileTemplateType')?.value === ProfileTemplateType.BUSINESS_CARD;
@@ -344,13 +344,13 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
   isStandardTemplate() {
     return this.form.get('profileTemplateType')?.value === ProfileTemplateType.STANDARD;
   }
-  
+
   getSelectedTemplateDescription() {
     const templateId = this.form.get('profileTemplateType')?.value;
     const template = this.profileTemplates.find(t => t.id === templateId);
     return template ? template.description : '';
   }
-  
+
   // Event handlers
   onSubmit() {
     this.submitted = true;
@@ -443,11 +443,11 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
       });
     }
   }
-  
+
   onCancel() {
     this.cancel.emit();
   }
-  
+
   onImageChange(event: any) {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
@@ -470,7 +470,7 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
       reader.readAsDataURL(file);
     }
   }
-  
+
   confirmOverwrite() {
     console.log('[confirmOverwrite] Starting overwrite process:', {
       selectedFile: this.selectedFile ? {
@@ -525,27 +525,27 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
       fileInput.value = '';
     }
   }
-  
+
   onImageRemove() {
     this.imageUrl = null;
     this.imageRemove.emit();
   }
-  
+
   onTemplateChange() {
     const templateType = this.form.get('profileTemplateType')?.value;
     console.log('Template changed to:', templateType);
-    
+
     // Update form validation and UI based on template type
     if (this.isSocialMediaTemplate()) {
       // Enable social media specific fields
       this.form.get('followersCount')?.enable();
       this.form.get('followingCount')?.enable();
       this.form.get('skills')?.disable();
-      
+
       // Social media fields are NO LONGER required
       // this.form.get('twitter')?.setValidators([Validators.required]); // REMOVED
       // this.form.get('instagram')?.setValidators([Validators.required]); // REMOVED
-      
+
       // Show follower section
       console.log('Enabling social media features (Twitter/Instagram now optional)'); // Updated log
     } else if (this.isBusinessCardTemplate()) {
@@ -553,42 +553,42 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
       this.form.get('followersCount')?.disable();
       this.form.get('followingCount')?.disable();
       this.form.get('skills')?.enable();
-      
+
       // Business fields are required
       this.form.get('position')?.setValidators([Validators.required]);
       this.form.get('company')?.setValidators([Validators.required]);
       this.form.get('skills')?.setValidators([Validators.required]);
-      
+
       // Remove social media requirements (if they were previously set)
       this.form.get('twitter')?.clearValidators();
       this.form.get('instagram')?.clearValidators();
-      
+
       console.log('Enabling business card features');
     } else {
       // Standard template - disable special features
       this.form.get('followersCount')?.disable();
       this.form.get('followingCount')?.disable();
       this.form.get('skills')?.disable();
-      
+
       // Clear special requirements
       this.form.get('position')?.clearValidators();
       this.form.get('company')?.clearValidators();
       this.form.get('skills')?.clearValidators();
       this.form.get('twitter')?.clearValidators(); // Ensure these are cleared for Standard too
       this.form.get('instagram')?.clearValidators(); // Ensure these are cleared for Standard too
-      
+
       console.log('Using standard template features');
     }
-    
+
     // Update all validators
     ['position', 'company', 'skills', 'twitter', 'instagram'].forEach(field => {
       this.form.get(field)?.updateValueAndValidity();
     });
-    
+
     // Force change detection
     this.form.updateValueAndValidity();
   }
-  
+
   // Utility methods for template
   getPageTitle() {
     if (this.editMode === EditMode.PROFILE) {
@@ -597,7 +597,7 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
       return this.isAddMode ? 'Create Account' : 'Edit Account';
     }
   }
-  
+
   showField(fieldName: string): boolean {
     // Determine if a field should be shown based on edit mode and template
     switch (fieldName) {
@@ -617,18 +617,18 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
   hasFollowers(): boolean {
     return this.followers && this.followers.length > 0;
   }
-  
+
   openFollowerDialog(): void {
     console.log('[EditContentComponent] openFollowerDialog called');
     this.currentFollower = { name: '' };
     this.editingFollowerIndex = -1;
     this.showFollowerDialog = true;
   }
-  
+
   closeFollowerDialog(): void {
     this.showFollowerDialog = false;
   }
-  
+
   editFollower(index: number): void {
     if (index >= 0 && index < this.followers.length) {
       this.currentFollower = { ...this.followers[index] };
@@ -640,13 +640,13 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
       this.showFollowerDialog = true;
     }
   }
-  
+
   removeFollower(index: number): void {
     if (index >= 0 && index < this.followers.length) {
       this.followers.splice(index, 1);
     }
   }
-  
+
   saveFollower(): void {
     if (!this.currentFollower.name) {
         alert('Follower name is required');
@@ -692,7 +692,7 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
       this.saveFollowerToList();
     }
   }
-  
+
   // Helper method to save follower to the list
   private saveFollowerToList(): void {
     const followerData = {
@@ -710,10 +710,10 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
       // Add new follower
       this.followers.push(followerData);
     }
-    
+
     this.closeFollowerDialog();
   }
-  
+
   onFollowerImageChange(event: any): void {
     const file = event.target.files[0];
     if (file) {

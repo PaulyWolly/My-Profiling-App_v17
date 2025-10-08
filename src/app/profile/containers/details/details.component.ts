@@ -13,7 +13,7 @@ import { ProfileTemplateType } from '@app/_models/profile-template';
 export class DetailsComponent implements OnInit, OnDestroy {
   // Expose enum to template
   ProfileTemplateType = ProfileTemplateType;
-  
+
   account: Account | null = null;
   currentTemplate: ProfileTemplateType = ProfileTemplateType.STANDARD;
   private subscriptions: Subscription = new Subscription();
@@ -27,25 +27,25 @@ export class DetailsComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     console.log('DetailsComponent ngOnInit called');
-    
+
     // Subscribe to account changes
-    const accountSub = this.accountService.account.subscribe(x => {
+    const accountSub = this.accountService.account$.subscribe(x => {
       console.log('DetailsComponent - Account updated:', x);
       this.account = x;
     });
     this.subscriptions.add(accountSub);
-    
+
     // Subscribe to template changes
     const templateSub = this.profileTemplateService.currentTemplate.subscribe(template => {
       console.log('DetailsComponent - Template changed to:', template);
       this.currentTemplate = template;
     });
     this.subscriptions.add(templateSub);
-    
+
     // Log initial template value from service
     console.log('Initial template value:', this.profileTemplateService.currentTemplateValue);
   }
-  
+
   ngOnDestroy() {
     // Clean up subscriptions
     this.subscriptions.unsubscribe();
@@ -60,4 +60,4 @@ export class DetailsComponent implements OnInit, OnDestroy {
       });
     }
   }
-} 
+}

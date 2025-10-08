@@ -51,7 +51,7 @@ export class NewStandardPreviewComponent implements OnInit {
 
     private loadProfile() {
         this.loading = true;
-        this.accountService.account.subscribe({
+        this.accountService.account$.subscribe({
             next: (account) => {
                 if (account) {
                     this.profile = account;
@@ -72,18 +72,18 @@ export class NewStandardPreviewComponent implements OnInit {
     useTemplate(): void {
         this.loading = true;
         const currentUser = this.accountService.accountValue;
-        
+
         if (currentUser?.id) {
             // Update the profile with the new template type
-            this.accountService.update(currentUser.id, { 
-                profileTemplateType: ProfileTemplateType.STANDARD 
+            this.accountService.update(currentUser.id, {
+                profileTemplateType: ProfileTemplateType.STANDARD
             })
             .pipe(first())
             .subscribe({
                 next: () => {
                     // After successful update, set the template and navigate
                     this.profileTemplateService.setTemplate(ProfileTemplateType.STANDARD, true);
-                    this.router.navigate(['/profile'], { 
+                    this.router.navigate(['/profile'], {
                         queryParams: { template: 'standard' }
                     });
                 },
@@ -96,7 +96,7 @@ export class NewStandardPreviewComponent implements OnInit {
         } else {
             // If no user ID, just set the template and navigate
             this.profileTemplateService.setTemplate(ProfileTemplateType.STANDARD);
-            this.router.navigate(['/profile'], { 
+            this.router.navigate(['/profile'], {
                 queryParams: { template: 'standard' }
             });
         }
@@ -104,8 +104,8 @@ export class NewStandardPreviewComponent implements OnInit {
 
     previewTemplate(): void {
         this.profileTemplateService.setTemplate(ProfileTemplateType.STANDARD);
-        this.router.navigate(['/profile'], { 
+        this.router.navigate(['/profile'], {
             queryParams: { template: 'standard', preview: 'true' }
         });
     }
-} 
+}

@@ -27,7 +27,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         private router: Router,
         private renderer: Renderer2
     ) {
-        this.accountService.account.subscribe(x => {
+        this.accountService.account$.subscribe(x => {
             this.account = x;
 
             // Get the current URL

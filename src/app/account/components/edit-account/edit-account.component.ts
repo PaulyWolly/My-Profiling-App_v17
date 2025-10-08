@@ -35,7 +35,7 @@ export class EditAccountComponent implements OnInit, OnChanges {
   ) {}
 
   ngOnInit(): void {
-    this.isCurrentUserAdmin = this.accountService.isAdmin;
+    this.isCurrentUserAdmin = this.accountService.legacyIsAdmin;
     this.form = this.formBuilder.group({
       firstName: ['', Validators.required],
       lastName: ['', Validators.required],
@@ -122,17 +122,17 @@ export class EditAccountComponent implements OnInit, OnChanges {
   onCancel() {
     this.cancel.emit();
   }
-  
+
   // Method to get CSS class for role badge
   getRoleBadgeClass(): string {
     const role = this.form?.get('role')?.value;
-    
+
     if (role === Role.Admin) {
       return 'bg-danger'; // Red badge for Admin
     } else if (role === Role.User) {
       return 'bg-success'; // Green badge for User
     }
-    
+
     return 'bg-secondary'; // Default gray badge
   }
 }

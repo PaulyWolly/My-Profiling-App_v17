@@ -41,7 +41,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
     ) {}
 
     ngOnInit(): void {
-        this.accountService.account.subscribe(account => {
+        this.accountService.account$.subscribe(account => {
             this.currentAccountId = account?.id || null;
         });
         this.loadSessions(); // Initial load for page 1

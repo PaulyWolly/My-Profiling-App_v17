@@ -34,7 +34,7 @@ export class ProfileComponent implements OnInit {
 
   ngOnInit() {
     // Subscribe to current account
-    this.accountService.account.subscribe(account => {
+    this.accountService.account$.subscribe(account => {
       this.account = account;
       // Load the profile data
       this.loadUserProfile();
@@ -59,10 +59,10 @@ export class ProfileComponent implements OnInit {
 
     this.loading = true;
     this.userId = this.userId || this.route.snapshot.params['id'] || this.account?.id;
-    
+
     // If viewing own profile
     this.isOwnProfile = this.userId === this.account?.id;
-    
+
     if (this.isOwnProfile) {
       // If it's their own profile, use the account data
       this.profileUser = this.account;
@@ -76,11 +76,11 @@ export class ProfileComponent implements OnInit {
         .subscribe({
           next: (user) => {
             this.profileUser = user;
-            
+
             // Use the profile user's template if available, otherwise use default
             this.currentTemplate = user.profileTemplateType || ProfileTemplateType.STANDARD;
             console.log('[ProfileComponent] Loaded other user profile');
-            
+
             this.loading = false;
           },
           error: (error: string) => {
@@ -106,4 +106,4 @@ export class ProfileComponent implements OnInit {
   toggleChatList() {
     this.showChatList = !this.showChatList;
   }
-} 
+}
