@@ -76,10 +76,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "angular15-signup-verify-mongodb:build:production"
+              "buildTarget": "angular15-signup-verify-mongodb:build:production"
             },
             "development": {
-              "browserTarget": "angular15-signup-verify-mongodb:build:development"
+              "buildTarget": "angular15-signup-verify-mongodb:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -87,7 +87,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "angular15-signup-verify-mongodb:build"
+            "buildTarget": "angular15-signup-verify-mongodb:build"
           }
         },
         "test": {
