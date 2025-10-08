@@ -1,0 +1,336 @@
+<div class="edit-container" *ngIf="!loading">
+  <!-- Dynamic helper message for profile type -->
+  <div class="alert alert-info mb-3" *ngIf="highlightSection">
+    <i class="material-icons small-icon align-middle">info</i>
+    <span *ngIf="highlightSection === 'social-media'">
+      You are editing your <strong>Social Media</strong> profile. The highlighted sections below are most important for this profile type.
+    </span>
+    <span *ngIf="highlightSection === 'business'">
+      You are editing your <strong>Business</strong> profile. The highlighted sections below are most important for this profile type.
+    </span>
+    <span *ngIf="highlightSection === 'standard'">
+      You are editing your <strong>Standard</strong> profile. The highlighted sections below are most important for this profile type.
+    </span>
+  </div>
+  <div class="row">
+    <!-- Left column - profile image -->
+    <div class="col-md-4">
+      <div class="card image-container">
+        <div class="card-header">
+          <h5 class="mb-0">Profile Image</h5>
+        </div>
+        <div class="card-body">
+          <div class="profile-image-container mb-3">
+            <img *ngIf="pendingImage; else currentOrPlaceholder" [src]="pendingImage" class="profile-image rounded-circle" alt="Profile picture preview">
+            <ng-template #currentOrPlaceholder>
+              <img *ngIf="account && account.profileImage" [src]="account.profileImage" class="profile-image rounded-circle" alt="Profile picture">
+              <div *ngIf="!account?.profileImage" class="text-muted d-flex flex-column align-items-center justify-content-center h-100 w-100">
+                <i class="material-icons" style="font-size: 48px; color: #ccc;">account_circle</i>
+                <span>No profile image</span>
+              </div>
+            </ng-template>
+          </div>
+          <div *ngIf="isSocialMediaTemplate()" class="social-media-image-info alert alert-info">
+            <i class="material-icons small-icon align-middle">info</i>
+            Your profile image is an important part of your social media presence. Choose a clear, professional image for best results.
+          </div>
+          <div class="d-flex justify-content-center gap-2 mt-3">
+            <input type="file" class="form-control" (change)="onImageChange($event)" #fileInput hidden accept="image/*">
+            <button type="button" class="btn btn-primary" (click)="fileInput.click()">
+              <i class="material-icons">cloud_upload</i> Upload Image
+            </button>
+            <button type="button" *ngIf="account && account.profileImage" class="btn btn-sm btn-outline-danger" (click)="onImageRemove()">
+              Remove
+            </button>
+          </div>
+
+          <!-- Image Conflict Dialog -->
+          <div *ngIf="imageConflict" class="alert alert-warning mt-3">
+            <p>{{imageConflictMessage}}</p>
+            <div class="mt-2">
+              <button type="button" class="btn btn-warning btn-sm me-2" (click)="confirmOverwrite()">
+                Overwrite
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" (click)="cancelOverwrite()">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right column with form -->
+    <div class="col-md-8">
+      <!-- Action buttons -->
+      <div class="mb-3">
+        <button type="button" class="btn btn-primary me-2" (click)="onSubmit()" [disabled]="loading">
+          Save Changes
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="loading">
+          Cancel
+        </button>
+      </div>
+      <div class="scrolling-div" #scrollingDiv appScrollable>
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" id="profileForm">
+          <!-- Basic Information Section -->
+          <div class="card mb-3" [ngClass]="{'highlight-section': highlightSection === 'standard'}">
+            <div class="card-header">
+              <h5 class="mb-0">Basic Information</h5>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">First Name</label>
+                  <input type="text" formControlName="firstName" class="form-control" [ngClass]="{ 'is-invalid': submitted && form.get('firstName')?.errors }">
+                  <div *ngIf="submitted && form.get('firstName')?.errors" class="invalid-feedback">
+                    <div *ngIf="form.get('firstName')?.errors?.required">First Name is required</div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Last Name</label>
+                  <input type="text" formControlName="lastName" class="form-control" [ngClass]="{ 'is-invalid': submitted && form.get('lastName')?.errors }">
+                  <div *ngIf="submitted && form.get('lastName')?.errors" class="invalid-feedback">
+                    <div *ngIf="form.get('lastName')?.errors?.required">Last Name is required</div>
+                  </div>
+                </div>
+                <div class="col-md-12">
+                  <label class="form-label">Email</label>
+                  <input type="email" formControlName="email" class="form-control" [ngClass]="{ 'is-invalid': submitted && form.get('email')?.errors }">
+                  <div *ngIf="submitted && form.get('email')?.errors" class="invalid-feedback">
+                    <div *ngIf="form.get('email')?.errors?.required">Email is required</div>
+                    <div *ngIf="form.get('email')?.errors?.email">Email must be a valid email address</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact Information Section -->
+          <div class="card mb-3">
+            <div class="card-header">
+              <h5 class="mb-0">Contact Information</h5>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-12">
+                  <label class="form-label">Address</label>
+                  <input type="text" formControlName="address" class="form-control">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">City</label>
+                  <input type="text" formControlName="city" class="form-control">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">State</label>
+                  <input type="text" formControlName="state" class="form-control">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Zip Code</label>
+                  <input type="text" formControlName="zipCode" class="form-control">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Phone</label>
+                  <input type="text" formControlName="phone" class="form-control">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Mobile</label>
+                  <input type="text" formControlName="mobile" class="form-control">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Professional Information Section -->
+          <div class="card mb-3" [ngClass]="{'highlight-section': highlightSection === 'business'}">
+            <div class="card-header">
+              <h5 class="mb-0">Professional Information</h5>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Position/Title</label>
+                  <input type="text" formControlName="position" class="form-control">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Company</label>
+                  <input type="text" formControlName="company" class="form-control">
+                </div>
+                <div class="col-md-12">
+                  <label class="form-label">Bio</label>
+                  <textarea formControlName="bio" class="form-control" rows="4"></textarea>
+                </div>
+                <div class="col-md-12">
+                  <label class="form-label">Skills (comma separated)</label>
+                  <input type="text" formControlName="skills" class="form-control" placeholder="e.g. Angular, TypeScript, CSS">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Social Media Section -->
+          <div class="card mb-3" [ngClass]="{'highlight-section': highlightSection === 'social-media'}">
+            <div class="card-header">
+              <h5 class="mb-0">Social Media</h5>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Website</label>
+                  <input type="text" formControlName="website" class="form-control">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Twitter</label>
+                  <input type="text" formControlName="twitter" class="form-control">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Facebook</label>
+                  <input type="text" formControlName="facebook" class="form-control">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Instagram</label>
+                  <input type="text" formControlName="instagram" class="form-control">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">LinkedIn</label>
+                  <input type="text" formControlName="linkedin" class="form-control">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Github</label>
+                  <input type="text" formControlName="github" class="form-control">
+                </div>
+                <div class="col-md-3" *ngIf="showField('followersCount')">
+                  <label class="form-label">Followers Count</label>
+                  <input type="number" formControlName="followersCount" class="form-control">
+                </div>
+                <div class="col-md-3" *ngIf="showField('followingCount')">
+                  <label class="form-label">Following Count</label>
+                  <input type="number" formControlName="followingCount" class="form-control">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Followers Section -->
+          <div class="card mb-3" [ngClass]="{'highlight-section': highlightSection === 'social-media'}">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">Followers</h5>
+              <button type="button" class="btn btn-sm btn-primary" (click)="openFollowerDialog()">
+                <i class="material-icons small-icon">add</i> Add Follower
+              </button>
+            </div>
+            <div class="card-body">
+              <div class="follower-grid" *ngIf="followers.length > 0">
+                <div class="follower-item" *ngFor="let follower of followers; let i = index">
+                  <div class="follower-image">
+                    <img [src]="follower.imageUrl" [alt]="follower.name">
+                  </div>
+                  <div class="follower-actions">
+                    <button type="button" class="btn btn-sm btn-light" (click)="editFollower(i)">
+                      <i class="material-icons small-icon">edit</i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light" (click)="removeFollower(i)">
+                      <i class="material-icons small-icon">delete</i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="text-center text-muted" *ngIf="followers.length === 0">
+                No followers added yet. Click "Add Follower" to get started.
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Follower Dialog -->
+<style>
+  .follower-dialog-centered {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1050;
+    max-width: 700px;
+    min-width: 450px;
+    width: 95vw;
+    height: 54vh;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    padding: 32px 24px;
+  }
+
+  .follower-image-container {
+    position: relative;
+    top: 20px;
+  }
+
+  .dialog-header {
+    background: transparent;
+    margin-bottom: 20px;
+  }
+
+  .follower-dialog-centered .form-label {
+    font-size: 1.2rem;
+    font-weight: 500;
+  }
+  .follower-dialog-centered .form-control {
+    font-size: 1.15rem;
+    padding: 0.75rem 1rem;
+    height: 2.75rem;
+  }
+  .follower-dialog-centered .btn {
+    font-size: 1.1rem;
+    padding: 0.5rem 1.5rem;
+  }
+  .follower-dialog-centered h5 {
+    font-size: 1.5rem;
+  }
+</style>
+<div class="follower-dialog-centered" *ngIf="showFollowerDialog">
+  <div class="card border-0 shadow-none" style="background: transparent;">
+    <div class="dialog-header card-header d-flex justify-content-between align-items-center border-0" style="background: transparent;">
+      <h5 class="mb-0">{{ editingFollowerIndex > -1 ? 'Edit' : 'Add' }} Follower</h5>
+      <button type="button" class="btn-close" (click)="closeFollowerDialog()"></button>
+    </div>
+    <div class="card-body p-0" style="background: transparent;">
+      <div style="background: #eaf4fb; border-radius: 12px; padding: 32px 24px; height: 100%;">
+        <form #followerForm="ngForm">
+          <div class="form-group mb-4">
+            <label class="form-label">Name</label>
+            <input type="text" class="form-control" name="name" [(ngModel)]="currentFollower.name" required>
+            <div *ngIf="followerForm.submitted && !currentFollower.name" class="text-danger small mt-1">
+              Name is required.
+            </div>
+          </div>
+          <div class="form-group mb-4">
+            <label class="form-label">Title/Position</label>
+            <input type="text" class="form-control" name="title" [(ngModel)]="currentFollower.title">
+          </div>
+          <div class="follower-image-container form-group mb-4">
+            <label class="form-label">Profile Image</label>
+            <div class="d-flex align-items-center mb-2">
+              <div class="follower-preview-image me-3">
+                <img [src]="currentFollower.imageUrl" alt="Follower Image Preview" class="follower-image-preview" *ngIf="currentFollower.imageUrl" style="width: 64px; height: 64px; border-radius: 50%;">
+              </div>
+              <div>
+                <input type="file" accept="image/*" (change)="onFollowerImageChange($event)" style="display: none" #followerFileInput>
+                <button type="button" class="btn btn-outline-primary" (click)="followerFileInput.click()">
+                  <i class="material-icons small-icon">cloud_upload</i> Choose Image
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="d-flex justify-content-end gap-3 mt-4">
+            <button type="button" class="btn btn-secondary" (click)="closeFollowerDialog()">Cancel</button>
+            <button type="button" class="btn btn-primary" (click)="saveFollower(followerForm)">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,64 @@
+/* Define standard title styles */
+
+h1, h2, h3, h4, h5, h6 {
+    color: #555; /* Softer dark color */
+    margin: 0; /* Remove default browser margins */
+    line-height: 1.4; /* Consistent line height */
+    font-family: inherit; /* Use the application's main font */
+}
+
+/* Specific styles per level - matching admin card titles for h2 */
+h1 {
+    font-size: 1.6rem; /* Example size */
+    font-weight: 700;
+    margin-top: 20px;
+    margin-bottom: 5px !important;
+}
+
+h2 {
+    font-size: 1.25rem; /* Standard Card Title Size from Overview */
+    font-weight: 700;   /* Standard weight */
+}
+
+h3 {
+    font-size: 1.1rem; /* Example size */
+    font-weight: 600;
+}
+
+/* Add more specific styles for h4, h5, h6 if needed */
+
+.title-subtitle {
+    font-size: 0.9rem;
+    color: #6c757d; /* Muted color */
+    margin-top: 0.25rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Alignment classes */
+.align-left { text-align: left; }
+.align-center { text-align: center; }
+.align-right { text-align: right; }
+
+/* Margin bottom classes (adjust values as needed) */
+.title-mb-none { margin-bottom: 0 !important; }
+.title-mb-small { margin-bottom: 0.5rem !important; }
+.title-mb-default { margin-bottom: 1rem !important; } /* Default bottom margin */
+.title-mb-large { margin-bottom: 1.5rem !important; }
+
+.app-title {
+  text-align: left !important;
+  margin-top: 20px !important;
+}
+
+.app-title h1,
+.app-title h2,
+.app-title h3,
+.app-title h4,
+.app-title h5,
+.app-title h6 {
+  margin-top: 20px !important;
+  margin-bottom: 5px !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  text-align: left !important;
+}

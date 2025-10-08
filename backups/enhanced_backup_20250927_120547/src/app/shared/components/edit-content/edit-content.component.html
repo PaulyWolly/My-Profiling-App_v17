@@ -1,0 +1,412 @@
+<!-- Remove the h1 title -->
+
+<!-- Mode Heading and Summary -->
+<div class="alert alert-info mb-3" *ngIf="!loading">
+  <h3 class="mb-1">
+    {{ isAddMode ? 'Create Account' : (editMode === 'profile' ? 'Edit Profile' : 'Edit Account') }}
+  </h3>
+  <div *ngIf="isAddMode">
+    Please fill in all required fields to create a new account. Password is required.
+  </div>
+  <div *ngIf="!isAddMode">
+    You are editing an existing {{ editMode === 'profile' ? 'profile' : 'account' }}. Only fill in the password fields if you want to change your password.
+  </div>
+</div>image.png
+
+<!-- Simplified command bar -->
+<div class="command-bar">
+  <button (click)="onSubmit()" [disabled]="submitting" class="btn btn-primary">
+    <span *ngIf="submitting" class="spinner-border spinner-border-sm me-1"></span>
+    Save Changes
+  </button>
+  <button (click)="onCancel()" class="btn btn-secondary">Cancel</button>
+</div>
+
+<!-- Edit container -->
+<div class="edit-container" *ngIf="!loading">
+  <div class="row">
+
+    <!-- Left column - profile image -->
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Profile Image</h5>
+        </div>
+        <div class="card-body">
+          <div class="profile-image-container mb-3">
+            <img *ngIf="imageUrl"
+                [src]="imageUrl"
+                [ngClass]="{'profile-image': true, 'rounded-circle': isSocialMediaTemplate()}"
+                alt="Profile picture">
+            <div *ngIf="!imageUrl" class="text-muted d-flex flex-column align-items-center justify-content-center h-100 w-100">
+              <i class="material-icons" style="font-size: 48px; color: #ccc;">account_circle</i>
+              <span>No profile image</span>
+            </div>
+          </div>
+          <div *ngIf="isSocialMediaTemplate()" class="social-media-image-info alert alert-info">
+            <i class="material-icons small-icon align-middle">info</i>
+            Your profile image is an important part of your social media presence. Choose a clear, professional image for best results.
+          </div>
+          <div class="d-flex justify-content-center gap-2 mt-3">
+            <input type="file" class="form-control" (change)="onImageChange($event)" #fileInput hidden accept="image/*">
+            <button type="button" class="btn btn-primary" (click)="fileInput.click()">
+              <i class="material-icons">cloud_upload</i> Upload Image
+            </button>
+            <button type="button" *ngIf="imageUrl" class="btn btn-sm btn-outline-danger" (click)="onImageRemove()">
+              Remove
+            </button>
+          </div>
+
+          <!-- Image Conflict Dialog -->
+          <div *ngIf="imageConflict" class="alert alert-warning mt-3">
+            <p>{{imageConflictMessage}}</p>
+            <div class="mt-2">
+              <button type="button"
+                      class="btn btn-warning btn-sm me-2"
+                      (click)="confirmOverwrite()">
+                Overwrite
+              </button>
+              <button type="button"
+                      class="btn btn-secondary btn-sm"
+                      (click)="cancelOverwrite()">
+                Cancel
+              </button>
+            </div>
+          </div>
+
+          <!-- Error Message -->
+          <div *ngIf="error" class="alert alert-danger mt-3">
+            {{error}}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right column with form -->
+
+      <div class="col-md-8">
+        <div class="scrolling-div">
+          <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+            <!-- Basic Information Section -->
+            <div class="card mb-3">
+              <div class="card-header">
+                <h5 class="mb-0">Basic Account Information</h5>
+              </div>
+              <div class="card-body">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label">First Name</label>
+                    <input type="text" formControlName="firstName" class="form-control" [ngClass]="{ 'is-invalid': submitted && f.firstName.errors }">
+                    <div *ngIf="submitted && f.firstName.errors" class="invalid-feedback">
+                      <div *ngIf="f.firstName.errors.required">First Name is required</div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Last Name</label>
+                    <input type="text" formControlName="lastName" class="form-control" [ngClass]="{ 'is-invalid': submitted && f.lastName.errors }">
+                    <div *ngIf="submitted && f.lastName.errors" class="invalid-feedback">
+                      <div *ngIf="f.lastName.errors.required">Last Name is required</div>
+                    </div>
+                  </div>
+                  <div class="col-md-7">
+                    <label class="form-label">Email</label>
+                    <input type="text" formControlName="email" class="form-control" [ngClass]="{ 'is-invalid': submitted && f.email.errors }">
+                    <div *ngIf="submitted && f.email.errors" class="invalid-feedback">
+                      <div *ngIf="f.email.errors.required">Email is required</div>
+                      <div *ngIf="f.email.errors.email">Email must be a valid email address</div>
+                    </div>
+                  </div>
+                  <!-- Role selection (only visible in account mode) -->
+                  <div class="col-md-5" *ngIf="editMode === 'account'">
+                    <div class="form-group">
+                      <label>
+                        Role
+                        <i *ngIf="!isCurrentUserAdmin" class="fas fa-lock text-warning" title="Only administrators can change roles"></i>
+                      </label>
+                      <select formControlName="role" class="form-select" [class.is-invalid]="submitted && f.role.errors" (change)="onRoleChange($event)">
+                        <option *ngFor="let role of availableRoles" [value]="role">{{role}}</option>
+                      </select>
+                      <div *ngIf="submitted && f.role.errors" class="invalid-feedback">
+                        <div *ngIf="f.role.errors.required">Role is required</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Password section - shown in both modes -->
+                <div class="row g-3 mt-3">
+                  <div class="col-12">
+                    <h5 class="mb-0">{{ isAddMode ? 'Set Password' : 'Change Password' }}</h5>
+                    <p class="text-muted small" *ngIf="isAddMode">Password is required to create a new account.</p>
+                    <p class="text-muted small" *ngIf="!isAddMode">Leave blank to keep your current password.</p>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Password</label>
+                    <input type="password" formControlName="password" class="form-control" [ngClass]="{ 'is-invalid': submitted && f.password.errors }">
+                    <div *ngIf="submitted && f.password.errors" class="invalid-feedback">
+                      <div *ngIf="f.password.errors.required">Password is required</div>
+                      <div *ngIf="f.password.errors.minlength">Password must be at least 6 characters</div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Confirm Password</label>
+                    <input type="password" formControlName="confirmPassword" class="form-control" [ngClass]="{ 'is-invalid': submitted && f.confirmPassword.errors }">
+                    <div *ngIf="submitted && f.confirmPassword.errors" class="invalid-feedback">
+                      <div *ngIf="f.confirmPassword.errors.required">Confirm Password is required</div>
+                      <div *ngIf="f.confirmPassword.errors.mustMatch">Passwords must match</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- The following sections are only shown in PROFILE mode -->
+            <ng-container *ngIf="editMode === 'profile'">
+              <!-- Contact Information -->
+              <div class="card mb-3">
+                <div class="card-header">
+                  <h5 class="mb-0">Contact Account Information</h5>
+                </div>
+                <div class="card-body">
+                  <div class="row g-3">
+                    <div class="col-md-12">
+                      <label class="form-label">Address</label>
+                      <input type="text" formControlName="address" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">City</label>
+                      <input type="text" formControlName="city" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">State</label>
+                      <input type="text" formControlName="state" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">Zip Code</label>
+                      <input type="text" formControlName="zipCode" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Phone</label>
+                      <input type="tel" formControlName="phone" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Mobile</label>
+                      <input type="tel" formControlName="mobile" class="form-control">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Professional Information - conditional sections based on template -->
+              <div class="card mb-3" [ngClass]="{'highlight-section': isBusinessCardTemplate()}">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h5 class="mb-0">Professional Information</h5>
+                  <span *ngIf="isBusinessCardTemplate()" class="badge bg-primary">Required for Business Card template</span>
+                </div>
+                <div class="card-body">
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label class="form-label">Position/Title</label>
+                      <input type="text" formControlName="position" class="form-control"
+                            [ngClass]="{ 'is-invalid': submitted && f.position.errors }">
+                      <div *ngIf="submitted && f.position.errors" class="invalid-feedback">
+                        <div *ngIf="f.position.errors.required">Position/Title is required for Business Card template</div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Company</label>
+                      <input type="text" formControlName="company" class="form-control"
+                            [ngClass]="{ 'is-invalid': submitted && f.company.errors }">
+                      <div *ngIf="submitted && f.company.errors" class="invalid-feedback">
+                        <div *ngIf="f.company.errors.required">Company is required for Business Card template</div>
+                      </div>
+                    </div>
+                    <div class="col-md-12">
+                      <label class="form-label">Bio</label>
+                      <textarea formControlName="bio" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="col-md-12" *ngIf="showField('skills')">
+                      <label class="form-label">Skills (comma separated)</label>
+                      <input type="text" formControlName="skills" class="form-control"
+                            [ngClass]="{ 'is-invalid': submitted && f.skills.errors }">
+                      <div *ngIf="submitted && f.skills.errors" class="invalid-feedback">
+                        <div *ngIf="f.skills.errors.required">Skills are required for Business Card template</div>
+                      </div>
+                      <small class="text-muted">Enter skills separated by commas (e.g., JavaScript, Angular, Node.js)</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Social Media Section -->
+              <div class="card mb-3" [ngClass]="{'highlight-section': isSocialMediaTemplate()}">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h5 class="mb-0">Social Media</h5>
+                </div>
+                <div class="card-body">
+                  <!-- Follower Images Section -->
+                  <div class="row mb-4" *ngIf="isSocialMediaTemplate()">
+                    <div class="col-12">
+                      <div class="follower-section">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                          <h6>Followers</h6>
+                          <button type="button" class="btn btn-sm btn-success" (click)="openFollowerDialog()">
+                            <i class="material-icons small-icon">add</i> Add New Follower
+                          </button>
+                        </div>
+                        <div *ngIf="!hasFollowers()" class="text-muted text-center p-3 border rounded">
+                          No followers added yet.
+                        </div>
+                        <div *ngIf="hasFollowers()" class="follower-list">
+                          <div *ngFor="let follower of followers; let i = index" class="follower-item">
+                            <div class="follower-item-content">
+                              <div class="follower-main">
+                                <div class="follower-avatar">
+                                  <img *ngIf="follower.imageUrl || follower.path"
+                                       [src]="follower.imageUrl || (environment.apiUrl + '/' + follower.path)"
+                                       [alt]="follower.name + '\'s avatar'"
+                                       onerror="this.src='assets/images/default-avatar.png'">
+                                  <div *ngIf="!follower.imageUrl && !follower.path" class="no-avatar">
+                                    <i class="material-icons">account_circle</i>
+                                  </div>
+                                </div>
+                                <div class="follower-info">
+                                  <span class="follower-name">{{ follower.name }}</span>
+                                  <span class="follower-title">{{ follower.title }}</span>
+                                </div>
+                              </div>
+                              <div class="follower-actions">
+                                <button type="button" class="btn btn-sm btn-outline-primary" (click)="editFollower(i)">
+                                  <i class="material-icons small-icon">edit</i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeFollower(i)">
+                                  <i class="material-icons small-icon">delete</i>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Other Social Media Fields -->
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label class="form-label">Website</label>
+                      <input type="url" formControlName="website" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Twitter</label>
+                      <input type="text" formControlName="twitter" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Facebook</label>
+                      <input type="url" formControlName="facebook" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Instagram</label>
+                      <input type="text" formControlName="instagram" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">GitHub</label>
+                      <input type="text" formControlName="github" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">LinkedIn</label>
+                      <input type="text" formControlName="linkedin" class="form-control">
+                    </div>
+
+                    <div class="col-md-3" *ngIf="showField('followersCount')">
+                      <label class="form-label">Followers Count</label>
+                      <input type="number" formControlName="followersCount" class="form-control">
+                    </div>
+                    <div class="col-md-3" *ngIf="showField('followingCount')">
+                      <label class="form-label">Following Count</label>
+                      <input type="number" formControlName="followingCount" class="form-control">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+
+            <!-- Submit buttons for small screens -->
+            <div class="d-block d-md-none mt-3">
+              <button type="submit" [disabled]="submitting" class="btn btn-primary me-2">
+                <span *ngIf="submitting" class="spinner-border spinner-border-sm me-1"></span>
+                Save Changes
+              </button>
+              <button type="button" (click)="onCancel()" class="btn btn-secondary">Cancel</button>
+            </div>
+          </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading spinner -->
+<div *ngIf="loading" class="text-center p-5">
+  <div class="spinner-border" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+</div>
+
+<!-- Follower Dialog -->
+<div class="follower-dialog" *ngIf="showFollowerDialog">
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">{{ editingFollowerIndex > -1 ? 'Edit' : 'Add' }} Follower</h5>
+      <button type="button" class="btn-close" (click)="closeFollowerDialog()"></button>
+    </div>
+    <div class="card-body">
+      <!-- Using ngModel for simple dialog form -->
+      <form #followerForm="ngForm">
+        <div class="form-group mb-3">
+          <label class="form-label">Name</label>
+          <input type="text" class="form-control" name="name" [(ngModel)]="currentFollower.name" required>
+          <!-- Basic required validation message -->
+          <div *ngIf="followerForm.submitted && !currentFollower.name" class="text-danger small mt-1">
+            Name is required.
+          </div>
+        </div>
+        <div class="form-group mb-3">
+          <label class="form-label">Title/Position</label>
+          <input type="text" class="form-control" name="title" [(ngModel)]="currentFollower.title">
+        </div>
+        <div class="form-group mb-3">
+          <label class="form-label">Profile Image</label>
+          <div class="d-flex align-items-center mb-2">
+            <div class="follower-preview-image me-3">
+              <img [src]="currentFollower.imageUrl" alt="Follower Image Preview" class="follower-image-preview" *ngIf="currentFollower.imageUrl">
+            </div>
+            <div>
+              <input type="file" accept="image/*" (change)="onFollowerImageChange($event)" style="display: none" #followerFileInput>
+              <button type="button" class="btn btn-sm btn-outline-primary" (click)="followerFileInput.click()">
+                <i class="material-icons small-icon">cloud_upload</i> Choose Image
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="card-footer">
+      <button type="button" class="btn btn-primary me-2" (click)="saveFollower()" [disabled]="!currentFollower.name">
+        Save
+      </button>
+      <button type="button" class="btn btn-secondary" (click)="closeFollowerDialog()">
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Debug: Show form status and errors -->
+<pre>
+Form status: {{ form.status }} | Form errors: {{ form.errors | json }}
+All controls:
+<span *ngFor="let c of form?.controls | keyvalue">
+  {{c.key}}: status={{c.value.status}}, errors={{c.value.errors | json}}, value={{c.value.value}}
+</span>
+</pre>
+

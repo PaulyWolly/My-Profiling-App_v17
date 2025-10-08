@@ -1,0 +1,35 @@
+<h1>Update Profile</h1>
+
+<div class="edit-profile-layout">
+  <div class="profile-image-section">
+    <div class="oval-container">
+      <img *ngIf="account.profileImage" [src]="account.profileImage" alt="Profile" class="profile-image">
+      <div *ngIf="!account.profileImage" class="profile-image-placeholder">
+        <mat-icon>person</mat-icon>
+      </div>
+    </div>
+    <div class="image-upload mt-3">
+      <input type="file" accept="image/*" (change)="onFileSelected($event)" style="display: none" #fileInput>
+      <button type="button" mat-button color="primary" (click)="fileInput.click()">
+        <mat-icon>cloud_upload</mat-icon>
+        Upload Image
+      </button>
+      <button *ngIf="selectedFile" type="button" mat-button color="primary" (click)="uploadImage()">
+        <mat-icon>save</mat-icon>
+        Save Image
+      </button>
+    </div>
+    <div *ngIf="selectedFile" class="image-preview mt-3">
+      <h4>Preview:</h4>
+      <img [src]="previewUrl" alt="Preview" class="preview-image">
+    </div>
+  </div>
+  <div class="scrollable-content" preventWheelPropagation>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <mat-accordion>
+        <!-- Your form content here -->
+      </mat-accordion>
+    </form>
+  </div>
+</div>
+ 

@@ -255,7 +255,7 @@
     <div class="online-users-badge" *ngIf="onlineUsersCount > 0" appCustomTooltip="Users Online" tooltipPosition="auto">
       {{ onlineUsersCount }}
     </div>
-    <span *ngIf="hasPendingChats" class="yellow-led"></span>
+    <span *ngIf="hasPendingChats" class="yellow-led" appCustomTooltip="Someone wants to chat..." tooltipPosition="left"></span>
   </div>
 
   <!-- Chat Dock Component -->

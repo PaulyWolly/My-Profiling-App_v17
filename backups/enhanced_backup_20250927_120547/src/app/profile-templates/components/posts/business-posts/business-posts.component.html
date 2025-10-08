@@ -1,0 +1,39 @@
+<div class="posts-list">
+  <mat-card *ngFor="let post of posts" class="post-card">
+    <mat-card-header>
+      <mat-card-title>{{ post.sender?.firstName }} {{ post.sender?.lastName }}</mat-card-title>
+      <mat-card-subtitle>
+        To: {{ post.recipient?.firstName }} {{ post.recipient?.lastName }}
+        <span class="post-time">{{ getTimeAgo(post.createdAt) }}</span>
+      </mat-card-subtitle>
+      <div class="avatar-group">
+        <img [src]="getProfileImageUrl(post.sender?.profileImage)" [alt]="post.sender?.firstName + ' ' + post.sender?.lastName" class="author-avatar">
+        <img *ngIf="post.recipient" [src]="getProfileImageUrl(post.recipient?.profileImage)" [alt]="post.recipient?.firstName + ' ' + post.recipient?.lastName" class="recipient-avatar">
+      </div>
+    </mat-card-header>
+
+    <mat-card-content>
+      <h3 class="post-title" *ngIf="post.title">{{ post.title }}</h3>
+      <p class="post-content">{{ post.content }}</p>
+      <img *ngIf="post.imageUrl" [src]="post.imageUrl" [alt]="post.title" class="post-image">
+    </mat-card-content>
+
+    <mat-card-actions>
+      <button mat-button (click)="onLike(post)">
+        <mat-icon>thumb_up</mat-icon>
+        <span>{{ post.likes }}</span>
+      </button>
+      <button mat-stroked-button class="response-btn" (click)="onComment(post)">
+        Response
+        <span class="response-count" *ngIf="getResponseCount(post)">{{ getResponseCount(post) }}</span>
+      </button>
+      <button mat-button (click)="onShare(post)">
+        <mat-icon>share</mat-icon>
+        <span>{{ post.shares }}</span>
+      </button>
+      <button *ngIf="isSuperAdmin" mat-icon-button color="warn" (click)="onDelete(post)" aria-label="Delete post" class="delete-post-btn">
+        <mat-icon class="delete-post-icon">delete</mat-icon>
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div> 

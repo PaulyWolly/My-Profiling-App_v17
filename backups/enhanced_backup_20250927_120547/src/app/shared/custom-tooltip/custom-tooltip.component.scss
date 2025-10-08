@@ -1,0 +1,11 @@
+.custom-tooltip {
+  position: fixed;
+  z-index: 1000;
+  padding: 6px 12px;
+  border-radius: var(--app-border-radius);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  pointer-events: none;
+  font-size: 14px;
+  transition: opacity 0.15s;
+  opacity: 0.95;
+} 

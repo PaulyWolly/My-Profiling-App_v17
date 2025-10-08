@@ -744,7 +744,7 @@ function generateJwtToken(account) {
         email: account.email // ADDED EMAIL CLAIM
     };
 
-    const token = jwt.sign(payload, secret, { expiresIn: '15m' });
+    const token = jwt.sign(payload, secret, { expiresIn: '30m' });
     console.log('JWT token generated successfully with payload:', payload);
     return token;
 }
