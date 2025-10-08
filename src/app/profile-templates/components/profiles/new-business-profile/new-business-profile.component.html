@@ -20,11 +20,11 @@
             </div>
           </div>
           <div class="profile-image-container" [class.loading]="imageLoading">
-            <img [src]="getProfileImageUrl()"
-                alt="Profile picture"
-                class="img-fluid rounded profile-img mb-3"
-                (load)="onImageLoaded()"
-                (error)="onImageError($event)">
+        <img [src]="getProfileImageUrl()"
+             alt="Profile picture"
+             class="img-fluid rounded profile-img mb-3"
+             (load)="onImageLoaded()"
+             (error)="onImageError($event)">
             <div *ngIf="imageLoading" class="loading-spinner">
               <mat-spinner diameter="40"></mat-spinner>
             </div>

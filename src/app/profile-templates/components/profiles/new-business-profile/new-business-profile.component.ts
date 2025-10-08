@@ -131,12 +131,10 @@ export class NewBusinessProfileComponent implements OnInit, AfterViewInit, OnCha
     if (this.profile) {
       if (this.profile.profileImage) {
         this.profile.profileImage = this.imageService.getFullImageUrl(this.profile.profileImage);
-        console.log('[BusinessProfile] Profile image with full URL:', this.profile.profileImage);
       }
 
       if (this.profile.companyLogo) {
         this.profile.companyLogo = this.imageService.getFullImageUrl(this.profile.companyLogo);
-        console.log('[BusinessProfile] Company logo with full URL:', this.profile.companyLogo);
       }
     }
   }
@@ -204,30 +202,22 @@ export class NewBusinessProfileComponent implements OnInit, AfterViewInit, OnCha
       // this.aboutContentRef.nativeElement.style.overflowY = 'auto';
     }
 
-    console.log('Tab heights synced to:', this.syncedTabHeight);
   }
 
   onImageLoaded() {
     this.imageLoading = false;
-    console.log('[BusinessCard] Profile image loaded successfully');
   }
 
   onImageError(event: any) {
     this.imageLoading = false;
     // Clear the profile image URL in case of error
     if (this.profile) {
-      console.error('[BusinessCard] Error loading profile image:', {
-        url: this.profile.profileImage,
-        error: event,
-        profileId: this.profile.id
-      });
       this.profile.profileImage = undefined;
     }
   }
 
   onCompanyLogoLoaded() {
     this.companyLogoLoading = false;
-    console.log('[BusinessCard] Company logo loaded successfully');
   }
 
   onCompanyLogoError() {

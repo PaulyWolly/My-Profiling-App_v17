@@ -1,4 +1,4 @@
-﻿import { Injectable, Injector, Inject } from '@angular/core';
+﻿import { Injectable, Injector, Inject, signal, computed, effect } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, of } from 'rxjs';
@@ -61,8 +61,23 @@ export function joinUrl(base: string, path: string): string {
 
 @Injectable({ providedIn: 'root' })
 export class AccountService {
+    // Signals for reactive state management
+    private _accountSignal = signal<Account | null>(null);
+    private _loadingSignal = signal<boolean>(false);
+    private _errorSignal = signal<string | null>(null);
+
+    // Computed signals for derived state
+    public account = computed(() => this._accountSignal());
+    public isLoading = computed(() => this._loadingSignal());
+    public error = computed(() => this._errorSignal());
+    public isAuthenticated = computed(() => this._accountSignal() !== null);
+    public isAdmin = computed(() => this._accountSignal()?.role === Role.Admin);
+    public isSuperAdmin = computed(() => this._accountSignal()?.role === Role.SuperAdmin);
+
+    // Legacy Observable for backward compatibility
     private accountSubject: BehaviorSubject<Account | null>;
-    public account: Observable<Account | null>;
+    public account$: Observable<Account | null>;
+
     private readonly JWT_TOKEN_KEY = 'jwt_token';
     private readonly REFRESH_TOKEN_KEY = 'refresh_token';
     private readonly REMEMBER_ME_KEY = 'remember_me';
@@ -78,8 +93,16 @@ export class AccountService {
     ) {
         // Generate a unique ID for this tab
         this.currentTabId = 'tab_' + Math.random().toString(36).substr(2, 9);
+
+        // Initialize legacy BehaviorSubject for backward compatibility
         this.accountSubject = new BehaviorSubject<Account | null>(null);
-        this.account = this.accountSubject.asObservable();
+        this.account$ = this.accountSubject.asObservable();
+
+        // Set up effect to sync signals with BehaviorSubject
+        effect(() => {
+            const accountValue = this._accountSignal();
+            this.accountSubject.next(accountValue);
+        });
     }
 
     // Lazy getter for HttpClient to avoid circular dependency
@@ -110,7 +133,7 @@ export class AccountService {
             this.initializeFromStorage();
         } else {
             console.log('[AccountService] No tokens found during initialization');
-            this.accountSubject.next(null);
+            this._accountSignal.set(null);
         }
 
         // Store this tab's ID
@@ -128,13 +151,15 @@ export class AccountService {
         return sessionStorage.getItem(this.REFRESH_TOKEN_KEY);
     }
 
+    // Legacy getter for backward compatibility
     get accountValue() {
-        console.log('[AccountService] Getting account value:', this.accountSubject.value);
-        return this.accountSubject.value;
+        console.log('[AccountService] Getting account value:', this._accountSignal());
+        return this._accountSignal();
     }
 
-    public get isAdmin(): boolean {
-        return this.accountValue?.role === Role.Admin;
+    // Legacy isAdmin getter for backward compatibility
+    public get legacyIsAdmin(): boolean {
+        return this._accountSignal()?.role === Role.Admin;
     }
 
     // Helper method to format image URLs
@@ -161,6 +186,9 @@ export class AccountService {
     // Authentication endpoints
     login(email: string, password: string, rememberMe: boolean = false) {
         console.log('[AccountService] Attempting login for:', email);
+        this._loadingSignal.set(true);
+        this._errorSignal.set(null);
+
         return this.getHttp().post<Account>(`${baseUrl}/authenticate`, { email, password, rememberMe }, { withCredentials: true })
             .pipe(
                 map(account => {
@@ -174,10 +202,17 @@ export class AccountService {
                     // Store auth data based on rememberMe preference
                     this.storeAuthData(account, rememberMe, email);
 
-                    this.accountSubject.next(account);
+                    // Update signals
+                    this._accountSignal.set(account);
+                    this._loadingSignal.set(false);
                     this.startRefreshTokenTimer();
 
                     return account;
+                }),
+                catchError(error => {
+                    this._loadingSignal.set(false);
+                    this._errorSignal.set(error.message || 'Login failed');
+                    return throwError(() => error);
                 })
             );
     }
@@ -187,13 +222,21 @@ export class AccountService {
         this.clearAuthData(); // Ensure all tokens and session data are removed
         this.http.post<any>(`${environment.apiUrl}/accounts/revoke-token`, {}, { withCredentials: true }).subscribe();
         this.stopRefreshTokenTimer();
-        this.accountSubject.next(null);
+
+        // Update signals
+        this._accountSignal.set(null);
+        this._loadingSignal.set(false);
+        this._errorSignal.set(null);
+
         this.router.navigate(['/account/login']);
     }
 
     // Auth0 login method
     loginWithAuth0(auth0Token: string) {
         console.log('[AccountService] Attempting Auth0 login');
+        this._loadingSignal.set(true);
+        this._errorSignal.set(null);
+
         return this.http.post<Account>(`${environment.apiUrl}/accounts/auth0/authenticate`, {}, {
             headers: {
                 Authorization: `Bearer ${auth0Token}`
@@ -208,10 +251,17 @@ export class AccountService {
                 // Store auth data
                 this.storeAuthData(account, false, account.email);
 
-                this.accountSubject.next(account);
+                // Update signals
+                this._accountSignal.set(account);
+                this._loadingSignal.set(false);
                 this.startRefreshTokenTimer();
 
                 return account;
+            }),
+            catchError(error => {
+                this._loadingSignal.set(false);
+                this._errorSignal.set(error.message || 'Auth0 login failed');
+                return throwError(() => error);
             })
         );
     }
@@ -255,7 +305,7 @@ export class AccountService {
                     } as Account;
 
                     this.setAuthState({ jwtToken });
-                    this.accountSubject.next(minimalAccount);
+                    this._accountSignal.set(minimalAccount);
                     this.startRefreshTokenTimer();
                     return;
                 }
@@ -312,12 +362,18 @@ export class AccountService {
         localStorage.removeItem(this.REMEMBER_ME_KEY); // Only for rememberMe
         sessionStorage.removeItem(this.JWT_TOKEN_KEY);
         sessionStorage.removeItem(this.REFRESH_TOKEN_KEY);
-        this.accountSubject.next(null);
+
+        // Update signals
+        this._accountSignal.set(null);
+        this._loadingSignal.set(false);
+        this._errorSignal.set(null);
     }
 
     refreshToken() {
         console.log('[AccountService] Attempting to refresh token');
         this.stopRefreshTokenTimer();
+        this._loadingSignal.set(true);
+
         // Do NOT read refresh token from storage; backend will use cookie
         return this.getHttp().post<Account>(`${baseUrl}/refresh-token`, {}, { withCredentials: true })
             .pipe(
@@ -336,14 +392,17 @@ export class AccountService {
                     if (account.refreshToken) {
                         sessionStorage.setItem(this.REFRESH_TOKEN_KEY, account.refreshToken);
                     }
-                    this.accountSubject.next(account);
-                    console.log('[AccountService] accountSubject updated after refresh', this.accountSubject.value);
+
+                    // Update signals
+                    this._accountSignal.set(account);
+                    this._loadingSignal.set(false);
+                    this._errorSignal.set(null);
+                    console.log('[AccountService] accountSignal updated after refresh', this._accountSignal());
                     this.startRefreshTokenTimer();
                 }),
                 catchError(error => {
                     console.error('[AccountService] Token refresh failed:', error);
                     this.clearAuthData();
-                    this.accountSubject.next(null);
                     this.router.navigate(['/account/login']);
                     return throwError(() => error);
                 })
@@ -429,9 +488,9 @@ export class AccountService {
                             }));
                         }
 
-                        // Update account in subject
+                        // Update account in signal
                         account = { ...this.accountValue, ...account };
-                        this.accountSubject.next(account);
+                        this._accountSignal.set(account);
 
                         // Store authentication data based on whether this was a remembered login
                         const isRemembered = !!localStorage.getItem(this.REMEMBER_ME_KEY);
@@ -502,7 +561,7 @@ export class AccountService {
             if (timeout <= 0) {
                 console.warn('[AccountService] Token has already expired or will expire too soon');
                 this.clearAuthData();
-                this.accountSubject.next(null);
+                this._accountSignal.set(null);
                 this.router.navigate(['/account/login']);
                 return;
             }
@@ -516,7 +575,7 @@ export class AccountService {
         } catch (error) {
             console.error('[AccountService] Error starting refresh timer:', error);
             this.clearAuthData();
-            this.accountSubject.next(null);
+            this._accountSignal.set(null);
             this.router.navigate(['/account/login']);
         }
     }
@@ -578,8 +637,8 @@ export class AccountService {
                 isAdmin: account.role === Role.Admin
             });
 
-            this.accountSubject.next(account);
-            console.log('[DEBUG] accountSubject updated in setAuthState', this.accountSubject.value);
+            this._accountSignal.set(account);
+            console.log('[DEBUG] accountSignal updated in setAuthState', this._accountSignal());
             this.startRefreshTokenTimer();
 
             // Fetch full account details in background
@@ -589,7 +648,7 @@ export class AccountService {
         } catch (error) {
             console.error('[DEBUG] Error setting auth state:', error);
             this.clearAuthData();
-            this.accountSubject.next(null);
+            this._accountSignal.set(null);
         }
     }
 
@@ -622,8 +681,8 @@ export class AccountService {
                         jwtToken: currentAccount.jwtToken,
                         refreshToken: currentAccount.refreshToken
                     };
-                    this.accountSubject.next(updatedAccount);
-                    console.log('[AccountService] Updated accountSubject with full details');
+                    this._accountSignal.set(updatedAccount);
+                    console.log('[AccountService] Updated accountSignal with full details');
                 }
             },
             error: (error) => {
@@ -671,7 +730,7 @@ export class AccountService {
                     const currentAccount = this.accountValue;
                     if (currentAccount && currentAccount.id === id) {
                         currentAccount.profileImage = response.profileImage;
-                        this.accountSubject.next(currentAccount);
+                        this._accountSignal.set(currentAccount);
                     }
                     return response;
                 })
@@ -697,7 +756,7 @@ export class AccountService {
                     const currentAccount = this.accountValue;
                     if (currentAccount && currentAccount.id === id) {
                         currentAccount.profileImage = response.profileImage;
-                        this.accountSubject.next(currentAccount);
+                        this._accountSignal.set(currentAccount);
                     }
 
                     return {

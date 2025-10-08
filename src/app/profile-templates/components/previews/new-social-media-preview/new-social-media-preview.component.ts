@@ -56,8 +56,8 @@ import { first } from 'rxjs/operators';
   //       <div class="template-preview">
   //         <mat-card class="preview-card">
   //           <div class="preview-flex-row">
-  //             <img src="assets/images/profile-templates/social-media-template.png" 
-  //                  alt="Social Media Template Preview" 
+  //             <img src="assets/images/profile-templates/social-media-template.png"
+  //                  alt="Social Media Template Preview"
   //                  class="preview-image" />
   //             <div class="preview-description">
   //               <p>
@@ -106,7 +106,7 @@ export class NewSocialMediaPreviewComponent implements OnInit {
 
   private loadProfile() {
     this.loading = true;
-    this.accountService.account.subscribe({
+    this.accountService.account$.subscribe({
       next: (account) => {
         if (account) {
           this.profile = account;
@@ -127,18 +127,18 @@ export class NewSocialMediaPreviewComponent implements OnInit {
   useTemplate(): void {
     this.loading = true;
     const currentUser = this.accountService.accountValue;
-    
+
     if (currentUser?.id) {
       // Update the profile with the new template type
-      this.accountService.update(currentUser.id, { 
-        profileTemplateType: ProfileTemplateType.SOCIAL_MEDIA 
+      this.accountService.update(currentUser.id, {
+        profileTemplateType: ProfileTemplateType.SOCIAL_MEDIA
       })
       .pipe(first())
       .subscribe({
         next: () => {
           // After successful update, set the template and navigate
           this.profileTemplateService.setTemplate(ProfileTemplateType.SOCIAL_MEDIA, true);
-          this.router.navigate(['/profile'], { 
+          this.router.navigate(['/profile'], {
             queryParams: { template: 'social-media' }
           });
         },
@@ -151,7 +151,7 @@ export class NewSocialMediaPreviewComponent implements OnInit {
     } else {
       // If no user ID, just set the template and navigate
       this.profileTemplateService.setTemplate(ProfileTemplateType.SOCIAL_MEDIA);
-      this.router.navigate(['/profile'], { 
+      this.router.navigate(['/profile'], {
         queryParams: { template: 'social-media' }
       });
     }
@@ -159,7 +159,7 @@ export class NewSocialMediaPreviewComponent implements OnInit {
 
   previewTemplate(): void {
     this.profileTemplateService.setTemplate(ProfileTemplateType.SOCIAL_MEDIA);
-    this.router.navigate(['/profile'], { 
+    this.router.navigate(['/profile'], {
       queryParams: { template: 'social-media', preview: 'true' }
     });
   }

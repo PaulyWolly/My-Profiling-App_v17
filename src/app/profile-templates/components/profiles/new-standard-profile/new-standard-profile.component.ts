@@ -86,7 +86,7 @@ export class NewStandardProfileComponent implements OnInit, OnDestroy, AfterView
     private loadProfileData() {
         if (!this.profile) {
             this.loading = true;
-            this.accountSubscription = this.accountService.account
+            this.accountSubscription = this.accountService.account$
                 .pipe(
                     retryWhen(errors =>
                         errors.pipe(
