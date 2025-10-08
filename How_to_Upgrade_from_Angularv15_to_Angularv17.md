@@ -52,8 +52,11 @@ This guide provides a comprehensive, step-by-step process for upgrading an Angul
 Angular does not support skipping major versions. The upgrade path is:
 
 ```
-Angular 15 → Angular 16 → Angular 17
+Angular Core: 15 → 16 → 17
+Angular Material/CDK: 15 → 16 → 17 (separate steps)
 ```
+
+**Note:** Angular Material and CDK also require incremental upgrades and cannot skip versions.
 
 ### What's New in Angular 17?
 
@@ -295,35 +298,47 @@ git commit -m "⬆️ Upgrade to Angular 17.x + TypeScript 5.2+"
 npm list @angular/material @angular/cdk
 ```
 
-### 4.2 Update to Angular 17 Compatible Versions
+### 4.2 Update to Angular 16 First
+
+**Important:** Like Angular core, Material/CDK cannot skip major versions. You must upgrade incrementally.
+
+```bash
+ng update @angular/material@16 @angular/cdk@16
+```
+
+**Expected output:**
+- Material/CDK updated to v16.x
+- Automated migrations run
+- Theme changes may be applied
+
+### 4.3 Commit Material v16 Update
+
+```bash
+git add .
+git commit -m "⬆️ Update Angular Material & CDK to v16"
+```
+
+### 4.4 Update to Angular 17
+
+Now update to v17:
 
 ```bash
 ng update @angular/material@17 @angular/cdk@17
 ```
 
-Or manually update `package.json`:
+**Expected output:**
+- Material/CDK updated to v17.x
+- Additional migrations run
+- Component APIs may be updated
 
-```json
-{
-  "dependencies": {
-    "@angular/cdk": "^17.3.10",
-    "@angular/material": "^17.3.10"
-  }
-}
-```
-
-Then:
-
-```bash
-npm install
-```
-
-### 4.3 Commit Material Updates
+### 4.5 Commit Material v17 Update
 
 ```bash
 git add .
 git commit -m "⬆️ Update Angular Material & CDK to v17"
 ```
+
+**✅ Checkpoint:** Angular Material & CDK now match Angular 17
 
 ---
 
@@ -860,6 +875,27 @@ git add .
 git commit -m "WIP: Current changes"
 # Or use --allow-dirty flag
 ng update @angular/core@17 @angular/cli@17 --allow-dirty
+```
+
+---
+
+#### Issue: "Cannot skip major versions for Material/CDK"
+
+**Error:**
+```
+Updating multiple major versions of '@angular/material' at once is not supported.
+Please migrate each major version individually.
+```
+
+**Solution:**
+Angular Material/CDK must be upgraded incrementally, just like Angular core:
+
+```bash
+# First upgrade to v16
+ng update @angular/material@16 @angular/cdk@16
+
+# Then upgrade to v17
+ng update @angular/material@17 @angular/cdk@17
 ```
 
 ---
