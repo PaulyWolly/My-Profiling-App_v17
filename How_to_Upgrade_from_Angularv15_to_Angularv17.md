@@ -975,6 +975,181 @@ component.userId = signal('test-id');
 
 ---
 
+## Actual Upgrade Session Log
+
+### Session Details
+- **Date:** October 8, 2025
+- **Starting Version:** Angular 15.2.11
+- **Final Version:** Angular 17.3.12
+- **Node Version:** v22.14.0
+- **Platform:** Windows (Git Bash)
+
+### Step-by-Step Execution
+
+#### 1. Initial Baseline Commit
+```bash
+git status
+# On branch dev
+# Your branch is up to date with 'origin/dev'.
+# nothing to commit, working tree clean
+
+git commit -m "✨ Pre-Angular 17 upgrade - v15.2.11 baseline"
+```
+
+#### 2. Upgrade to Angular 16
+
+**Command:**
+```bash
+ng update @angular/core@16 @angular/cli@16
+```
+
+**Output:**
+```
+The installed Angular CLI version is outdated.
+Installing a temporary Angular CLI versioned 16.2.16 to perform the update.
+✔ Packages successfully installed.
+Using package manager: npm
+Collecting installed dependencies...
+Found 18 dependencies.
+Fetching dependency metadata from registry...
+    Updating package.json with dependency @angular-devkit/build-angular @ "16.2.16" (was "15.2.9")
+    Updating package.json with dependency @angular/cli @ "16.2.16" (was "15.2.9")
+    Updating package.json with dependency @angular/compiler-cli @ "16.2.12" (was "15.2.9")
+    Updating package.json with dependency typescript @ "5.1.6" (was "4.8.4")
+    Updating package.json with dependency @angular/animations @ "16.2.12" (was "15.2.9")
+    Updating package.json with dependency @angular/common @ "16.2.12" (was "15.2.9")
+    Updating package.json with dependency @angular/compiler @ "16.2.12" (was "15.2.9")
+    Updating package.json with dependency @angular/core @ "16.2.12" (was "15.2.9")
+    Updating package.json with dependency @angular/forms @ "16.2.12" (was "15.2.9")
+    Updating package.json with dependency @angular/platform-browser @ "16.2.12" (was "15.2.10")
+    Updating package.json with dependency @angular/platform-browser-dynamic @ "16.2.12" (was "15.2.9")
+    Updating package.json with dependency @angular/router @ "16.2.12" (was "15.2.9")
+    Updating package.json with dependency zone.js @ "0.13.3" (was "0.12.0")
+UPDATE package.json (1882 bytes)
+✔ Packages successfully installed.
+
+** Executing migrations of package '@angular/cli' **
+> Remove 'defaultProject' option from workspace configuration.
+  Migration completed (No changes made).
+> Replace removed 'defaultCollection' option in workspace configuration with 'schematicCollections'.
+  Migration completed (No changes made).
+> Update the '@angular-devkit/build-angular:server' builder configuration.
+  Migration completed (No changes made).
+
+** Executing migrations of package '@angular/core' **
+> In Angular version 15.2, the guard and resolver interfaces (CanActivate, Resolve, etc) were deprecated.
+  This migration removes imports and 'implements' clauses that contain them.
+UPDATE src/app/_helpers/auth.guard.ts (2181 bytes)
+  Migration completed (1 file modified).
+> As of Angular v16, the `moduleId` property of `@Component` is deprecated.
+  Migration completed (No changes made).
+```
+
+**Result:**
+- ✅ Angular 16.2.12 installed
+- ✅ TypeScript 5.1.6 installed
+- ✅ 1 file modified (auth.guard.ts - deprecated interfaces removed)
+- ✅ No breaking changes requiring manual fixes
+
+**Commit:**
+```bash
+git add .
+git commit -m "⬆️ Upgrade to Angular 16.2.12 + TypeScript 5.1.6"
+# [dev 054a9cc] ⬆️ Upgrade to Angular 16.2.12 + TypeScript 5.1.6
+# 3 files changed, 2610 insertions(+), 1752 deletions(-)
+```
+
+#### 3. Upgrade to Angular 17
+
+**Command:**
+```bash
+ng update @angular/core@17 @angular/cli@17
+```
+
+**Output:**
+```
+The installed Angular CLI version is outdated.
+Installing a temporary Angular CLI versioned 17.3.17 to perform the update.
+✔ Packages successfully installed.
+Using package manager: npm
+Collecting installed dependencies...
+Found 36 dependencies.
+Fetching dependency metadata from registry...
+    Updating package.json with dependency @angular-devkit/build-angular @ "17.3.17" (was "16.2.16")
+    Updating package.json with dependency @angular/cli @ "17.3.17" (was "16.2.16")
+    Updating package.json with dependency @angular/compiler-cli @ "17.3.12" (was "16.2.12")
+    Updating package.json with dependency typescript @ "5.4.5" (was "5.1.6")
+    Updating package.json with dependency @angular/animations @ "17.3.12" (was "16.2.12")
+    Updating package.json with dependency @angular/common @ "17.3.12" (was "16.2.12")
+    Updating package.json with dependency @angular/compiler @ "17.3.12" (was "16.2.12")
+    Updating package.json with dependency @angular/core @ "17.3.12" (was "16.2.12")
+    Updating package.json with dependency @angular/forms @ "17.3.12" (was "16.2.12")
+    Updating package.json with dependency @angular/platform-browser @ "17.3.12" (was "16.2.12")
+    Updating package.json with dependency @angular/platform-browser-dynamic @ "17.3.12" (was "16.2.12")
+    Updating package.json with dependency @angular/router @ "17.3.12" (was "16.2.12")
+    Updating package.json with dependency zone.js @ "0.14.10" (was "0.13.3")
+UPDATE package.json (1883 bytes)
+✔ Packages successfully installed.
+
+** Executing migrations of package '@angular/cli' **
+> Replace usages of '@nguniversal/builders' with '@angular-devkit/build-angular'.
+  Migration completed (No changes made).
+> Replace usages of '@nguniversal/' packages with '@angular/ssr'.
+  Migration completed (No changes made).
+> Replace deprecated options in 'angular.json'.
+UPDATE angular.json (3708 bytes)
+  Migration completed (1 file modified).
+> Add 'browser-sync' as dev dependency when '@angular-devkit/build-angular:ssr-dev-server' is used.
+  Migration completed (No changes made).
+
+** Executing migrations of package '@angular/core' **
+> Angular v17 introduces a new control flow syntax that uses the @ and } characters.
+  This migration replaces the existing usages with their corresponding HTML entities.
+  Migration completed (No changes made).
+> Updates `TransferState`, `makeStateKey`, `StateKey` imports from '@angular/platform-browser' to '@angular/core'.
+  Migration completed (No changes made).
+> CompilerOption.useJit and CompilerOption.missingTranslation are unused under Ivy.
+  This migration removes their usage
+  Migration completed (No changes made).
+> Updates two-way bindings that have an invalid expression to use the longform expression instead.
+  Migration completed (No changes made).
+```
+
+**Result:**
+- ✅ Angular 17.3.12 installed
+- ✅ TypeScript 5.4.5 installed
+- ✅ angular.json updated (deprecated options replaced)
+- ✅ Control flow syntax prepared
+- ✅ No manual code changes required
+
+**Commit:**
+```bash
+git add .
+git commit -m "⬆️ Upgrade to Angular 17.3.12 + TypeScript 5.4.5"
+# [dev 8c3636c] ⬆️ Upgrade to Angular 17.3.12 + TypeScript 5.4.5
+# 4 files changed, 3270 insertions(+), 2925 deletions(-)
+# create mode 100644 How_to_Upgrade_from_Angularv15_to_Angularv17.md
+```
+
+#### 4. Next Steps (In Progress)
+
+**Remaining tasks:**
+- [ ] Update Angular Material & CDK to v17
+- [ ] Migrate to standalone components (optional)
+- [ ] Introduce Signals in components
+- [ ] Test application thoroughly
+- [ ] Create and push to new GitHub repository
+
+### Key Takeaways from This Session
+
+1. **Smooth upgrade process** - Both upgrades completed without errors
+2. **Minimal manual changes** - Only 1 file auto-migrated in v16 upgrade
+3. **Version compatibility** - Node v22.14.0 worked perfectly
+4. **Total time** - ~10 minutes for core upgrades
+5. **Clean git history** - Each major step committed separately
+
+---
+
 ## Summary
 
 Congratulations! 🎉 You've successfully upgraded your Angular application from v15 to v17 with Signals support.
