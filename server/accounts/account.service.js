@@ -444,12 +444,19 @@ async function uploadImage(userId, imagePath) {
         throw new Error('Account not found');
     }
 
-    // Ensure the image path starts with /uploads/profiles/
+    // Handle both S3 URLs and local paths
     let normalizedPath = imagePath;
-    if (!normalizedPath.startsWith('/uploads/profiles/')) {
+
+    // If it's an S3 URL, use it as-is
+    if (imagePath.startsWith('https://') && imagePath.includes('amazonaws.com')) {
+        console.log('[AccountService] Using S3 URL:', imagePath);
+        normalizedPath = imagePath;
+    }
+    // If it's a local path, ensure it starts with /uploads/profiles/
+    else if (!normalizedPath.startsWith('/uploads/profiles/')) {
         const filename = path.basename(imagePath);
         normalizedPath = `/uploads/profiles/${filename}`;
-        console.log('[AccountService] Normalized image path:', {
+        console.log('[AccountService] Normalized local image path:', {
             original: imagePath,
             normalized: normalizedPath
         });

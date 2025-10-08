@@ -130,11 +130,14 @@ export class NewBusinessProfileComponent implements OnInit, AfterViewInit, OnCha
   private ensureImagesHaveFullUrls() {
     if (this.profile) {
       if (this.profile.profileImage) {
-        this.profile.profileImage = this.imageService.getFullImageUrl(this.profile.profileImage);
+        // Use AccountService's formatImageUrl method instead of ImageService
+        this.profile.profileImage = this.accountService['formatImageUrl'](this.profile.profileImage);
+        console.log('[BusinessProfile] Formatted profile image URL:', this.profile.profileImage);
       }
 
       if (this.profile.companyLogo) {
-        this.profile.companyLogo = this.imageService.getFullImageUrl(this.profile.companyLogo);
+        this.profile.companyLogo = this.accountService['formatImageUrl'](this.profile.companyLogo);
+        console.log('[BusinessProfile] Formatted company logo URL:', this.profile.companyLogo);
       }
     }
   }

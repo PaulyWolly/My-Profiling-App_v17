@@ -101,6 +101,12 @@ app.use('/assets', express.static(path.join(__dirname, '../src/assets')));
 // Mount the upload routes
 app.use('/upload', require('./uploads/upload.routes'));
 
+// Mount the S3 upload routes
+app.use('/api/s3-upload', require('./routes/s3-uploads'));
+
+// Mount the hybrid upload routes (S3 + Local storage)
+app.use('/api/hybrid-upload', require('./routes/hybrid-uploads'));
+
 // api routes
 app.use('/accounts', require('./accounts/accounts.controller'));
 app.use('/api/admin/scripts', adminScriptsRouter);
@@ -139,8 +145,8 @@ app._router.stack
 // Connect to MongoDB with retry logic
 function connectWithRetry() {
   if (mongoose.connection.readyState === 0) { // Only connect if not already connected
-    mongoose.connect(config.connectionString, { 
-      useNewUrlParser: true, 
+    mongoose.connect(config.connectionString, {
+      useNewUrlParser: true,
       useUnifiedTopology: true,
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000

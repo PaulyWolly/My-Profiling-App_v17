@@ -266,7 +266,7 @@
                                   <img *ngIf="follower.imageUrl || follower.path"
                                        [src]="follower.imageUrl || (environment.apiUrl + '/' + follower.path)"
                                        [alt]="follower.name + '\'s avatar'"
-                                       onerror="this.src='assets/images/default-avatar.png'">
+                                       onerror="this.src='assets/images/default-avatar.svg'">
                                   <div *ngIf="!follower.imageUrl && !follower.path" class="no-avatar">
                                     <i class="material-icons">account_circle</i>
                                   </div>

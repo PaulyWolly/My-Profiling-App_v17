@@ -42,7 +42,7 @@ export class NewSocialMediaProfileComponent implements OnInit {
   pendingChats = false;
 
   constructor(private router: Router, private dialog: MatDialog, private chatService: ChatService) {}
-  
+
   ngOnInit() {
     // Subscribe to online users for chat dock
     this.chatService.getOnlineUsers().subscribe((users: OnlineUser[]) => {
@@ -53,17 +53,17 @@ export class NewSocialMediaProfileComponent implements OnInit {
       this.pendingChats = set && set.size > 0;
     });
   }
-  
+
   onImageLoaded() {
     this.loading = false;
   }
-  
+
   onImageError() {
     this.loading = false;
   }
 
   getFollowerImageUrl(follower: any): string {
-    if (!follower.imageUrl) return 'assets/images/default-avatar.png';
+    if (!follower.imageUrl) return 'assets/images/default-avatar.svg';
     return follower.imageUrl.startsWith('http') ? follower.imageUrl : environment.apiUrl + '/' + follower.imageUrl;
   }
 
@@ -82,4 +82,4 @@ export class NewSocialMediaProfileComponent implements OnInit {
   toggleChatList() {
     this.showChatList = !this.showChatList;
   }
-} 
+}

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, effect } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Account } from '@app/_models';
 import { AccountService, AlertService } from '@app/_services';
@@ -30,17 +30,18 @@ export class ProfileComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private alertService: AlertService
-  ) {}
-
-  ngOnInit() {
-    // Subscribe to current account
-    this.accountService.account$.subscribe(account => {
+  ) {
+    // Use Angular Signals with effect() for reactive account state changes
+    effect(() => {
+      const account = this.accountService.account();
       this.account = account;
       // Load the profile data
       this.loadUserProfile();
     });
+  }
 
-    // Also subscribe to route changes
+  ngOnInit() {
+    // Subscribe to route changes
     this.route.params.subscribe(params => {
       if (params['id']) {
         this.userId = params['id'];

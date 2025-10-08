@@ -171,15 +171,16 @@ export class AccountService {
             return imagePath;
         }
 
-        // Remove any leading slash from the image path
-        const cleanPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
-
         // Remove any trailing slashes from the base URL
         const baseUrl = environment.apiUrl.replace(/\/+$/, '');
 
-        // Construct the full URL
-        const fullUrl = `${baseUrl}/${cleanPath}`;
+        // Ensure the path starts with a slash for proper URL construction
+        const cleanPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
 
+        // Construct the full URL
+        const fullUrl = `${baseUrl}${cleanPath}`;
+
+        console.log('[AccountService] formatImageUrl:', { original: imagePath, cleanPath, fullUrl });
         return fullUrl;
     }
 
@@ -222,13 +223,12 @@ export class AccountService {
         this.clearAuthData(); // Ensure all tokens and session data are removed
         this.http.post<any>(`${environment.apiUrl}/accounts/revoke-token`, {}, { withCredentials: true }).subscribe();
         this.stopRefreshTokenTimer();
+    }
 
-        // Update signals
-        this._accountSignal.set(null);
-        this._loadingSignal.set(false);
-        this._errorSignal.set(null);
-
-        this.router.navigate(['/account/login']);
+    // Clear remembered email (for when user wants to "forget" their email)
+    clearRememberedEmail() {
+        console.log('[AccountService] Clearing remembered email');
+        localStorage.removeItem(this.REMEMBER_ME_KEY);
     }
 
     // Auth0 login method
@@ -359,7 +359,8 @@ export class AccountService {
     private clearAuthData() {
         console.log('[AccountService] Clearing authentication data for tab:', this.currentTabId);
         this.stopRefreshTokenTimer();
-        localStorage.removeItem(this.REMEMBER_ME_KEY); // Only for rememberMe
+        // DON'T remove rememberMe data - user wants to keep their email remembered
+        // localStorage.removeItem(this.REMEMBER_ME_KEY); // Keep remembered email
         sessionStorage.removeItem(this.JWT_TOKEN_KEY);
         sessionStorage.removeItem(this.REFRESH_TOKEN_KEY);
 
@@ -742,7 +743,8 @@ export class AccountService {
     }
 
     uploadImage(id: string, formData: FormData) {
-        return this.getHttp().post<any>(`${environment.apiUrl}/accounts/upload-profile-image`, formData, {
+        // Use hybrid upload (S3 + Local storage)
+        return this.getHttp().post<any>(`${environment.apiUrl}/api/hybrid-upload/profile-image`, formData, {
             params: { userId: id }
         })
             .pipe(
@@ -789,7 +791,7 @@ export class AccountService {
 
     // Add a method to get the correct profile image URL
     getProfileImageUrl(profileImage: string): string {
-        if (!profileImage) return 'assets/images/avatars/default-avatar.png';
+        if (!profileImage) return '';
 
         // If it's already a full URL (starts with http), return it as-is
         if (profileImage.startsWith('http')) {
