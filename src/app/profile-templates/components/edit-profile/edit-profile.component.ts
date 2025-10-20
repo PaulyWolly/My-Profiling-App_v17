@@ -300,7 +300,6 @@ export class EditProfileComponent implements OnInit, OnChanges, AfterViewInit {
 
     const formData = new FormData();
     formData.append('profileImage', file);
-    formData.append('userId', this.account.id);
     formData.append('userEmail', this.account.email || '');
     formData.append('profileName', profileName);
 

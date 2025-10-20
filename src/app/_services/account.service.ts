@@ -164,10 +164,13 @@ export class AccountService {
 
     // Helper method to format image URLs
     private formatImageUrl(imagePath: string | undefined): string | undefined {
-        if (!imagePath) return undefined;
+        if (!imagePath) {
+            return undefined;
+        }
 
-        // If it's already a full URL, return it as is
+        // If it's already a full URL, return as-is (including Google URLs)
         if (imagePath.startsWith('http')) {
+            console.log('[AccountService] Using full URL as-is:', imagePath);
             return imagePath;
         }
 
@@ -180,7 +183,6 @@ export class AccountService {
         // Construct the full URL
         const fullUrl = `${baseUrl}${cleanPath}`;
 
-        console.log('[AccountService] formatImageUrl:', { original: imagePath, cleanPath, fullUrl });
         return fullUrl;
     }
 
@@ -207,6 +209,11 @@ export class AccountService {
                     this._accountSignal.set(account);
                     this._loadingSignal.set(false);
                     this.startRefreshTokenTimer();
+
+                    // Force refresh account data to ensure fresh profile images
+                    setTimeout(() => {
+                        this.forceRefreshAccount();
+                    }, 1000);
 
                     return account;
                 }),
@@ -255,6 +262,11 @@ export class AccountService {
                 this._accountSignal.set(account);
                 this._loadingSignal.set(false);
                 this.startRefreshTokenTimer();
+
+                // Force refresh account data to ensure fresh profile images
+                setTimeout(() => {
+                    this.forceRefreshAccount();
+                }, 1000);
 
                 return account;
             }),
@@ -355,6 +367,48 @@ export class AccountService {
         }
     }
 
+    // Force refresh account data - useful after login/logout cycles
+    forceRefreshAccount(): void {
+        console.log('[AccountService] Force refreshing account data');
+        const currentAccount = this._accountSignal();
+        if (currentAccount?.id) {
+            console.log('[AccountService] Refreshing account data for ID:', currentAccount.id);
+            this.fetchAndUpdateFullAccountDetails(currentAccount.id);
+        } else {
+            console.log('[AccountService] No current account to refresh');
+        }
+    }
+
+    // Force clear all cached account data and refresh
+    forceClearAndRefresh(): void {
+        console.log('[AccountService] Force clearing all cached data and refreshing');
+        // Clear current account signal
+        this._accountSignal.set(null);
+
+        // Get fresh account data from server
+        const jwtToken = sessionStorage.getItem(this.JWT_TOKEN_KEY);
+        if (jwtToken) {
+            console.log('[AccountService] Found JWT token, fetching fresh account data');
+            // Get account ID from token
+            const decodedToken = this.jwtHelper.decodeToken(jwtToken);
+            const accountId = decodedToken.id || decodedToken.sub;
+            if (accountId) {
+                this.getById(accountId).subscribe({
+                    next: (account: Account) => {
+                        console.log('[AccountService] Fresh account data received:', account);
+                        console.log('[AccountService] Profile image URL:', account.profileImage);
+                        this._accountSignal.set(account);
+                    },
+                    error: (error: any) => {
+                        console.error('[AccountService] Error fetching fresh account data:', error);
+                    }
+                });
+            }
+        } else {
+            console.log('[AccountService] No JWT token found');
+        }
+    }
+
     // Clear all authentication data from storage
     private clearAuthData() {
         console.log('[AccountService] Clearing authentication data for tab:', this.currentTabId);
@@ -364,10 +418,13 @@ export class AccountService {
         sessionStorage.removeItem(this.JWT_TOKEN_KEY);
         sessionStorage.removeItem(this.REFRESH_TOKEN_KEY);
 
-        // Update signals
+        // Update signals - ensure complete cleanup
         this._accountSignal.set(null);
         this._loadingSignal.set(false);
         this._errorSignal.set(null);
+
+        // Force clear any cached account data
+        console.log('[AccountService] Forcing complete account state reset');
     }
 
     refreshToken() {
@@ -744,9 +801,9 @@ export class AccountService {
 
     uploadImage(id: string, formData: FormData) {
         // Use hybrid upload (S3 + Local storage)
-        return this.getHttp().post<any>(`${environment.apiUrl}/api/hybrid-upload/profile-image`, formData, {
-            params: { userId: id }
-        })
+        // Add userId to form data since backend expects it there
+        formData.append('userId', id);
+        return this.getHttp().post<any>(`${environment.apiUrl}/api/hybrid-upload/profile-image`, formData)
             .pipe(
                 map(response => {
                     // Format the profile image URL
@@ -791,16 +848,26 @@ export class AccountService {
 
     // Add a method to get the correct profile image URL
     getProfileImageUrl(profileImage: string): string {
-        if (!profileImage) return '';
+        const formattedUrl = this.formatImageUrl(profileImage);
+        return formattedUrl || '';
+    }
 
-        // If it's already a full URL (starts with http), return it as-is
-        if (profileImage.startsWith('http')) {
-            return profileImage;
-        }
+    // Force clear all cached data and refresh
+    forceClearAllCache(): void {
+        console.log('[AccountService] Force clearing all cached data');
+        // Clear all storage
+        sessionStorage.clear();
+        localStorage.removeItem(this.REMEMBER_ME_KEY);
 
-        // For local images, prepend the API URL
-        const baseUrl = environment.apiUrl || '';
-        return joinUrl(baseUrl, profileImage);
+        // Clear signals
+        this._accountSignal.set(null);
+        this._loadingSignal.set(false);
+        this._errorSignal.set(null);
+
+        // Stop any timers
+        this.stopRefreshTokenTimer();
+
+        console.log('[AccountService] All cached data cleared');
     }
 
     // Super-Admin password reset functionality

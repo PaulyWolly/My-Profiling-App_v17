@@ -133,7 +133,10 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     logout() {
+        console.log('[AppComponent] Starting logout process');
+        // Run both logout methods for complete coverage
         this.accountService.logout();
+        this.auth0Service.logoutFromAuth0();
     }
 
     // Force navigation to a URL to overcome potential router issues

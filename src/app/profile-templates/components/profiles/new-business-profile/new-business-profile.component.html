@@ -246,7 +246,7 @@
   </div>
 
   <!-- Floating Chat Icon -->
-  <div class="floating-chat-icon" (click)="toggleChatList()" appCustomTooltip="Click to chat" tooltipPosition="auto">
+  <div class="floating-chat-icon" (click)="toggleChatList()" appCustomTooltip="Click to toggle chat" tooltipPosition="auto">
     <mat-icon>chat</mat-icon>
     <div class="online-users-badge" *ngIf="onlineUsersCount > 0" appCustomTooltip="Users Online" tooltipPosition="auto">
       {{ onlineUsersCount }}

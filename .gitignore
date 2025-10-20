@@ -76,3 +76,7 @@ reference_repo_5-11-25/
 *.tar.gz
 *.rar
 *.7z
+
+# Backup directories (contain secrets and should not be tracked)
+backups/
+enhanced_backup_*/

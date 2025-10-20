@@ -7,8 +7,8 @@
         <span class="post-time">{{ getTimeAgo(post.createdAt) }}</span>
       </mat-card-subtitle>
       <div class="avatar-group">
-        <img [src]="getProfileImageUrl(post.sender?.profileImage)" [alt]="post.sender?.firstName + ' ' + post.sender?.lastName" class="author-avatar">
-        <img *ngIf="post.recipient" [src]="getProfileImageUrl(post.recipient?.profileImage)" [alt]="post.recipient?.firstName + ' ' + post.recipient?.lastName" class="recipient-avatar">
+        <img [src]="getProfileImageUrl(post.sender?.profileImage)" [alt]="post.sender?.firstName + ' ' + post.sender?.lastName" class="author-avatar" (error)="onImageError($event, post.sender)">
+        <img *ngIf="post.recipient" [src]="getProfileImageUrl(post.recipient?.profileImage)" [alt]="post.recipient?.firstName + ' ' + post.recipient?.lastName" class="recipient-avatar" (error)="onImageError($event, post.recipient)">
       </div>
     </mat-card-header>
 
@@ -36,4 +36,4 @@
       </button>
     </mat-card-actions>
   </mat-card>
-</div> 
+</div>

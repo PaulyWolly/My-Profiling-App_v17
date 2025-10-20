@@ -93,9 +93,10 @@ export class Auth0Service {
 
     // Method to logout from Auth0
     logoutFromAuth0(): void {
+        console.log('[Auth0Service] Logging out from Auth0');
         this.auth.logout({
             logoutParams: {
-                returnTo: window.location.origin
+                returnTo: window.location.origin + '/account/login'
             }
         });
     }

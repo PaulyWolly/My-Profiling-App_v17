@@ -34,6 +34,12 @@ import { AccountSettingsComponent } from './containers/account-settings/account-
 // Presentational Components
 import { MapDialogComponent } from './components/map-dialog/map-dialog.component';
 
+// Standalone Profile Template Components
+import { NewStandardProfileComponent } from '../profile-templates/components/profiles/new-standard-profile/new-standard-profile.component';
+import { NewBusinessProfileComponent } from '../profile-templates/components/profiles/new-business-profile/new-business-profile.component';
+import { NewSocialMediaProfileComponent } from '../profile-templates/components/profiles/new-social-media-profile/new-social-media-profile.component';
+import { ChatDockComponent } from '../profile-templates/components/chat/chat-dock/chat-dock.component';
+
 // Custom Directive to prevent wheel event propagation
 import { Directive, ElementRef, HostListener } from '@angular/core';
 
@@ -70,7 +76,12 @@ export class PreventWheelPropagationDirective {
         MatExpansionModule,
         MatTooltipModule,
         AccountModule,
-        CustomTooltipDirective
+        CustomTooltipDirective,
+        // Standalone profile template components
+        NewStandardProfileComponent,
+        NewBusinessProfileComponent,
+        NewSocialMediaProfileComponent,
+        ChatDockComponent
     ],
     declarations: [
         ProfileComponent,

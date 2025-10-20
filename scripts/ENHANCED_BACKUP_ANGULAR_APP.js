@@ -236,6 +236,53 @@ function generateDescriptiveChanges(analyses) {
     return changes;
 }
 
+// Get recent changes prompting backup (update this for each backup)
+function getRecentChangesPromptingBackup() {
+    return {
+        title: 'S3 Profile Image Persistence Fixes (October 20, 2025)',
+        problem: 'Profile images were disappearing after profile updates',
+        rootCauses: [
+            'Server-side: Profile image URLs were being overwritten during profile updates',
+            'Frontend: Google URLs were being rejected, causing default avatars to show',
+            'Upload endpoint: Field name mismatch between frontend and backend'
+        ],
+        fixes: [
+            {
+                title: 'Server-side Protection (`server/accounts/account.service.js`)',
+                details: [
+                    'Removed `profileImage` from general update fields',
+                    'Added special handling to preserve existing S3 URLs',
+                    'Only updates `profileImage` if explicitly a new S3 URL'
+                ]
+            },
+            {
+                title: 'Frontend URL Handling (`src/app/_services/account.service.ts`)',
+                details: [
+                    'Removed Google URL rejection logic',
+                    'Now allows all HTTP URLs (including Google) to display',
+                    'Fixed upload endpoint to use hybrid S3 + local storage'
+                ]
+            },
+            {
+                title: 'Upload Endpoint Fix (`src/app/profile-templates/components/edit-profile/edit-profile.component.ts`)',
+                details: [
+                    'Fixed field name mismatch (userId now sent in form data)',
+                    'Removed duplicate userId from form data',
+                    'Now properly uploads to S3 via hybrid upload endpoint'
+                ]
+            },
+            {
+                title: 'Module Import Fix (`src/app/profile/profile.module.ts`)',
+                details: [
+                    'Added standalone profile template components to imports',
+                    'Fixed "component not known" errors'
+                ]
+            }
+        ],
+        result: 'Profile images now persist permanently on S3 and display correctly!'
+    };
+}
+
 // Generate comprehensive change summary
 function generateChangeSummary(analyses, gitHistory = []) {
     const summary = [];
@@ -246,6 +293,31 @@ function generateChangeSummary(analyses, gitHistory = []) {
     summary.push(`**App:** Angular + Node.js + MongoDB Profiling App`);
     summary.push(`**Total Files:** ${analyses.length}`);
     summary.push(`**Git Commits (last 7 days):** ${gitHistory.length}`);
+    summary.push('');
+    
+    // Add recent changes prompting backup
+    summary.push('## 🚀 Recent Changes Prompting This Backup');
+    summary.push('');
+    
+    const recentChanges = getRecentChangesPromptingBackup();
+    summary.push(`### ${recentChanges.title}`);
+    summary.push('');
+    summary.push(`**Problem Solved:** ${recentChanges.problem}`);
+    summary.push('');
+    summary.push('**Root Causes Identified:**');
+    recentChanges.rootCauses.forEach(cause => {
+        summary.push(`- ${cause}`);
+    });
+    summary.push('');
+    summary.push('**Fixes Implemented:**');
+    recentChanges.fixes.forEach((fix, index) => {
+        summary.push(`${index + 1}. **${fix.title}:**`);
+        fix.details.forEach(detail => {
+            summary.push(`   - ${detail}`);
+        });
+        summary.push('');
+    });
+    summary.push(`**Result:** ${recentChanges.result}`);
     summary.push('');
 
     // Generate descriptive summary of changes

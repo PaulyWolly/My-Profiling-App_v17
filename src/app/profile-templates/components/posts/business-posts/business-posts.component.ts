@@ -113,6 +113,16 @@ export class BusinessPostsComponent implements OnInit, OnChanges {
     return this.accountService.getProfileImageUrl(path);
   }
 
+  getDefaultAvatar(): string {
+    return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjRTVFN0VCIi8+CjxjaXJjbGUgY3g9IjUwIiBjeT0iMzUiIHI9IjE1IiBmaWxsPSIjOUI5QkE1Ii8+CjxwYXRoIGQ9Ik0yMCA4MEMyMCA2NS42NDA2IDMyLjY0MDYgNTMgNDcgNTNINjNDNzcuMzU5NCA1MyA5MCA2NS42NDA2IDkwIDgwVjEwMEgyMFY4MFoiIGZpbGw9IiM5QjlCQTUiLz4KPC9zdmc+';
+  }
+
+  onImageError(event: any, user: any): void {
+    console.log('[BusinessPosts] Image loading error for user:', user?.firstName, user?.lastName);
+    // Set the src to default avatar when image fails to load
+    event.target.src = this.getDefaultAvatar();
+  }
+
   onDelete(post: Post) {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       data: {

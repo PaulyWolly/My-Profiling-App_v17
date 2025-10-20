@@ -129,13 +129,14 @@ export class NewBusinessProfileComponent implements OnInit, AfterViewInit, OnCha
 
   private ensureImagesHaveFullUrls() {
     if (this.profile) {
-      if (this.profile.profileImage) {
+      // Only format if not already a full URL - avoid repeatedly mutating the object
+      if (this.profile.profileImage && !this.profile.profileImage.startsWith('http')) {
         // Use AccountService's formatImageUrl method instead of ImageService
         this.profile.profileImage = this.accountService['formatImageUrl'](this.profile.profileImage);
         console.log('[BusinessProfile] Formatted profile image URL:', this.profile.profileImage);
       }
 
-      if (this.profile.companyLogo) {
+      if (this.profile.companyLogo && !this.profile.companyLogo.startsWith('http')) {
         this.profile.companyLogo = this.accountService['formatImageUrl'](this.profile.companyLogo);
         console.log('[BusinessProfile] Formatted company logo URL:', this.profile.companyLogo);
       }
@@ -143,9 +144,16 @@ export class NewBusinessProfileComponent implements OnInit, AfterViewInit, OnCha
   }
 
   getProfileImageUrl(): string {
+    console.log('[BusinessProfile] getProfileImageUrl called');
+    console.log('[BusinessProfile] Profile data:', this.profile);
+    console.log('[BusinessProfile] Profile image:', this.profile?.profileImage);
+
     if (this.profile?.profileImage) {
+      console.log('[BusinessProfile] Returning profile image URL:', this.profile.profileImage);
       return this.profile.profileImage;
     }
+
+    console.log('[BusinessProfile] No profile image found, returning default avatar');
     // Fallback to a data URL for a simple default avatar
     return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjRTVFN0VCIi8+CjxjaXJjbGUgY3g9IjUwIiBjeT0iMzUiIHI9IjE1IiBmaWxsPSIjOUI5QkE1Ii8+CjxwYXRoIGQ9Ik0yMCA4MEMyMCA2NS42NDA2IDMyLjY0MDYgNTMgNDcgNTNINjNDNzcuMzU5NCA1MyA5MCA2NS42NDA2IDkwIDgwVjEwMEgyMFY4MFoiIGZpbGw9IiM5QjlCQTUiLz4KPC9zdmc+';
   }
@@ -212,6 +220,8 @@ export class NewBusinessProfileComponent implements OnInit, AfterViewInit, OnCha
   }
 
   onImageError(event: any) {
+    console.error('[BusinessProfile] Image loading error:', event);
+    console.error('[BusinessProfile] Failed to load image URL:', this.profile?.profileImage);
     this.imageLoading = false;
     // Clear the profile image URL in case of error
     if (this.profile) {
@@ -230,6 +240,12 @@ export class NewBusinessProfileComponent implements OnInit, AfterViewInit, OnCha
       console.error('[BusinessCard] Error loading company logo');
       this.profile.companyLogo = undefined;
     }
+  }
+
+  // Force refresh profile data
+  forceRefreshProfile() {
+    console.log('[BusinessProfile] Force refreshing profile data');
+    this.accountService.forceClearAndRefresh();
   }
 
   // Open the map dialog with the profile address

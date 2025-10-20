@@ -2,6 +2,7 @@ import { Component, Input, AfterViewInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Role } from '../_models/role';
 import { AccountService } from '../_services/account.service';
+import { Auth0Service } from '../_services/auth0.service';
 
 @Component({
   selector: 'app-new-menu-bar',
@@ -15,7 +16,7 @@ export class NewMenuBarComponent implements AfterViewInit {
   currentUrl: string = '';
   dropdownOpen = false;
 
-  constructor(private router: Router, private accountService: AccountService) {
+  constructor(private router: Router, private accountService: AccountService, private auth0Service: Auth0Service) {
     this.currentUrl = this.router.url;
     this.router.events.subscribe(() => {
       this.currentUrl = this.router.url;
@@ -51,6 +52,9 @@ export class NewMenuBarComponent implements AfterViewInit {
   }
 
   logout() {
+    console.log('[MenuBar] Starting logout process');
+    // Run both logout methods for complete coverage
     this.accountService.logout();
+    this.auth0Service.logoutFromAuth0();
   }
 }

@@ -384,11 +384,25 @@ async function update(id, params) {
     const allowedFields = [
         'firstName', 'lastName', 'company', 'position', 'address', 'city', 'state', 'zipCode',
         'website', 'github', 'twitter', 'instagram', 'facebook', 'linkedin', 'bio', 'education',
-        'skills', 'followersCount', 'followingCount', 'profileTemplateType', 'profileImage', 'coverImage', 'mobile', 'phone'
+        'skills', 'followersCount', 'followingCount', 'profileTemplateType', 'coverImage', 'mobile', 'phone'
     ];
     for (const key of allowedFields) {
         if (params.hasOwnProperty(key)) {
             account[key] = params[key];
+        }
+    }
+
+    // Handle profileImage separately to preserve S3 URLs
+    if (params.hasOwnProperty('profileImage') && params.profileImage) {
+        // Only update if it's explicitly being changed (not just passed through)
+        // Don't overwrite existing S3 URLs with local paths
+        if (params.profileImage.startsWith('https://') || !account.profileImage || account.profileImage === params.profileImage) {
+            account.profileImage = params.profileImage;
+        } else {
+            console.log('[AccountService] Preserving existing profileImage, ignoring update:', {
+                existing: account.profileImage,
+                attempted: params.profileImage
+            });
         }
     }
     account.updated = Date.now();
