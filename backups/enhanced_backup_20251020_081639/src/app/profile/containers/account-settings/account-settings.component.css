@@ -1,0 +1,31 @@
+h1 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.lead {
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+:host {
+  display: block;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.container {
+  max-width: 100%;
+  padding: 0;
+}
+
+/* Add card-like styling */
+app-edit-content {
+  display: block;
+  background: white;
+  border-radius: 8px;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+  padding: 2rem;
+} 

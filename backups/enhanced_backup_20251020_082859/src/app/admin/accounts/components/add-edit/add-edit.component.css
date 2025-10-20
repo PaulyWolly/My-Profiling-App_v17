@@ -1,0 +1,654 @@
+/* Add form-specific styles to ensure proper display of controls */
+.form-control, .form-select {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #212529;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+    height: calc(1.5em + 0.75rem + 2px);
+}
+
+.form-control:focus, .form-select:focus {
+    color: #212529;
+    background-color: #fff;
+    border-color: #86b7fe;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Main body styles for account edit page - prevent scrolling */
+:host {
+    display: block;
+    height: calc(100vh - 115px); /* Account for header/menu */
+    overflow: hidden !important;
+    padding: 2rem;
+    background-color: #ecedee; /* Ensure consistent background */
+    font-size: 0.9rem;
+    position: relative;
+}
+
+/* When the account edit page is active, prevent any page scrolling */
+body.edit-account-page {
+    overflow: hidden !important;
+    position: fixed !important;
+    width: 100% !important;
+    height: 100% !important;
+    top: 0;
+    left: 0;
+}
+
+.form-container, 
+.profile-image-section .card { /* Target both containers */
+    background-color: white; 
+    padding: 1.5rem;
+    border-radius: 8px; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: 1px solid #e0e0e0;
+    margin-bottom: 1rem; /* Add some margin between sections if needed */
+}
+
+/* Adjust profile image card header/body padding if needed */
+.profile-image-section .card-header {
+    background-color: #f8f9fa; /* Keep header light */
+    padding: 1rem; /* Standardize padding */
+    border-bottom: 1px solid #e0e0e0; /* Match border */
+    border-radius: 7px 7px 0 0; /* Match card radius */
+}
+
+.profile-image-section .card-body {
+    padding: 1.5rem; /* Match form-container padding */
+}
+
+/* Keep specific profile image styles */
+.profile-image-section {
+    height: 100%;
+}
+
+.profile-image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    max-width: 250px;
+    height: 200px;
+    margin: 0 auto;
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: #f5f5f5;
+}
+
+.profile-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+.custom-file-container {
+    position: relative;
+    margin-bottom: 0.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.custom-file-input {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    height: calc(1.5em + 0.5rem + 2px);
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.custom-file-label {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 1;
+    height: calc(1.5em + 0.5rem + 2px);
+    padding: 0.25rem 0.5rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #495057;
+    background-color: #fff;
+    border: 1px solid #ced4da;
+    border-radius: 0.2rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.custom-file-label::after {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 3;
+    display: block;
+    height: calc(1.5em + 0.5rem + 2px);
+    padding: 0.25rem 0.5rem;
+    line-height: 1.5;
+    color: #495057;
+    content: "Browse";
+    background-color: #e9ecef;
+    border-left: inherit;
+    border-radius: 0 0.2rem 0.2rem 0;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.btn {
+    margin-right: 0.5rem;
+    font-size: 0.9rem;
+    padding: 0.375rem 0.75rem;
+}
+
+/* Card styling */
+.card {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    padding: 0.75rem 1rem;
+}
+
+.card-header h4 {
+    margin: 0;
+    color: #495057;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.card-body {
+    padding: 1rem;
+}
+
+/* Alert styling */
+.alert {
+    padding: 1rem;
+    border-radius: 4px;
+    margin-top: 1rem;
+}
+
+.alert-warning {
+    background-color: #fff3cd;
+    border-color: #ffecb5;
+    color: #664d03;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    border-color: #f5c2c7;
+    color: #842029;
+}
+
+/* Button styling */
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 0.375rem 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-danger:hover {
+    background-color: #bb2d3b;
+}
+
+.btn-danger:disabled {
+    background-color: #dc354580;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 0.375rem 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-secondary:hover {
+    background-color: #5c636a;
+}
+
+.btn-secondary:disabled {
+    background-color: #6c757d80;
+    cursor: not-allowed;
+}
+
+.me-2 {
+    margin-right: 0.5rem !important;
+}
+
+.conflict-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    justify-content: flex-end;
+}
+
+/* Highlight sections for specific templates */
+.highlight-section {
+    border: 1px solid #4dabf7;
+    box-shadow: 0 0 0 0.2rem rgba(77, 171, 247, 0.1);
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(63, 81, 181, 0.4); }
+    70% { box-shadow: 0 0 0 8px rgba(63, 81, 181, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(63, 81, 181, 0); }
+}
+
+/* Badge styling */
+.badge {
+    display: inline-block;
+    padding: 0.2em 0.6em;
+    font-size: 0.75rem;
+    font-weight: normal;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.25rem;
+}
+
+.bg-primary {
+    background-color: #3f51b5;
+    color: white;
+}
+
+/* Utilities */
+.mt-1 { margin-top: 0.25rem !important; }
+.mt-2 { margin-top: 0.5rem !important; }
+.mt-3 { margin-top: 1rem !important; }
+.mt-4 { margin-top: 1.5rem !important; }
+.mb-1 { margin-bottom: 0.25rem !important; }
+.mb-2 { margin-bottom: 0.5rem !important; }
+.mb-3 { margin-bottom: 1rem !important; }
+.ms-2 { margin-left: 0.5rem !important; }
+.text-muted { color: #6c757d !important; }
+.small { font-size: 0.875em; }
+
+/* Style for textarea form controls */
+textarea.form-control {
+    height: auto;
+    min-height: 100px;
+}
+
+/* Form styling */
+.form-label {
+    margin-bottom: 0.25rem;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.form-control, .form-select {
+    font-size: 0.9rem;
+    padding: 0.375rem 0.75rem;
+    height: auto;
+}
+
+.form-control::placeholder {
+    font-size: 0.85rem;
+    color: #adb5bd;
+}
+
+.form-text {
+    font-size: 0.8rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .profile-image-container {
+        height: auto;
+    }
+    
+    .profile-image-section {
+        margin-bottom: 1.5rem;
+    }
+}
+
+h1 {
+    font-size: 1.75rem;
+    margin-bottom: 1.5rem;
+    color: #333;
+}
+
+/* Utilities */
+.mt-1 { margin-top: 0.25rem !important; }
+.mt-2 { margin-top: 0.5rem !important; }
+.mt-3 { margin-top: 1rem !important; }
+.mt-4 { margin-top: 1.5rem !important; }
+.mb-1 { margin-bottom: 0.25rem !important; }
+.mb-2 { margin-bottom: 0.5rem !important; }
+.mb-3 { margin-bottom: 1rem !important; }
+.ms-2 { margin-left: 0.5rem !important; }
+.me-2 { margin-right: 0.5rem !important; }
+.text-muted { color: #6c757d !important; }
+.small { font-size: 0.875em; }
+
+/* Style for textarea form controls */
+textarea.form-control {
+    height: auto;
+    min-height: 80px;
+}
+
+/* Command bar styling */
+.command-bar {
+  background-color: #f8f9fa;
+  padding: 12px 16px;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  margin-bottom: 15px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Template description styling */
+.template-description {
+  font-size: 0.85rem;
+  color: #495057;
+  max-width: 450px;
+  display: inline-block;
+  padding: 8px 12px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  border-left: 3px solid #007bff;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  margin-top: 5px;
+}
+
+/* Container styles - reduce wasted space */
+.admin-edit-container {
+  max-height: calc(100vh - 170px);
+  margin-top: 10px !important;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+/* Left column - no scroll needed */
+.col-md-4 {
+  height: 100%;
+  padding-right: 10px;
+}
+
+/* Right column - MUST have scroll */
+.col-md-8 {
+  height: 100%;
+}
+
+/* Scrollable form container */
+.scrollable-form-container {
+  overflow-y: auto;
+  max-height: 100%;
+  padding-right: 10px;
+  -ms-overflow-style: none;  /* Hide scrollbar in IE and Edge */
+  scrollbar-width: thin;     /* Thin scrollbar for Firefox */
+  position: relative;
+}
+
+/* Enhance focus styles for form elements */
+.form-control:focus, 
+.form-select:focus, 
+button:focus {
+  outline: 2px solid #0d6efd;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  z-index: 2;
+}
+
+/* Custom scrollbar styling */
+.scrollable-form-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollable-form-container::-webkit-scrollbar-track {
+  background: #f0f0f0;
+}
+
+.scrollable-form-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.scrollable-form-container::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Fixed footer for action buttons */
+.form-actions {
+  position: sticky;
+  bottom: 0;
+  background-color: white;
+  padding: 1rem;
+  border-top: 1px solid #dee2e6;
+  margin-top: 1rem;
+  z-index: 10;
+}
+
+/* Profile image styling */
+.profile-image-container {
+  width: 200px;
+  height: 200px;
+  margin: 0 auto;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+}
+
+.profile-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Card styling */
+.card {
+  margin-bottom: 15px;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  padding: 10px 15px;
+  border-bottom: 1px solid #e9ecef;
+  font-weight: 500;
+}
+
+.card-header h5 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #495057;
+}
+
+.card-body {
+  padding: 15px;
+}
+
+/* Button styling */
+.btn {
+  font-size: 0.875rem;
+  padding: 0.375rem 0.75rem;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+
+/* Spacing utilities */
+.mt-2 {
+  margin-top: 0.5rem !important;
+}
+
+.mb-3 {
+  margin-bottom: 1rem !important;
+}
+
+.me-2 {
+  margin-right: 0.5rem !important;
+}
+
+.gap-2 {
+  gap: 0.5rem !important;
+}
+
+/* Highlight section for template */
+.highlight-section {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.15);
+}
+
+/* Badge styling */
+.badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  font-weight: normal;
+}
+
+.bg-primary {
+  background-color: #007bff !important;
+}
+
+/* Form controls */
+.form-control, .form-select {
+  font-size: 0.875rem;
+  padding: 0.375rem 0.75rem;
+}
+
+/* Ensure inputs have proper height */
+input.form-control,
+select.form-select {
+  height: calc(1.5em + 0.75rem + 2px);
+}
+
+/* Loading state styling */
+.spinner-border {
+  width: 2rem;
+  height: 2rem;
+}
+
+/* Text utilities */
+.text-muted {
+  color: #6c757d !important;
+}
+
+small {
+  font-size: 80%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .admin-edit-container {
+    max-height: none;
+    overflow: visible;
+  }
+  
+  .scrollable-form-container {
+    height: auto;
+    max-height: none;
+    overflow: visible !important;
+  }
+}
+
+/* Fixed element to cover scrollbar at the bottom */
+.scrollbar-fix {
+  position: absolute;
+  bottom: 0;
+  right: 8px; /* Position exactly where the scrollbar is */
+  width: 10px; /* Match scrollbar width */
+  height: 80px; /* Tall enough to cover the bottom part */
+  background-color: #ecedee; /* Match page background color */
+  z-index: 9999; /* Ensure it's above everything */
+}
+
+/* Main container for the edit form */
+.edit-container {
+  height: 100%;
+  padding: 1rem;
+  overflow: hidden !important;
+  position: relative;
+}
+
+/* Lock the tab navigation inside the form container */
+.edit-container:focus {
+  outline: none;
+}
+
+/* Role badge styling */
+.role-badge {
+  font-size: 1rem;
+  padding: 0.5rem 1rem;
+  border-radius: 30px;
+  text-transform: uppercase;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Command bar with badge */
+.command-bar {
+  background-color: #f8f9fa;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  border: 1px solid #dee2e6;
+}
+
+/* Specific role colors */
+.bg-danger {
+  background-color: #dc3545 !important;
+}
+
+.bg-success {
+  background-color: #28a745 !important;
+}
+
+.bg-secondary {
+  background-color: #6c757d !important;
+}
+
+/* Make badge text stand out */
+.badge {
+  color: white !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.location-icon {
+  color: #f44336 !important; /* Material Red 500 */
+}
+
+::ng-deep .location-icon {
+  color: #f44336 !important;
+}

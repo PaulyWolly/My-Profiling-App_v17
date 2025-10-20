@@ -1,0 +1,43 @@
+<div class="business-preview-container">
+    <div class="preview-header">
+        <div class="preview-title">
+            <h2>Business Card Template</h2>
+        </div>
+        <div class="preview-buttons">
+            <button mat-raised-button color="primary" routerLink="/profile" style="margin-right: 8px;">
+                Use This Template
+            </button>
+            <button mat-stroked-button color="primary" routerLink="/profile" [queryParams]="{template: 'business-card'}" class="live-preview-btn">
+                Live Preview
+            </button>
+        </div>
+    </div>
+
+    <div class="preview-template-card">
+        <div class="preview-template-row">
+            <div class="preview-template-content">
+                <img src="assets/images/profile-templates/business-card-template.png" 
+                     alt="Business Card Template Preview" 
+                     style="max-width: 600px; width: 100%; height: auto; border-radius: 12px; border: 2px solid #1976d2;"
+                     (error)="console.error('Failed to load business card template image')"
+                     onerror="console.error('Image failed to load:', this.src);">
+            </div>
+            <div class="preview-template-description">
+                <p>
+                    This is our business card template, featuring a professional layout perfect for showcasing your business profile.
+                </p>
+                <div class="features-list">
+                    <h3>Features:</h3>
+                    <ul>
+                        <li>Professional header with profile picture</li>
+                        <li>Business contact information</li>
+                        <li>Professional rating system</li>
+                        <li>Business hours and location</li>
+                        <li>Services and specialties</li>
+                        <li>Customer reviews section</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

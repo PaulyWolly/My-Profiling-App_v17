@@ -5,11 +5,14 @@ import { AccountService, AlertService } from '@app/_services';
 import { first } from 'rxjs/operators';
 import { ProfileTemplateType } from '@app/_models/profile-template';
 import { CustomTooltipDirective } from '@app/shared/custom-tooltip/custom-tooltip.directive';
+import { NewStandardProfileComponent } from "@app/profile-templates/components/profiles/new-standard-profile/new-standard-profile.component";
+import { MatProgressSpinner } from "@angular/material/progress-spinner";
 
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.component.html',
-  styleUrls: ['./profile.component.scss']
+  styleUrls: ['./profile.component.scss'],
+  imports: [NewStandardProfileComponent, MatProgressSpinner]
 })
 export class ProfileComponent implements OnInit {
   account: Account | null = null;
@@ -59,10 +62,10 @@ export class ProfileComponent implements OnInit {
 
     this.loading = true;
     this.userId = this.userId || this.route.snapshot.params['id'] || this.account?.id;
-    
+
     // If viewing own profile
     this.isOwnProfile = this.userId === this.account?.id;
-    
+
     if (this.isOwnProfile) {
       // If it's their own profile, use the account data
       this.profileUser = this.account;
@@ -76,11 +79,11 @@ export class ProfileComponent implements OnInit {
         .subscribe({
           next: (user) => {
             this.profileUser = user;
-            
+
             // Use the profile user's template if available, otherwise use default
             this.currentTemplate = user.profileTemplateType || ProfileTemplateType.STANDARD;
             console.log('[ProfileComponent] Loaded other user profile');
-            
+
             this.loading = false;
           },
           error: (error: string) => {
@@ -106,4 +109,4 @@ export class ProfileComponent implements OnInit {
   toggleChatList() {
     this.showChatList = !this.showChatList;
   }
-} 
+}

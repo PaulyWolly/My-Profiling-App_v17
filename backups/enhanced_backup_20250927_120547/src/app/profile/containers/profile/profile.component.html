@@ -15,36 +15,36 @@
         <!-- Dynamic Template Display -->
         <ng-container [ngSwitch]="currentTemplate">
             <!-- Business Card Template -->
-            <app-new-business-profile 
+            <app-new-business-profile
                 *ngSwitchCase="'BUSINESS_CARD'"
-                [profile]="profileUser" 
+                [profile]="profileUser"
                 [isOwnProfile]="isOwnProfile">
             </app-new-business-profile>
-            
+
             <!-- Social Media Template -->
-            <app-new-social-media-profile 
+            <app-new-social-media-profile
                 *ngSwitchCase="'SOCIAL_MEDIA'"
-                [profile]="profileUser" 
+                [profile]="profileUser"
                 [isOwnProfile]="isOwnProfile">
             </app-new-social-media-profile>
-            
+
             <!-- Standard Template (Default) -->
-            <app-new-standard-profile 
+            <app-new-standard-profile
                 *ngSwitchDefault
-                [profile]="profileUser" 
+                [profile]="profileUser"
                 [isOwnProfile]="isOwnProfile">
             </app-new-standard-profile>
         </ng-container>
         <!-- Floating Chat Icon and Chat Dock (now global for all profiles) -->
-        <div class="floating-chat-icon" (click)="toggleChatList()" appCustomTooltip="Click to chat" tooltipPosition="auto">
+        <div class="floating-chat-icon" (click)="toggleChatList()" appCustomTooltip="Click to toggle chat" tooltipPosition="auto">
             <mat-icon>chat</mat-icon>
             <div class="online-users-badge" *ngIf="onlineUsersCount > 0" appCustomTooltip="Users Online" tooltipPosition="auto">
                 {{ onlineUsersCount }}
             </div>
         </div>
-        <app-chat-dock 
+        <app-chat-dock
             [dockOpen]="showChatList"
             (closeDock)="toggleChatList()">
         </app-chat-dock>
     </div>
-</div> 
+</div>

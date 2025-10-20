@@ -1,0 +1,113 @@
+.profile-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  // padding: 20px;
+  background: transparent !important;
+  min-height: 100vh;
+  min-width: 100vw;
+}
+
+.template-selector {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 30px;
+  padding: 16px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.template-btn {
+  min-width: 120px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+
+  &.active-template {
+    background-color: rgba(0,0,0,0.1);
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* Profile sections */
+.profile-standard, 
+.profile-business-card, 
+.profile-social-media {
+  padding: 10px;
+  width: 100%;
+  background: transparent !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .template-selector {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .template-btn {
+    width: 100%;
+  }
+}
+
+// Error message styling
+.profile-error {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  padding: 30px;
+  margin: 50px auto;
+  max-width: 500px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    color: #721c24;
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 500;
+    color: #721c24;
+  }
+
+  p {
+    margin: 0 0 20px;
+    color: #721c24;
+  }
+
+  button {
+    margin-top: 10px;
+  }
+}
+
+.profile-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  background: #f7f7f7;
+}
+
+.profile-content,
+.profile-standard,
+.profile-business-card,
+.profile-social-media,
+app-root {
+  background: transparent !important;
+} 

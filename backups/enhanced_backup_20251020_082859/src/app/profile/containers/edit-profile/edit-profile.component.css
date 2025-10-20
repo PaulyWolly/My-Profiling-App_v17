@@ -1,0 +1,199 @@
+/* Edit Profile Layout */
+.edit-profile-layout {
+  display: flex;
+  height: 80vh;
+  min-height: 0;
+  gap: 16px;
+}
+
+.profile-image-section {
+  flex: 0 0 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Scrollable content area */
+.scrollable-content {
+  flex: 1;
+  min-width: 0;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 16px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Custom scrollbar styling */
+.scrollable-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollable-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.scrollable-content::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.scrollable-content::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}
+
+/* For Firefox */
+.scrollable-content {
+  scrollbar-width: thin;
+  scrollbar-color: #888 #f1f1f1;
+}
+
+/* Profile image styles */
+.profile-image,
+.profile-image-placeholder {
+  width: 200px;
+  height: 280px;
+  border-radius: 120px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f5f5;
+  border: 2px solid #e0e0e0;
+  position: relative;
+}
+
+.oval-container {
+  width: 200px;
+  height: 280px;
+  border-radius: 120px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f5f5;
+  border: 2px solid #e0e0e0;
+}
+
+.profile-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-image-placeholder mat-icon {
+  font-size: 100px;
+  width: 100px;
+  height: 100px;
+  color: #9e9e9e;
+}
+
+.image-upload {
+  display: flex;
+  gap: 1rem;
+}
+
+.preview-image {
+  max-width: 200px;
+  border-radius: 4px;
+  margin-top: 10px;
+}
+
+/* Form styles */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.btn {
+  margin-right: 0.5rem;
+}
+
+/* Bootstrap-like utility classes */
+.mt-3 {
+  margin-top: 1rem;
+}
+
+.mb-3 {
+  margin-bottom: 1rem;
+}
+
+.me-1 {
+  margin-right: 0.25rem;
+}
+
+.me-2 {
+  margin-right: 0.5rem;
+}
+
+.pt-3 {
+  padding-top: 1rem;
+}
+
+/* Edit Profile Layout and scroll */
+.profile-container,
+.edit-profile-layout {
+  display: flex;
+  align-items: flex-start;
+  /* Ensure the container doesn't expand to fit content */
+  min-height: 0;
+  height: 80vh; /* or 100vh minus header/footer if needed */
+}
+
+.profile-image-section {
+  flex: 0 0 320px; /* or whatever width you want for the left side */
+}
+
+.edit-profile-layout {
+  display: flex;
+  height: 80vh;
+  min-height: 0;
+}
+
+/* Scrollable content area */
+.scrollable-content {
+  height: 100%;
+  overflow-y: scroll !important;
+  width: calc(100% - 8px);
+  padding: 8px;
+  position: relative;
+  background: #fff;
+  flex: 1;
+  min-width: 0;
+  max-height: 80vh;
+  overscroll-behavior: contain;
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  will-change: transform;
+}
+
+/* Custom scrollbar styling */
+.scrollable-content::-webkit-scrollbar {
+  width: 8px !important;
+  background-color: #f5f5f5 !important;
+  display: block !important;
+}
+
+.scrollable-content::-webkit-scrollbar-track {
+  background: #f1f1f1 !important;
+  border-radius: 4px !important;
+}
+
+.scrollable-content::-webkit-scrollbar-thumb {
+  background: #888 !important;
+  border-radius: 4px !important;
+  min-height: 40px !important;
+}
+
+.scrollable-content::-webkit-scrollbar-thumb:hover {
+  background: #666 !important;
+}
+
+/* For Firefox */
+.scrollable-content {
+  scrollbar-width: thin !important;
+  scrollbar-color: #888 #f1f1f1 !important;
+}

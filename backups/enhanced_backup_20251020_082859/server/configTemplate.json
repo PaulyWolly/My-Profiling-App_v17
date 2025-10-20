@@ -1,0 +1,15 @@
+﻿{
+  "Instructions": "This file is to remain in the /server folder while removing the 'Template' text. File is named config.json. All details need to be filled in.",
+  "DBName": "<db name>",
+  "connectionString": "<db connection string>",
+  "secret": "<scret string. Maybe press all keys on keyboard to create>",
+  "emailFrom": "<email from>",
+  "smtpOptions": {
+    "host": "smtp.gmail.com",
+    "port": 587,
+    "auth": {
+        "user": "<email of user>",
+        "pass": "<Google app password>"
+    }
+  }
+}

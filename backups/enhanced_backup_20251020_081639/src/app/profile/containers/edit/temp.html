@@ -1,0 +1,12 @@
+<app-edit-content
+  [editMode]="editMode"
+  [isAddMode]="false"
+  [initialData]="account"
+  [submitting]="submitting"
+  [loading]="loading"
+  [submitted]="submitted"
+  (save)="onSave($event)"
+  (cancel)="cancelEdit()"
+  (imageChange)="onImageChange($event)"
+  (imageRemove)="onImageRemove()">
+</app-edit-content> 

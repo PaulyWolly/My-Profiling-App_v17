@@ -1,0 +1,14 @@
+<div class="star-rating-wrapper">
+  <ng-container *ngFor="let star of [0,1,2,3,4]; let i = index">
+    <span class="star-container"
+          (mousemove)="setHover(i + (getMouseX($event) < 0.5 ? 0.5 : 1))"
+          (mouseleave)="clearHover()"
+          (click)="setRating(i + (getMouseX($event) < 0.5 ? 0.5 : 1))"
+          [class.readonly]="readonly">
+      <mat-icon *ngIf="getStarType(i) === 'full'">star</mat-icon>
+      <mat-icon *ngIf="getStarType(i) === 'half'">star_half</mat-icon>
+      <mat-icon *ngIf="getStarType(i) === 'empty'">star_border</mat-icon>
+    </span>
+  </ng-container>
+  <span class="star-value">{{ displayRating }}</span>
+</div> 

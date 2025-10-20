@@ -1,0 +1,17 @@
+.curved-border {
+  position: absolute;
+  border-top-style: solid;
+  border-left-style: solid;
+  border-right-style: solid;
+  border-bottom: none;
+  background: transparent;
+  z-index: 2;
+  /* height: 300px; */
+  pointer-events: none;
+  border-top-width: var(--border-width, 4px);
+  border-left-width: var(--border-width, 4px);
+  border-right-width: var(--border-width, 4px);
+  border-top-color: var(--border-color, #eebbbb);
+  border-left-color: var(--border-color, #eebbbb);
+  border-right-color: var(--border-color, #eebbbb);
+}

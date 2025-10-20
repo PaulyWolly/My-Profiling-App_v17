@@ -1,0 +1,19 @@
+.admin-nav {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    
+    .nav-link {
+        color: #6c757d;
+        padding: 0.5rem 1rem;
+        
+        &:hover {
+            color: #495057;
+        }
+        
+        &.active {
+            color: #007bff;
+            font-weight: 500;
+            border-bottom: 2px solid #007bff;
+        }
+    }
+} 

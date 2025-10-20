@@ -1,0 +1,23 @@
+[
+  { "name": "check-account.js", "input": false },
+  { "name": "cleanup-sessions.js", "input": false },
+  { "name": "create-accounts.js", "input": false },
+  { "name": "create-admin.js", "input": true },
+  { "name": "create-missing-accounts.js", "input": false },
+  { "name": "delete-account.js", "input": true },
+  { "name": "fix-password-hash.js", "input": false },
+  { "name": "hello-user.js", "input": true },
+  { "name": "list-accounts.js", "input": false },
+  { "name": "make-admin.js", "input": true },
+  { "name": "mark-all-chats-read-true.js", "input": false },
+  { "name": "migrate-accounts.js", "input": false },
+  { "name": "revoke-all-but-current-session-all-users.js", "input": false },
+  { "name": "revoke-all-but-current-session.js", "input": false },
+  { "name": "reset-password.js", "input": false },
+  { "name": "sample.js", "input": false },
+  { "name": "update-accounts.js", "input": false },
+  { "name": "update-password.js", "input": true },
+  { "name": "update-pwelby-password.js", "input": false },
+  { "name": "update-role.js", "input": true },
+  { "name": "verify-account.js", "input": false }
+] 

@@ -1,0 +1,5 @@
+<div class="minimized-chat" (click)="onMaximize()">
+  <img [src]="chat.profileImage" [alt]="chat.name" class="user-avatar">
+  <span class="user-name">{{ chat.name }}</span>
+  <button class="close-btn" (click)="onClose($event)">×</button>
+</div> 

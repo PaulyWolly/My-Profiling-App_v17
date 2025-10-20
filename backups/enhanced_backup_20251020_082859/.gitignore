@@ -1,0 +1,78 @@
+# See http://help.github.com/ignore-files/ for more about ignoring files.
+
+# Compiled output
+/dist
+/tmp
+/out-tsc
+/bazel-out
+
+# Node
+/node_modules
+/server/node_modules
+npm-debug.log
+yarn-error.log
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
+
+# Miscellaneous
+/.angular/cache
+.sass-cache/
+/connect.lock
+/coverage
+/libpeerconnection.log
+testem.log
+/typings
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Environment files and configuration
+/server/config.json
+/server/config-bkup.json
+/server/secrets/
+.env
+.env.*
+
+# Ignore all environment files with actual secrets
+/src/environments/environment.ts
+/src/environments/environment.prod.ts
+/src/environments/environment.custom.ts
+/src/environments/environment.local.ts
+/src/environments/environment.dev.ts
+
+# Only track example files
+!/src/environments/environment.example.ts
+!/src/environments/environment.prod.example.ts
+
+# Reference repo
+/reference_repo
+reference_repo/
+reference_repo_5-11-25/
+reference_repo_WORKING/
+
+clone_of_working_profiling_app2/
+
+# Local reference repo (exclude from git)
+reference_repo_5-11-25/
+
+# Large files and archives
+*.zip
+*.tar.gz
+*.rar
+*.7z

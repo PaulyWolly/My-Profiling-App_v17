@@ -1,0 +1,34 @@
+.empty-state {
+  text-align: center;
+  color: #888;
+  padding: 2rem 0;
+}
+
+pre {
+  background: #f8f9fa;
+  border-radius: 4px;
+  padding: 0.5rem;
+  font-size: 0.95em;
+  margin: 0;
+}
+
+.modal {
+  display: block;
+  background: rgba(0,0,0,0.3);
+  z-index: 1050;
+}
+
+.modal-content {
+  border-radius: 8px;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  opacity: 0.7;
+}
+
+.table-responsive {
+  overflow-x: auto;
+} 
