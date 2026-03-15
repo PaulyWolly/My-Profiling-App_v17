@@ -49,9 +49,9 @@ Thumbs.db
 .env
 .env.*
 
-# Ignore all environment files with actual secrets
+# Ignore all environment files with actual secrets (except prod: needed for Render/build)
 /src/environments/environment.ts
-/src/environments/environment.prod.ts
+# /src/environments/environment.prod.ts — do NOT ignore; Render needs it for frontend build
 /src/environments/environment.custom.ts
 /src/environments/environment.local.ts
 /src/environments/environment.dev.ts
