@@ -391,10 +391,11 @@
       </form>
     </div>
     <div class="card-footer">
-      <button type="button" class="btn btn-primary me-2" (click)="saveFollower()" [disabled]="!currentFollower.name">
-        Save
+      <button type="button" class="btn btn-primary me-2" (click)="saveFollower()" [disabled]="!currentFollower.name || followerUploading">
+        <span *ngIf="followerUploading" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+        {{ followerUploading ? 'Uploading...' : 'Save' }}
       </button>
-      <button type="button" class="btn btn-secondary" (click)="closeFollowerDialog()">
+      <button type="button" class="btn btn-secondary" (click)="closeFollowerDialog()" [disabled]="followerUploading">
         Cancel
       </button>
     </div>

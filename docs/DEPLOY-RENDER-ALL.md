@@ -90,6 +90,22 @@ After the new deploy, the build should succeed and the service should start. If 
 
 ---
 
+## Fix "Cannot find module 'mongoose'" (backend)
+
+If the backend fails on start with **`Error: Cannot find module 'mongoose'`** and the log shows **`Running 'npm run start:server:prod'`**, the backend is running from the **repo root** instead of the `server` folder, so `server/node_modules` was never installed.
+
+**Fix:**
+
+1. In the Render dashboard, open your **backend Web Service** → **Settings**.
+2. Under **Build & Deploy**, set **Root Directory** to: **`server`** (not empty, not the repo root).
+3. Set **Build Command** to: **`npm install`**.
+4. Set **Start Command** to: **`npm run start:prod`** (not `npm run start:server:prod`).
+5. Save and trigger a **Manual Deploy** → **Deploy latest commit**.
+
+With **Root Directory** = `server`, the build runs inside `server/`, installs mongoose and other backend deps into `server/node_modules`, and the start command finds them.
+
+---
+
 ## 1. Deploy the backend (Web Service)
 
 1. In the Render dashboard: **New +** → **Web Service**.

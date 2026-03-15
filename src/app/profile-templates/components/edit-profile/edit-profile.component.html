@@ -326,8 +326,11 @@
             </div>
           </div>
           <div class="d-flex justify-content-end gap-3 mt-4">
-            <button type="button" class="btn btn-secondary" (click)="closeFollowerDialog()">Cancel</button>
-            <button type="button" class="btn btn-primary" (click)="saveFollower(followerForm)">Save</button>
+            <button type="button" class="btn btn-secondary" (click)="closeFollowerDialog()" [disabled]="followerUploading">Cancel</button>
+            <button type="button" class="btn btn-primary" (click)="saveFollower(followerForm)" [disabled]="followerUploading">
+              <span *ngIf="followerUploading" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+              {{ followerUploading ? 'Uploading...' : 'Save' }}
+            </button>
           </div>
         </form>
       </div>

@@ -72,6 +72,8 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
   showFollowerDialog: boolean = false;
   currentFollower: Follower = { name: '', title: '', imageUrl: '', path: '', email: '' };
   editingFollowerIndex: number = -1;
+  /** True while a follower image is being uploaded (shows spinner, disables Save). */
+  followerUploading: boolean = false;
 
   // Image upload properties
   imageConflict: boolean = false;
@@ -98,7 +100,8 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
     private alertService: AlertService,
     public accountService: AccountService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
@@ -634,6 +637,7 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
 
   closeFollowerDialog(): void {
     this.showFollowerDialog = false;
+    this.followerUploading = false;
   }
 
   editFollower(index: number): void {
@@ -655,11 +659,17 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
   }
 
   saveFollower(): void {
+    // Disable Save on first click when uploading an image (prevents double/triple submit)
+    if (this.currentFollower.imageFile) {
+      this.followerUploading = true;
+      this.cdr.detectChanges();
+    }
     if (!this.currentFollower.name) {
+        if (this.currentFollower.imageFile) this.followerUploading = false;
         alert('Follower name is required');
         return;
     }
-    // If we have an image file, upload via hybrid endpoint (works on Render with or without S3)
+    // Upload image (button already disabled above)
     if (this.currentFollower.imageFile) {
       console.log('Uploading follower image for:', this.currentFollower.name);
       this.accountService.uploadFollowerImageHybrid(
@@ -674,10 +684,12 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
           this.currentFollower.id = follower.id;
           this.currentFollower.path = follower.path;
           this.currentFollower.imageUrl = follower.imageUrl || this.accountService.getFollowerImageUrl({ imageUrl: follower.imageUrl, path: follower.path });
+          // Keep spinner/disabled until modal closes (reset in closeFollowerDialog)
           this.saveFollowerToList();
         },
         error: (error) => {
           console.error('Failed to upload follower image', error);
+          this.followerUploading = false;
           if (!this.currentFollower.id) {
             this.currentFollower.id = Date.now().toString();
           }

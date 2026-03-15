@@ -34,6 +34,8 @@ export class EditProfileComponent implements OnInit, OnChanges, AfterViewInit {
   selectedFile: File | null = null;
   pendingImage: string | null = null;
   highlightSection: string = 'social-media'; // Default, can be set dynamically later
+  /** True while a follower image is being uploaded (shows spinner, disables Save). */
+  followerUploading = false;
 
   /** Resolve follower image to full URL so it loads from the API origin (fixes broken images on Render). */
   getFollowerImageUrl(follower: { imageUrl?: string; path?: string }): string {
@@ -186,6 +188,7 @@ export class EditProfileComponent implements OnInit, OnChanges, AfterViewInit {
     this.showFollowerDialog = false;
     this.editingFollowerIndex = -1;
     this.currentFollower = { name: '', title: '', imageUrl: '', path: '' };
+    this.followerUploading = false;
   }
 
   async onFollowerImageChange(event: Event) {
@@ -204,11 +207,18 @@ export class EditProfileComponent implements OnInit, OnChanges, AfterViewInit {
   }
 
   async saveFollower(form: any) {
+    // Disable Save on first click when uploading an image (prevents double/triple submit)
+    if (this.currentFollower.imageFile) {
+      this.followerUploading = true;
+      this.cdr.detectChanges();
+    }
     if (form.invalid) {
+      if (this.currentFollower.imageFile) this.followerUploading = false;
       return;
     }
 
     if (!this.currentFollower.name) {
+      if (this.currentFollower.imageFile) this.followerUploading = false;
       this.alertService.error('Follower name is required');
       return;
     }
@@ -219,7 +229,7 @@ export class EditProfileComponent implements OnInit, OnChanges, AfterViewInit {
     }
 
     try {
-      // If we have an image file, upload via hybrid endpoint (works on Render with or without S3)
+      // Upload image (button already disabled above)
       if (this.currentFollower.imageFile) {
         const result = await this.accountService.uploadFollowerImageHybrid(
           this.currentFollower.imageFile,
@@ -231,6 +241,7 @@ export class EditProfileComponent implements OnInit, OnChanges, AfterViewInit {
           this.currentFollower.imageUrl = result.imageUrl || this.accountService.getFollowerImageUrl({ imageUrl: result.imageUrl, path: result.path });
           this.currentFollower.path = result.path;
         }
+        // Keep spinner/disabled until modal closes (reset in closeFollowerDialog)
       }
 
       // Add or update the follower in the list
@@ -240,11 +251,13 @@ export class EditProfileComponent implements OnInit, OnChanges, AfterViewInit {
         this.followers.push({ ...this.currentFollower });
       }
 
-      // Reset the form
+      // Reset the form and close (this clears followerUploading)
       this.currentFollower = { id: generateId(), name: '', title: '', imageUrl: '', path: '' };
       this.editingFollowerIndex = -1;
       this.showFollowerDialog = false;
+      this.followerUploading = false;
     } catch (error) {
+      this.followerUploading = false;
       this.alertService.error('Failed to save follower');
     }
   }
