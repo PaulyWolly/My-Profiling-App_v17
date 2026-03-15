@@ -4,7 +4,8 @@
   "description": "Node.js + MongoDB API for Angular signup verification",
   "main": "server.js",
   "scripts": {
-    "start": "nodemon server.js"
+    "start": "nodemon server.js",
+    "start:prod": "node scripts/write-config-from-env.js && node server.js"
   },
   "dependencies": {
     "aws-sdk": "^2.1692.0",

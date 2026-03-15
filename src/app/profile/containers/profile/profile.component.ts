@@ -65,11 +65,22 @@ export class ProfileComponent implements OnInit {
     this.isOwnProfile = this.userId === this.account?.id;
 
     if (this.isOwnProfile) {
-      // If it's their own profile, use the account data
-      this.profileUser = this.account;
-      this.currentTemplate = this.account.profileTemplateType || ProfileTemplateType.STANDARD;
-      this.loading = false;
-      console.log('[ProfileComponent] Loaded own profile');
+      // Fetch fresh account data from API so profileImage and other fields are up to date
+      this.accountService.getById(this.account.id)
+        .pipe(first())
+        .subscribe({
+          next: (user) => {
+            this.profileUser = user;
+            this.currentTemplate = user.profileTemplateType || ProfileTemplateType.STANDARD;
+            this.loading = false;
+            console.log('[ProfileComponent] Loaded own profile', { hasProfileImage: !!user.profileImage });
+          },
+          error: () => {
+            this.profileUser = this.account;
+            this.currentTemplate = this.account!.profileTemplateType || ProfileTemplateType.STANDARD;
+            this.loading = false;
+          }
+        });
     } else {
       // If viewing someone else's profile, load it
       this.accountService.getById(this.userId)

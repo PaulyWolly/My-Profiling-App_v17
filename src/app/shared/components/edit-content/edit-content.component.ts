@@ -410,7 +410,8 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
         userEmail: this.form.get('email')?.value,
         userId: this.id
       });
-      this.uploadService.uploadProfileImage(this.profileImageFile, formData)
+      // Use hybrid upload (S3 + local) so the image is stored in the cloud and persists
+      (this.id ? this.accountService.uploadImage(this.id, formData) : this.uploadService.uploadProfileImage(this.profileImageFile, formData))
         .pipe(first())
         .subscribe({
           next: (response) => {

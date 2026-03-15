@@ -889,9 +889,12 @@ async function handleAuth0Authenticate(req, res, next) {
             };
 
             // Preserve local profile image if it exists, only use Auth0 image if no local image
-            if (existingAccount.profileImage && existingAccount.profileImage.includes('/uploads/profiles/')) {
-                // Keep the existing local profile image
-                console.log('[Auth0] Preserving existing local profile image:', existingAccount.profileImage);
+            if (existingAccount.profileImage && 
+                (existingAccount.profileImage.includes('/uploads/profiles/') || 
+                 existingAccount.profileImage.includes('amazonaws.com') ||
+                 existingAccount.profileImage.includes('s3.'))) {
+                // Keep the existing local or S3 profile image
+                console.log('[Auth0] Preserving existing profile image:', existingAccount.profileImage);
                 updateData.profileImage = existingAccount.profileImage;
             } else if (profileImageUrl) {
                 // Only use Auth0 image if no local image exists

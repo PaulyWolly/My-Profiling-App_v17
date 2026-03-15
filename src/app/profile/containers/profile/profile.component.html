@@ -38,7 +38,7 @@
         <!-- Floating Chat Icon and Chat Dock (now global for all profiles) -->
         <div class="floating-chat-icon" (click)="toggleChatList()" appCustomTooltip="Click to toggle chat" tooltipPosition="auto">
             <mat-icon>chat</mat-icon>
-            <div class="online-users-badge" *ngIf="onlineUsersCount > 0" appCustomTooltip="Users Online" tooltipPosition="auto">
+            <div class="online-users-badge" *ngIf="onlineUsersCount > 0" appCustomTooltip="Users Online to chat" tooltipPosition="auto">
                 {{ onlineUsersCount }}
             </div>
         </div>

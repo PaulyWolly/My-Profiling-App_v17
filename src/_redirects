@@ -1,1 +1,2 @@
-/* /index.html 200
+# SPA fallback: serve index.html for all routes (required for Angular routing on Netlify)
+/*    /index.html   200

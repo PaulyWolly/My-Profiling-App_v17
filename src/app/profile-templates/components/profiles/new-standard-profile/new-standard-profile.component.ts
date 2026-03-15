@@ -153,6 +153,12 @@ export class NewStandardProfileComponent implements OnInit, OnDestroy, AfterView
         }
     }
 
+    /** Resolve profile image to full URL (API base + path) so it loads from the correct origin. */
+    getProfileImageUrl(): string {
+        if (!this.profile?.profileImage) return '';
+        return this.accountService.getProfileImageUrl(this.profile.profileImage);
+    }
+
     onImageError(event: any) {
         // Image failed to load - could set a fallback here if needed
     }

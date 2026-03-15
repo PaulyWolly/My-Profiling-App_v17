@@ -1,0 +1,16 @@
+# Render.com blueprint: deploy the Node/Express backend only.
+# See DEPLOY-RENDER.md for setup steps and environment variables.
+
+services:
+  - type: web
+    name: my-profiling-app-api
+    runtime: node
+
+    # Build and run from the server directory
+    rootDir: server
+
+    buildCommand: npm install
+    startCommand: npm run start:prod
+
+    # Render sets PORT automatically; the server uses process.env.PORT
+    # Add all required env vars in the Render dashboard (see DEPLOY-RENDER.md)

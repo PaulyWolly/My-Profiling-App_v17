@@ -1,4 +1,4 @@
-﻿import { Injectable, Injector, Inject, signal, computed, effect } from '@angular/core';
+import { Injectable, Injector, Inject, signal, computed, effect } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, of } from 'rxjs';
@@ -574,12 +574,20 @@ export class AccountService {
             }));
     }
 
-    // Profile image handling
+    // Profile image handling — uses hybrid (S3 + local) so the image is stored in the cloud and persists
     uploadProfileImage(file: File, existingFormData?: FormData) {
         const formData = existingFormData || new FormData();
         if (!existingFormData) {
-            formData.append('file', file);
+            formData.append('profileImage', file);
         }
+        const userId = this.accountValue?.id;
+        if (userId) {
+            if (!formData.has('userId')) {
+                formData.append('userId', userId);
+            }
+            return this.uploadImage(userId, formData);
+        }
+        // Fallback: local-only when no current user (e.g. some admin flows)
         return this.getHttp().post<any>(`${environment.apiUrl}/accounts/upload-profile-image`, formData);
     }
 

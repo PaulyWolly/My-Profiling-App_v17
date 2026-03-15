@@ -1,4 +1,4 @@
-﻿require('dotenv').config({ path: './secrets/.env' });
+require('dotenv').config({ path: './secrets/.env' });
 const express = require('express');
 const path = require('path');
 const app = express();
@@ -17,25 +17,37 @@ console.log('*** [server.js] - successfully required admin-scripts.service.js **
 require('./users/user.model');
 
 process.stdout.write('\n'); // Ensure spinner is on its own line
-const ora = require('ora').default;
 const heartEmojis = ['💗','❤️','💓'];
 let heartIndex = 0;
-const spinner = ora().start();
-setInterval(() => {
-  let sessionCount = 0, userCount = 0;
-  try {
-    const wsService = require('./services/websocket.service');
-    sessionCount = wsService.connections?.size || 0;
-    userCount = wsService.userSessions?.size || 0;
-  } catch (e) {}
-  const now = new Date().toISOString();
-  const emoji = heartEmojis[heartIndex];
-  heartIndex = (heartIndex + 1) % heartEmojis.length;
-  spinner.text = `${emoji}  \n---------------------------------------------------------------------\nActive sessions: ${sessionCount} | Active users: ${userCount} | Time: ${now}`;
-}, 700);
+(async () => {
+  const { default: ora } = await import('ora');
+  const spinner = ora().start();
+  setInterval(() => {
+    let sessionCount = 0, userCount = 0;
+    try {
+      const wsService = require('./services/websocket.service');
+      sessionCount = wsService.connections?.size || 0;
+      userCount = wsService.userSessions?.size || 0;
+    } catch (e) {}
+    const now = new Date().toISOString();
+    const emoji = heartEmojis[heartIndex];
+    heartIndex = (heartIndex + 1) % heartEmojis.length;
+    spinner.text = `${emoji}  \n---------------------------------------------------------------------\nActive sessions: ${sessionCount} | Active users: ${userCount} | Time: ${now}`;
+  }, 700);
+})();
 
-// get DB name from config.json
-const config = require('./secrets/config.json');
+// Config: use env vars on Render/production, else secrets/config.json
+function loadConfig() {
+  if (process.env.MONGODB_URI) {
+    return {
+      connectionString: process.env.MONGODB_URI,
+      DBName: process.env.DB_NAME || 'profiling-app'
+    };
+  }
+  const fileConfig = require('./secrets/config.json');
+  return { connectionString: fileConfig.connectionString, DBName: fileConfig.DBName };
+}
+const config = loadConfig();
 const DBName = config.DBName;
 
 const PORT = process.env.PORT || 5001;
@@ -145,7 +157,7 @@ app._router.stack
 // Connect to MongoDB with retry logic
 function connectWithRetry() {
   if (mongoose.connection.readyState === 0) { // Only connect if not already connected
-    mongoose.connect(config.connectionString, {
+    mongoose.connect(config.connectionString || process.env.MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
       serverSelectionTimeoutMS: 5000,
