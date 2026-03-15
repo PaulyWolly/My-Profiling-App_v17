@@ -121,9 +121,21 @@ Angular bakes `environment.prod.ts` into the build. To use Render’s env vars y
 
 If you prefer not to commit the API URL, add a small script that writes `environment.prod.ts` from environment variables (e.g. `API_URL`, `WS_URL`, `AUTH0_REDIRECT_URI`, `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`) and run it in the **Build Command** before `npm run build`. Then set those env vars in the Render Static Site → **Environment** tab with the same example values as in the table above.
 
-### SPA routing on Render
+### SPA routing on Render (fix "Not found" on refresh)
 
-Render Static Sites serve `index.html` for unknown paths by default for single-page apps, so Angular routing should work without extra config. If you see 404s on refresh, add a **Redirect/Rewrite** in the Static Site settings: path `/*`, redirect to `/index.html` with status 200.
+If you see a white page or **"Not found"** when you **refresh** or open a direct link (e.g. `/profile`), the static server isn’t sending `index.html` for those paths. Add a **Rewrite** rule so all routes serve `index.html` and Angular can handle routing:
+
+1. In the Render dashboard, open your **frontend Static Site** (e.g. My-Profiling-App_v17-1).
+2. Go to **Settings** (left sidebar).
+3. Find the **Redirects/Rewrites** section (under Build & Deploy or its own section).
+4. Click **Add Rule** (or **Add Redirect/Rewrite**).
+5. Add a **Rewrite** (not Redirect):
+   - **Source (path):** `/*`
+   - **Destination:** `/index.html`
+   - **Action/Type:** **Rewrite** (so the URL stays the same and the response is 200 with index.html content).
+6. Save. Redeploy if needed.
+
+After this, refreshing or opening e.g. `https://your-site.onrender.com/profile` will return `index.html` and Angular will show the right view.
 
 ---
 
