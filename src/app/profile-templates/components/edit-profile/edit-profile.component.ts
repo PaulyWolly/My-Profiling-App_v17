@@ -35,6 +35,11 @@ export class EditProfileComponent implements OnInit, OnChanges, AfterViewInit {
   pendingImage: string | null = null;
   highlightSection: string = 'social-media'; // Default, can be set dynamically later
 
+  /** Resolve follower image to full URL so it loads from the API origin (fixes broken images on Render). */
+  getFollowerImageUrl(follower: { imageUrl?: string; path?: string }): string {
+    return this.accountService.getFollowerImageUrl(follower);
+  }
+
   constructor(
     private formBuilder: FormBuilder,
     private uploadService: UploadService,

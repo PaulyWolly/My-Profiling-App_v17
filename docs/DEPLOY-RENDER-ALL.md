@@ -9,6 +9,66 @@ You can host **both** the Angular frontend and the Node/Express backend on Rende
 
 ---
 
+## Quick checklist (what to do on Render)
+
+Do these in order. Fill in your real URLs and secrets where shown.
+
+### Backend (Web Service)
+
+| Step | Where on Render | What to set |
+|------|-----------------|-------------|
+| 1 | **New +** → **Web Service** → connect this repo | — |
+| 2 | **Settings** → **Build & Deploy** | **Root Directory:** `server` |
+| 3 | Same | **Build Command:** `npm install` (nothing else) |
+| 4 | Same | **Start Command:** `npm run start:prod` |
+| 5 | **Environment** tab | Add variables (see table below) |
+
+**Backend env vars (required):**
+
+| Key | Value (use your own) |
+|-----|----------------------|
+| `NODE_ENV` | `production` |
+| `MONGODB_URI` | Your MongoDB Atlas connection string (replace `<password>`) |
+| `JWT_SECRET` | Long random string, e.g. run: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
+
+**Backend env vars (optional):** `DB_NAME`, `GOOGLE_MAPS_API_KEY`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `S3_BUCKET_NAME` (see section 1 below).
+
+After deploy, copy your **backend URL** (e.g. `https://my-profiling-app-api.onrender.com`).
+
+---
+
+### Frontend (Static Site)
+
+| Step | Where on Render | What to set |
+|------|-----------------|-------------|
+| 1 | **New +** → **Static Site** → connect same repo | — |
+| 2 | **Settings** → **Build & Deploy** | **Root Directory:** leave empty |
+| 3 | Same | **Build Command:** `npm install && npm run build` |
+| 4 | Same | **Publish Directory:** `dist/angular15-signup-verify-mongodb` |
+| 5 | **Redirects/Rewrites** | Add rule: **Source** `/*` → **Destination** `/index.html` → **Rewrite** |
+
+**Frontend:** Ensure `src/environments/environment.prod.ts` has your **backend** URL in `apiUrl` and `wsUrl`, and your **frontend** URL in `auth0.authorizationParams.redirect_uri`. Commit and push so Render builds with the correct API URL.
+
+After deploy, copy your **frontend URL** (e.g. `https://my-profiling-app.onrender.com`).
+
+---
+
+### Auth0 (one-time)
+
+| Step | Where | What to do |
+|------|--------|------------|
+| 1 | Auth0 → **Applications** → your app → **Settings** | In **Allowed Callback URLs**, **Allowed Logout URLs**, **Allowed Web Origins** add your **frontend** URL (e.g. `https://my-profiling-app.onrender.com`) |
+| 2 | Save | — |
+
+---
+
+### Images (profile / followers)
+
+- **Option A:** Follower and profile image files under `server/uploads/` are in Git, so the backend serves them. After deploy they work if the backend has those files.
+- **Option B:** Set S3 env vars on the **backend** (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `S3_BUCKET_NAME`) and re-upload images in the live app so they’re stored in S3 and URLs in the DB point to S3.
+
+---
+
 ## Fix "Exited with status 1" / wrong build command (backend)
 
 If your **backend** Web Service fails with **"Exited with status 1 while building your code"** and the log shows `Running build command 'npm install; npm run build'`, the Build Command is wrong. Fix it like this:

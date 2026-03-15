@@ -87,6 +87,11 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
 
   profileImageFile: File | null = null;
 
+  /** Resolve follower image to full URL so it loads from the API origin (fixes broken images on Render). */
+  getFollowerImageUrl(follower: { imageUrl?: string; path?: string }): string {
+    return this.accountService.getFollowerImageUrl(follower);
+  }
+
   constructor(
     private formBuilder: FormBuilder,
     private uploadService: UploadService,
@@ -190,9 +195,9 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
       // Patch the form with all available data
       this.patchFormValues(this.initialData); // ADDED THIS LINE
 
-      // Set the image URL from profile data
+      // Set the image URL from profile data (resolve to full URL so it works on Render)
       if (this.initialData.profileImage) {
-        this.imageUrl = this.initialData.profileImage;
+        this.imageUrl = this.accountService.getProfileImageUrl(this.initialData.profileImage);
       } else {
         this.imageUrl = null;
       }
@@ -417,8 +422,9 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
           next: (response) => {
             console.log('[onSubmit] Profile image upload response:', response);
             if (response && response.profileImage) {
-              console.log('[onSubmit] Updating form with new profile image:', response.profileImage);
               this.form.patchValue({ profileImage: response.profileImage });
+              // Update displayed image immediately so the view shows the new upload (full URL for Render)
+              this.imageUrl = this.accountService.getProfileImageUrl(response.profileImage);
             }
             this.profileImageFile = null;
             console.log('[onSubmit] Calling saveAccount after successful image upload');
@@ -666,10 +672,14 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
       .subscribe({
         next: (follower) => {
           console.log('Follower image uploaded successfully:', follower);
-          // Update with the server-provided data
           this.currentFollower.id = follower.id;
-          this.currentFollower.imageUrl = follower.imageUrl;
           this.currentFollower.path = follower.path;
+          // Resolve to full URL so the preview and list display correctly on Render
+          const resolved = this.accountService.getFollowerImageUrl({
+            imageUrl: follower.imageUrl,
+            path: follower.path
+          });
+          this.currentFollower.imageUrl = resolved || follower.imageUrl || '';
           this.saveFollowerToList();
         },
         error: (error) => {

@@ -12,8 +12,8 @@
         <div class="profile-card-top">
             <div class="profile-image-wrapper">
                 <div class="profile-image-container" [class.loading]="loading">
-                    <img *ngIf="profile.profileImage" [src]="profile.profileImage" alt="Profile picture" class="profile-img" (load)="onImageLoaded()" (error)="onImageError()">
-                    <div *ngIf="!profile.profileImage && !loading" class="default-avatar">
+                    <img *ngIf="getProfileImageUrl()" [src]="getProfileImageUrl()" alt="Profile picture" class="profile-img" (load)="onImageLoaded()" (error)="onImageError()">
+                    <div *ngIf="!getProfileImageUrl() && !loading" class="default-avatar">
                         <mat-icon class="large-icon">account_circle</mat-icon>
                     </div>
                     <div *ngIf="loading" class="loading-spinner">
@@ -68,7 +68,7 @@
                 <div class="followers-preview" *ngIf="profile.followerImages?.length">
                     <div class="follower-avatars">
                         <div class="follower-avatar" *ngFor="let follower of profile.followerImages">
-                            <img [src]="follower.imageUrl" [alt]="follower.name" class="follower-image" [appCustomTooltip]="(follower.title ? follower.title + ' - ' : '') + follower.name"/>
+                            <img [src]="getFollowerImageUrl(follower)" [alt]="follower.name" class="follower-image" [appCustomTooltip]="(follower.title ? follower.title + ' - ' : '') + follower.name"/>
                         </div>
                     </div>
                     <div class="followers-you-know-label">{{profile.followerImages?.length}} followers you know</div>

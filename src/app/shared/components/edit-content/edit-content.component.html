@@ -11,7 +11,7 @@
   <div *ngIf="!isAddMode">
     You are editing an existing {{ editMode === 'profile' ? 'profile' : 'account' }}. Only fill in the password fields if you want to change your password.
   </div>
-</div>image.png
+</div>
 
 <!-- Simplified command bar -->
 <div class="command-bar">
@@ -263,11 +263,11 @@
                             <div class="follower-item-content">
                               <div class="follower-main">
                                 <div class="follower-avatar">
-                                  <img *ngIf="follower.imageUrl || follower.path"
-                                       [src]="follower.imageUrl || (environment.apiUrl + '/' + follower.path)"
-                                       [alt]="follower.name + '\'s avatar'"
-                                       onerror="this.src='assets/images/default-avatar.svg'">
-                                  <div *ngIf="!follower.imageUrl && !follower.path" class="no-avatar">
+<img *ngIf="getFollowerImageUrl(follower)"
+                                     [src]="getFollowerImageUrl(follower)"
+                                     [alt]="follower.name + '\'s avatar'"
+                                     onerror="this.src='assets/images/default-avatar.svg'">
+                                  <div *ngIf="!getFollowerImageUrl(follower)" class="no-avatar">
                                     <i class="material-icons">account_circle</i>
                                   </div>
                                 </div>
@@ -378,7 +378,7 @@
           <label class="form-label">Profile Image</label>
           <div class="d-flex align-items-center mb-2">
             <div class="follower-preview-image me-3">
-              <img [src]="currentFollower.imageUrl" alt="Follower Image Preview" class="follower-image-preview" *ngIf="currentFollower.imageUrl">
+              <img [src]="getFollowerImageUrl(currentFollower)" alt="Follower Image Preview" class="follower-image-preview" *ngIf="getFollowerImageUrl(currentFollower)">
             </div>
             <div>
               <input type="file" accept="image/*" (change)="onFollowerImageChange($event)" style="display: none" #followerFileInput>

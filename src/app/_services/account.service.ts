@@ -860,6 +860,16 @@ export class AccountService {
         return formattedUrl || '';
     }
 
+    /** Resolve follower image to full URL (API base + path) so it loads from the correct origin (fixes broken images on Render). */
+    getFollowerImageUrl(follower: { imageUrl?: string; path?: string }): string {
+        if (!follower) return '';
+        const url = follower.imageUrl || follower.path;
+        if (!url) return '';
+        if (url.startsWith('http') || url.startsWith('data:')) return url;
+        const formatted = this.formatImageUrl(url.startsWith('/') ? url : `/${url}`);
+        return formatted || '';
+    }
+
     // Force clear all cached data and refresh
     forceClearAllCache(): void {
         console.log('[AccountService] Force clearing all cached data');

@@ -6,13 +6,13 @@ import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
 import { Account } from '@app/_models';
-import { environment } from '@environments/environment';
 import { CurvedBorderComponent } from '@app/shared/curved-border/curved-border.component';
 import { CustomTooltipDirective } from '@app/shared/custom-tooltip/custom-tooltip.directive';
 import { MatDialog } from '@angular/material/dialog';
 import { MapDialogComponent } from '@app/profile/components/map-dialog/map-dialog.component';
 import { ChatDockComponent } from '../../chat/chat-dock/chat-dock.component';
 import { ChatService, OnlineUser } from '@app/_services/chat.service';
+import { AccountService } from '@app/_services/account.service';
 
 @Component({
   selector: 'app-new-social-media-profile',
@@ -41,7 +41,12 @@ export class NewSocialMediaProfileComponent implements OnInit {
   onlineUsersCount = 0;
   pendingChats = false;
 
-  constructor(private router: Router, private dialog: MatDialog, private chatService: ChatService) {}
+  constructor(
+    private router: Router,
+    private dialog: MatDialog,
+    private chatService: ChatService,
+    private accountService: AccountService
+  ) {}
 
   ngOnInit() {
     // Subscribe to online users for chat dock
@@ -62,9 +67,15 @@ export class NewSocialMediaProfileComponent implements OnInit {
     this.loading = false;
   }
 
-  getFollowerImageUrl(follower: any): string {
-    if (!follower.imageUrl) return 'assets/images/default-avatar.svg';
-    return follower.imageUrl.startsWith('http') ? follower.imageUrl : environment.apiUrl + '/' + follower.imageUrl;
+  /** Use AccountService so resolution matches Business profile and Edit (handles path/imageUrl, full URL for Render). */
+  getFollowerImageUrl(follower: { imageUrl?: string; path?: string }): string {
+    const url = this.accountService.getFollowerImageUrl(follower);
+    return url || 'assets/images/default-avatar.svg';
+  }
+
+  /** Resolve main profile image to full URL so it loads on Render. */
+  getProfileImageUrl(): string {
+    return this.profile?.profileImage ? this.accountService.getProfileImageUrl(this.profile.profileImage) : '';
   }
 
   openMapDialog() {
