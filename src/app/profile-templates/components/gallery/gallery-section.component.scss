@@ -1,0 +1,64 @@
+// Link mode: small link-style button (e.g. when used outside card).
+// Tab mode: looks like a tab in the profile card tab row (inside card, left of profile image).
+.gallery-section {
+  margin-top: 0.5rem;
+
+  &--tab {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+}
+
+.gallery-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.5rem;
+  margin: 0;
+  font-size: 0.875rem;
+  color: #1976d2;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  line-height: 1.2;
+
+  &:hover {
+    background: rgba(25, 118, 210, 0.08);
+    text-decoration: underline;
+  }
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .count {
+    color: #666;
+    font-size: 0.8rem;
+
+    &--shared {
+      margin-left: 0.1rem;
+    }
+  }
+
+  &--tab {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.9rem;
+    color: #555;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+
+    &:hover {
+      color: #1976d2;
+      background: rgba(25, 118, 210, 0.06);
+      text-decoration: none;
+    }
+
+    .count {
+      color: #888;
+    }
+  }
+}

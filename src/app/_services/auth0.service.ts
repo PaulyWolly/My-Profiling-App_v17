@@ -5,6 +5,7 @@ import { map, switchMap, tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { AccountService } from './account.service';
 import { Account } from '@app/_models';
+import { environment } from '@environments/environment';
 
 @Injectable({
     providedIn: 'root'
@@ -91,8 +92,13 @@ export class Auth0Service {
         );
     }
 
-    // Method to logout from Auth0
+    // Method to logout from Auth0 (only when Auth0 is configured; otherwise skip to avoid broken redirect to https://v2/logout)
     logoutFromAuth0(): void {
+        const domain = environment.auth0?.domain?.trim();
+        if (!domain) {
+            console.log('[Auth0Service] Auth0 domain not configured; skipping Auth0 logout redirect');
+            return;
+        }
         console.log('[Auth0Service] Logging out from Auth0');
         this.auth.logout({
             logoutParams: {

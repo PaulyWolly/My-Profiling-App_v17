@@ -16,6 +16,7 @@ import { CurvedBorderComponent } from '@app/shared/curved-border/curved-border.c
 import { ChatDockComponent } from '../../chat/chat-dock/chat-dock.component';
 import { ChatService, OnlineUser } from '@app/_services/chat.service';
 import { CustomTooltipDirective } from '@app/shared/custom-tooltip/custom-tooltip.directive';
+import { GallerySectionComponent } from '../../gallery/gallery-section.component';
 
 @Component({
     selector: 'app-new-standard-profile',
@@ -32,7 +33,8 @@ import { CustomTooltipDirective } from '@app/shared/custom-tooltip/custom-toolti
         MatDialogModule,
         CurvedBorderComponent,
         ChatDockComponent,
-        CustomTooltipDirective
+        CustomTooltipDirective,
+        GallerySectionComponent
     ]
 })
 export class NewStandardProfileComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -71,9 +73,11 @@ export class NewStandardProfileComponent implements OnInit, OnDestroy, AfterView
     ngOnInit() {
         console.log('NewStandardViewComponent ngOnInit');
         this.loadProfileData();
-        // Subscribe to online users for chat dock
+        // Subscribe to online users for chat dock (exclude current user so badge/LED only show when others are online)
         this.chatService.getOnlineUsers().subscribe((users: OnlineUser[]) => {
-            this.onlineUsersCount = users.length;
+            const myId = this.profile?.id ?? this.accountService.accountValue?.id;
+            const others = myId ? users.filter(u => u.id !== myId) : [];
+            this.onlineUsersCount = others.length;
             this.cdRef.detectChanges();
         });
         // Subscribe to pending chat requests for yellow LED

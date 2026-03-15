@@ -1,4 +1,4 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { first } from 'rxjs/operators';
 
@@ -15,16 +15,16 @@ export class LayoutComponent implements OnInit {
     ) {}
 
     ngOnInit() {
-        // Check if token is valid before redirecting
+        const url = this.router.url;
+        const isLoginRoute = url.includes('/login') || url.endsWith('/account') || url.endsWith('/account/');
+        // Only run refresh check when we're on a protected account route (e.g. sessions), not on login
+        if (isLoginRoute) return;
         if (this.accountService.accountValue) {
             this.accountService.refreshToken()
                 .pipe(first())
                 .subscribe({
-                    next: () => {
-                        // No redirect here; stay on the current page
-                    },
+                    next: () => {},
                     error: () => {
-                        // If token refresh fails, user should stay on login page
                         this.accountService.logout();
                     }
                 });

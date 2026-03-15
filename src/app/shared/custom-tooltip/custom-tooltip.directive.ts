@@ -1,5 +1,5 @@
 import {
-  Directive, Input, HostListener, ApplicationRef, ComponentRef, ComponentFactoryResolver, Injector
+  Directive, Input, HostListener, OnDestroy, ApplicationRef, ComponentRef, ComponentFactoryResolver, Injector
 } from '@angular/core';
 import { CustomTooltipComponent } from './custom-tooltip.component';
 
@@ -7,7 +7,7 @@ import { CustomTooltipComponent } from './custom-tooltip.component';
   selector: '[appCustomTooltip]',
   standalone: true
 })
-export class CustomTooltipDirective {
+export class CustomTooltipDirective implements OnDestroy {
   @Input('appCustomTooltip') text = '';
   @Input() tooltipBgColor = '#222';
   @Input() tooltipTextColor = '#fff';
@@ -44,6 +44,14 @@ export class CustomTooltipDirective {
 
   @HostListener('mouseleave')
   onMouseLeave() {
+    this.hideTooltip();
+  }
+
+  ngOnDestroy() {
+    this.hideTooltip();
+  }
+
+  private hideTooltip() {
     if (this.tooltipRef) {
       this.appRef.detachView(this.tooltipRef.hostView);
       this.tooltipRef.destroy();

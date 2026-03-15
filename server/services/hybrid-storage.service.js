@@ -8,13 +8,14 @@ class HybridStorageService {
         this.localProfilesDir = path.join(__dirname, '..', 'uploads', 'profiles');
         this.localFollowersDir = path.join(__dirname, '..', 'uploads', 'followers');
         this.localCompanyLogosDir = path.join(__dirname, '..', 'uploads', 'company-logos');
+        this.localGalleryDir = path.join(__dirname, '..', 'uploads', 'gallery');
 
         // Ensure local directories exist
         this.ensureDirectoriesExist();
     }
 
     ensureDirectoriesExist() {
-        [this.localProfilesDir, this.localFollowersDir, this.localCompanyLogosDir].forEach(dir => {
+        [this.localProfilesDir, this.localFollowersDir, this.localCompanyLogosDir, this.localGalleryDir].forEach(dir => {
             if (!fs.existsSync(dir)) {
                 fs.mkdirSync(dir, { recursive: true });
             }
@@ -83,6 +84,9 @@ class HybridStorageService {
                     case 'company-logos':
                         localDir = this.localCompanyLogosDir;
                         break;
+                    case 'gallery':
+                        localDir = this.localGalleryDir;
+                        break;
                     default:
                         localDir = this.localProfilesDir;
                 }
@@ -136,7 +140,8 @@ class HybridStorageService {
                 try {
                     const fileName = path.basename(localPath);
                     const folder = localPath.includes('/followers/') ? 'followers' :
-                                 localPath.includes('/company-logos/') ? 'company-logos' : 'profiles';
+                                 localPath.includes('/company-logos/') ? 'company-logos' :
+                                 localPath.includes('/gallery/') ? 'gallery' : 'profiles';
                     const fullPath = path.join(__dirname, '..', 'uploads', folder, fileName);
 
                     if (fs.existsSync(fullPath)) {
@@ -184,7 +189,8 @@ class HybridStorageService {
         try {
             const fileName = path.basename(localPath);
             const folder = localPath.includes('/followers/') ? 'followers' :
-                         localPath.includes('/company-logos/') ? 'company-logos' : 'profiles';
+                         localPath.includes('/company-logos/') ? 'company-logos' :
+                         localPath.includes('/gallery/') ? 'gallery' : 'profiles';
             const fullPath = path.join(__dirname, '..', 'uploads', folder, fileName);
             return fs.existsSync(fullPath);
         } catch (error) {

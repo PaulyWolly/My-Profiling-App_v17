@@ -22,12 +22,25 @@
 
 ## Server-Side Configuration Setup
 
-1. **Create a server config file**:
+1. **Local development:** The server reads from **`server/secrets/config.json`**. You need:
+   - **`connectionString`**: Your MongoDB URI. Must start with `mongodb://` or `mongodb+srv://` (e.g. from MongoDB Atlas: *Connect → Connect your application*).
+   - **`secret`**: Used to sign JWT tokens (any string).
+   - **`DBName`** (optional): Database name, e.g. `profiling-app`.
+   If the connection string is missing or invalid, the server will exit with a clear message and will not retry until you fix it.
+
+   **Port 5001 in use (EADDRINUSE):** If the backend says "address already in use :::5001", another process is using that port (often a previous server instance). Free it with:
+   ```bash
+   npx kill-port 5001
+   ```
+   Then start the server again.
+
+2. **Create or update the config file** (e.g. from an example if you have one):
    ```
    cp server/config/config.example.json server/config.json
    ```
+   Then ensure **`server/secrets/config.json`** exists with the keys above (the server uses the **secrets** path).
 
-2. **Update the config.json file** with your actual values:
+3. **Update the config file** with your actual values:
    - Database connection details
    - JWT secret
    - Email configuration

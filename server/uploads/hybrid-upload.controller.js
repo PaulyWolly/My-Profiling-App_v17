@@ -17,11 +17,31 @@ const upload = multer({
         fileSize: 5 * 1024 * 1024, // 5MB limit
     },
     fileFilter: (req, file, cb) => {
-        // Allow only image files
         if (file.mimetype.startsWith('image/')) {
             cb(null, true);
         } else {
             cb(new Error('Only image files are allowed'), false);
+        }
+    }
+});
+
+// Gallery: allow images and videos (including .mkv, .mp4, .mpeg, etc.), 1GB limit for large videos
+const GALLERY_MAX_FILE_SIZE = 1024 * 1024 * 1024; // 1 GB
+const ALLOWED_VIDEO_EXT = ['.mkv', '.webm', '.mp4', '.mov', '.avi', '.m4v', '.ogv', '.wmv', '.mpeg', '.mpg'];
+function isAllowedGalleryFile(file) {
+    if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) return true;
+    const ext = path.extname(file.originalname || '').toLowerCase();
+    if (ALLOWED_VIDEO_EXT.includes(ext)) return true; // e.g. .mkv when browser sends application/octet-stream
+    return false;
+}
+const uploadGallery = multer({
+    storage: storage,
+    limits: { fileSize: GALLERY_MAX_FILE_SIZE },
+    fileFilter: (req, file, cb) => {
+        if (isAllowedGalleryFile(file)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only image and video files are allowed (e.g. jpg, png, gif, mp4, mkv, webm, mpeg)'), false);
         }
     }
 });
@@ -244,10 +264,48 @@ async function deleteImage(req, res, next) {
     }
 }
 
+// Upload gallery media (image or video) to S3 + local
+async function uploadGalleryMedia(req, res, next) {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'No file uploaded' });
+        }
+        if (!req.user?.id) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+        const extension = path.extname(req.file.originalname);
+        const safeId = (req.body.userId || req.user.id).toString().replace(/[^a-zA-Z0-9@.]/g, '_');
+        const fileName = `gallery-${safeId}-${Date.now()}${extension}`;
+        const isVideo = req.file.mimetype.startsWith('video/') || ALLOWED_VIDEO_EXT.includes(path.extname(req.file.originalname || '').toLowerCase());
+        const folder = 'gallery';
+
+        const result = await hybridStorage.uploadFile(
+            req.file.buffer,
+            fileName,
+            req.file.mimetype,
+            folder
+        );
+
+        const mediaUrl = result.s3Url || buildFullUrl(req, result.localPath);
+        res.json({
+            message: 'Gallery media uploaded',
+            url: mediaUrl,
+            localPath: result.localPath,
+            type: isVideo ? 'video' : 'image',
+            caption: req.body.caption || ''
+        });
+    } catch (error) {
+        console.error('[HybridUploadController] Error uploading gallery media:', error);
+        res.status(500).json({ message: 'Error uploading gallery media', error: error.message });
+    }
+}
+
 module.exports = {
     upload,
+    uploadGallery,
     uploadProfileImage,
     uploadFollowerImage,
     uploadCompanyLogo,
+    uploadGalleryMedia,
     deleteImage
 };

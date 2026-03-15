@@ -227,9 +227,20 @@ export class AccountService {
 
     logout() {
         console.log('[AccountService] Logging out');
-        this.clearAuthData(); // Ensure all tokens and session data are removed
-        this.http.post<any>(`${environment.apiUrl}/accounts/revoke-token`, {}, { withCredentials: true }).subscribe();
-        this.stopRefreshTokenTimer();
+        const token = this.accountValue?.jwtToken || this.getStoredToken();
+        const doClear = () => {
+            this.clearAuthData();
+            this.stopRefreshTokenTimer();
+            this.router.navigate(['/account/login']);
+        };
+        if (token) {
+            this.http.post<any>(`${environment.apiUrl}/accounts/revoke-token`, {}, {
+                headers: { Authorization: `Bearer ${token}` },
+                withCredentials: true
+            }).subscribe({ complete: doClear, error: doClear });
+        } else {
+            doClear();
+        }
     }
 
     // Clear remembered email (for when user wants to "forget" their email)

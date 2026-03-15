@@ -787,10 +787,12 @@ function randomTokenString() {
 }
 
 function basicDetails(account) {
-    const { id, firstName, lastName, email, role, created, updated, isVerified, profileImage,
+    const { firstName, lastName, email, role, created, updated, isVerified, profileImage,
           profileTemplateType, position, company, address, city, state, zipCode, phone, mobile, bio,
           website, github, twitter, instagram, facebook, linkedin,
           followersCount, followingCount, skills, followerImages, auth0Id, authProvider, passwordHash, plainPassword } = account;
+    // ensure every account has a valid id (Gallery and other features depend on it)
+    const id = account.id || (account._id && account._id.toString()) || null;
 
     // Determine password status for Super-Admin visibility
     let passwordStatus = 'Unknown';
@@ -803,7 +805,8 @@ function basicDetails(account) {
     }
 
     return {
-        id, firstName, lastName, email, role, created, updated, isVerified,
+        id: id || undefined,
+        firstName, lastName, email, role, created, updated, isVerified,
         profileImage: profileImage,
         profileTemplateType, position, company, address, city, state, zipCode, phone, mobile, bio,
         website, github, twitter, instagram, facebook, linkedin,

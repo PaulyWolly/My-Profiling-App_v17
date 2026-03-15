@@ -47,11 +47,13 @@
                     Login
                 </button>
 
-                <!-- Social Login Options -->
+                <!-- Social Login Options (only works when Auth0 domain + clientId are set in environment) -->
                 <div class="social-login">
-                    <button type="button" class="btn btn-google" (click)="loginWithGoogle()" [disabled]="loading">
+                    <button type="button" class="btn btn-google" (click)="loginWithGoogle()" [disabled]="loading || !isGoogleLoginEnabled"
+                            [title]="!isGoogleLoginEnabled ? 'Set Auth0 domain and clientId in environment to enable' : ''">
                         <i class="fab fa-google me-1"></i> Continue with Google
                     </button>
+                    <p *ngIf="!isGoogleLoginEnabled" class="text-muted small mt-1 mb-0">Google sign-in not configured for this environment.</p>
                 </div>
 
                 <!-- Links -->

@@ -10,6 +10,14 @@
             [borderRadius]="'var(--app-border-radius)'"
         ></app-curved-border>
         <div class="profile-card-top">
+            <div class="profile-tabs-row" *ngIf="profile?.id">
+                <span class="profile-tab profile-tab--active">Profile</span>
+                <app-gallery-section
+                  displayMode="tab"
+                  [accountId]="profile.id"
+                  [isOwnProfile]="isOwnProfile">
+                </app-gallery-section>
+            </div>
             <div class="profile-image-wrapper">
                 <div class="profile-image-container" [class.loading]="loading">
                     <img *ngIf="getProfileImageUrl()" [src]="getProfileImageUrl()" alt="Profile picture" class="profile-img" (load)="onImageLoaded()" (error)="onImageError()">
@@ -79,13 +87,14 @@
             </div>
         </div>
     </div>
+
     <!-- Floating Chat Icon and Chat Dock (outside social-card, inside container) -->
-    <div class="floating-chat-icon" (click)="toggleChatList()" appCustomTooltip="Click to toggle chat" tooltipPosition="auto">
+    <div class="floating-chat-icon" (click)="toggleChatList()">
         <mat-icon>chat</mat-icon>
-        <div class="online-users-badge" *ngIf="onlineUsersCount > 0" appCustomTooltip="Users Online to chat" tooltipPosition="auto">
+        <div class="online-users-badge" *ngIf="onlineUsersCount > 0">
             {{ onlineUsersCount }}
         </div>
-        <span *ngIf="pendingChats && !showChatList" class="yellow-led" appCustomTooltip="Someone wants to chat..." tooltipPosition="left"></span>
+        <span *ngIf="onlineUsersCount > 0 && !showChatList" class="yellow-led" appCustomTooltip="Others online - click to see who" tooltipPosition="left"></span>
     </div>
     <app-chat-dock
         [dockOpen]="showChatList"

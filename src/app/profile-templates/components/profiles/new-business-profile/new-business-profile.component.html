@@ -1,6 +1,14 @@
 <div class="business-profile-container">
   <mat-card>
     <mat-card-content class="business-card-layout">
+      <div class="profile-tabs-row" *ngIf="profile?.id">
+        <span class="profile-tab profile-tab--active">Profile</span>
+        <app-gallery-section
+          displayMode="tab"
+          [accountId]="profile.id"
+          [isOwnProfile]="isOwnProfile">
+        </app-gallery-section>
+      </div>
       <div class="two-column-layout">
         <!-- LEFT COLUMN: Company info, profile image, search, rating -->
         <div class="left-column">
@@ -246,12 +254,12 @@
   </div>
 
   <!-- Floating Chat Icon -->
-  <div class="floating-chat-icon" (click)="toggleChatList()" appCustomTooltip="Click to toggle chat" tooltipPosition="auto">
+  <div class="floating-chat-icon" (click)="toggleChatList()">
     <mat-icon>chat</mat-icon>
-    <div class="online-users-badge" *ngIf="onlineUsersCount > 0" appCustomTooltip="Users Online" tooltipPosition="auto">
+    <div class="online-users-badge" *ngIf="onlineUsersCount > 0">
       {{ onlineUsersCount }}
     </div>
-    <span *ngIf="hasPendingChats" class="yellow-led" appCustomTooltip="Someone wants to chat..." tooltipPosition="left"></span>
+    <span *ngIf="onlineUsersCount > 0 && !showChatList" class="yellow-led" appCustomTooltip="Others online - click to see who" tooltipPosition="left"></span>
   </div>
 
   <!-- Chat Dock Component -->

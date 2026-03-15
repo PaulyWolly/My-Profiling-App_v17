@@ -53,8 +53,11 @@ export class NewMenuBarComponent implements AfterViewInit {
 
   logout() {
     console.log('[MenuBar] Starting logout process');
-    // Run both logout methods for complete coverage
+    const account = this.accountService.accountValue;
+    const isAuth0User = account && (account.authProvider === 'google' || account.authProvider === 'auth0' || !!account.auth0Id);
     this.accountService.logout();
-    this.auth0Service.logoutFromAuth0();
+    if (isAuth0User) {
+      this.auth0Service.logoutFromAuth0();
+    }
   }
 }

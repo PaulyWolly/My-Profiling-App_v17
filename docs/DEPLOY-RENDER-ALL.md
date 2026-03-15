@@ -66,6 +66,7 @@ After deploy, copy your **frontend URL** (e.g. `https://my-profiling-app.onrende
 
 - **Uploads:** The app uses the **hybrid** upload endpoint so uploads work on Render even without S3. Set **`API_URL`** on the backend to your Render backend URL so returned image URLs are correct.
 - **Option A:** Follower and profile image files under `server/uploads/` are in Git, so the backend serves them. After deploy they work if the backend has those files.
+- **Gallery:** Each user has a **Gallery** section (photos & videos). Same hybrid S3 + local storage. Sharing is **Only me** or **Share with specific member(s)** only—no public viewing; users choose exactly who can see their gallery.
 - **Option B:** Set S3 env vars on the **backend** (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `S3_BUCKET_NAME`) and re-upload images in the live app so they’re stored in S3 and URLs in the DB point to S3.
 
 ---

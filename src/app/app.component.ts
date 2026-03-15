@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, HostListener, Renderer2, ViewEncapsulation, AfterViewInit, OnDestroy, effect } from '@angular/core';
+import { Component, OnInit, HostListener, Renderer2, ViewEncapsulation, AfterViewInit, OnDestroy, effect } from '@angular/core';
 import { Router, NavigationEnd, Event } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { AccountService, Auth0Service } from '@app/_services';
@@ -134,9 +134,12 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
     logout() {
         console.log('[AppComponent] Starting logout process');
-        // Run both logout methods for complete coverage
+        const account = this.accountService.accountValue;
+        const isAuth0User = account && (account.authProvider === 'google' || account.authProvider === 'auth0' || !!account.auth0Id);
         this.accountService.logout();
-        this.auth0Service.logoutFromAuth0();
+        if (isAuth0User) {
+            this.auth0Service.logoutFromAuth0();
+        }
     }
 
     // Force navigation to a URL to overcome potential router issues

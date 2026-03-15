@@ -17,7 +17,7 @@ interface LogEntry {
 }
 
 @Component({
-  selector: 'app-log-output-view',
+  selector: 'app-super-admin-log-output-view',
   standalone: true,
   imports: [CommonModule, MatButtonModule, MatCardModule],
   template: `

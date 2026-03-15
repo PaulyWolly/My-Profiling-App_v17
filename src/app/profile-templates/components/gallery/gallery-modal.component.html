@@ -1,0 +1,151 @@
+<div class="gallery-modal">
+  <div class="gallery-modal-header">
+    <h2 class="gallery-modal-title">
+      <mat-icon>photo_library</mat-icon>
+      <span *ngIf="isViewingSharedGallery">Viewing {{ viewingSharedName }}'s gallery</span>
+      <span *ngIf="!isViewingSharedGallery">Gallery</span>
+      <span class="gallery-help-trigger" *ngIf="myAccountId && !isViewingSharedGallery"
+            (mouseenter)="showHelpPopover = true" (mouseleave)="showHelpPopover = false">
+        <button mat-icon-button class="help-icon-btn" aria-label="Gallery help">
+          <mat-icon>help_outline</mat-icon>
+        </button>
+        <div class="gallery-help-popover" *ngIf="showHelpPopover"
+             (mouseenter)="showHelpPopover = true" (mouseleave)="showHelpPopover = false">
+          <p><strong>Who's online?</strong> Check the <mat-icon class="inline-icon">chat</mat-icon> icon on the profile page.</p>
+          <p><strong>Shared with you?</strong> See the list below.</p>
+          <p><strong>Where to view?</strong> Click "View gallery" next to their name.</p>
+        </div>
+      </span>
+    </h2>
+    <div class="gallery-header-actions">
+      <button *ngIf="isViewingSharedGallery" mat-stroked-button color="primary" (click)="backToMyGallery()">
+        <mat-icon>arrow_back</mat-icon>
+        Back to my gallery
+      </button>
+      <button mat-icon-button (click)="close()" aria-label="Close">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="gallery-modal-inner">
+  <div class="gallery-modal-content">
+    <!-- Sharing content at top: shared-with-me list + who can see / add media -->
+    <div class="shared-with-me-section" *ngIf="myAccountId && !isViewingSharedGallery">
+      <span class="sharing-label">Galleries shared with you:</span>
+      <div *ngIf="loadingSharedWithMe" class="loading-members"><mat-spinner diameter="24"></mat-spinner></div>
+      <p *ngIf="!loadingSharedWithMe && sharedWithMeList.length === 0" class="no-shared">No one has shared their gallery with you yet.</p>
+      <div *ngIf="!loadingSharedWithMe && sharedWithMeList.length > 0" class="shared-with-me-list">
+        <div *ngFor="let person of sharedWithMeList" class="shared-with-me-item">
+          <span class="shared-name">{{ person.firstName }} {{ person.lastName }}</span>
+          <button mat-raised-button color="primary" (click)="viewSharedGallery(person)">
+            <mat-icon>photo_library</mat-icon>
+            View gallery
+          </button>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="isOwnProfile && !isViewingSharedGallery" class="gallery-actions">
+      <div class="sharing-control">
+        <span class="sharing-label">Who can see this gallery:</span>
+        <div class="sharing-options-row">
+          <div class="sharing-options">
+            <button mat-stroked-button [color]="onlyMe ? 'primary' : ''" (click)="setOnlyMe(true)">
+              Only me
+            </button>
+            <button mat-stroked-button [color]="!onlyMe ? 'primary' : ''" (click)="setOnlyMe(false)">
+              Share with specific member(s)
+            </button>
+          </div>
+          <button mat-raised-button color="primary" class="add-media-btn" (click)="showUploadArea = true" [disabled]="uploading">
+            <mat-icon>add_photo_alternate</mat-icon>
+            Add photo or video
+          </button>
+        </div>
+        <div *ngIf="!onlyMe" class="member-list-wrap">
+          <div class="member-list-header">
+            <span class="member-list-summary">
+              {{ gallerySharedWith.length }} member{{ gallerySharedWith.length !== 1 ? 's' : '' }} selected
+            </span>
+            <button mat-button type="button" class="member-list-toggle" (click)="memberListExpanded = !memberListExpanded">
+              <mat-icon>{{ memberListExpanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+              {{ memberListExpanded ? 'Hide list' : 'Show list' }}
+            </button>
+          </div>
+          <div *ngIf="memberListExpanded" class="member-list">
+            <p class="member-list-hint">Select members who can view your gallery:</p>
+            <div *ngIf="loadingMembers" class="loading-members"><mat-spinner diameter="24"></mat-spinner></div>
+            <div *ngIf="!loadingMembers && otherMembers.length === 0" class="no-members">No other members in the app yet.</div>
+            <div *ngIf="!loadingMembers && otherMembers.length > 0" class="member-chips">
+              <button *ngFor="let member of otherMembers"
+                      type="button"
+                      mat-stroked-button
+                      [color]="isSharedWith(member.id!) ? 'primary' : ''"
+                      (click)="toggleShareWith(member)"
+                      class="member-chip">
+                {{ member.firstName }} {{ member.lastName }}
+                <mat-icon *ngIf="isSharedWith(member.id!)" class="check">check</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="showUploadArea && isOwnProfile" class="upload-area">
+      <input type="file" #fileInput hidden accept="image/*,video/*,.mkv,.webm,.mp4,.mov,.avi,.m4v,.ogv,.wmv,.mpeg,.mpg" (change)="onFileSelected($event)">
+      <button mat-button (click)="fileInput.click()">Choose file</button>
+      <span *ngIf="selectedFile" class="file-name">{{ selectedFile.name }}</span>
+      <input *ngIf="selectedFile" type="text" [(ngModel)]="caption" placeholder="Caption (optional)" class="caption-input">
+      <div *ngIf="uploading" class="upload-progress">
+        <p class="upload-progress-label">Uploading… {{ uploadProgressPercent !== null ? uploadProgressPercent + '%' : '' }}</p>
+        <mat-progress-bar mode="determinate" [value]="uploadProgressPercent ?? 0"></mat-progress-bar>
+      </div>
+      <div *ngIf="selectedFile" class="upload-buttons">
+        <button mat-raised-button color="primary" (click)="upload()" [disabled]="uploading">
+          <mat-spinner *ngIf="uploading" diameter="20" class="inline-spinner"></mat-spinner>
+          <span *ngIf="!uploading">Upload</span>
+        </button>
+        <button mat-button (click)="cancelUpload()" [disabled]="uploading">Cancel</button>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="gallery-loading">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+
+    <div *ngIf="!loading && items.length === 0" class="gallery-empty">
+      <mat-icon>photo_library</mat-icon>
+      <p>No photos or videos yet.</p>
+      <p *ngIf="isOwnProfile" class="hint">Add some above to build your gallery.</p>
+    </div>
+
+    <div *ngIf="!loading && items.length > 0" class="gallery-grid">
+      <div *ngFor="let item of items" class="gallery-item">
+        <div class="media-wrap" (click)="openFullView(item)" role="button" tabindex="0" (keydown.enter)="openFullView(item)" (keydown.space)="openFullView(item)">
+          <img *ngIf="item.type === 'image'" [src]="resolveUrl(item.url)" [alt]="item.caption || 'Gallery image'" loading="lazy">
+          <video #gridVideo *ngIf="item.type === 'video'" [src]="resolveUrl(item.url)" preload="metadata" muted playsinline></video>
+        </div>
+        <p *ngIf="item.caption" class="caption">{{ item.caption }}</p>
+        <button *ngIf="isOwnProfile" mat-icon-button color="warn" class="delete-btn" (click)="deleteItem(item); $event.stopPropagation()" title="Remove">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- Full-view overlay: click image/video in gallery to open -->
+  <div class="gallery-fullview-overlay" *ngIf="fullViewItem" (click)="closeFullView()" role="presentation">
+    <button mat-icon-button class="fullview-close" (click)="closeFullView(); $event.stopPropagation()" aria-label="Close full view" title="Close">
+      <mat-icon>close</mat-icon>
+    </button>
+    <div class="gallery-fullview-content" (click)="$event.stopPropagation()">
+      <div class="fullview-media">
+        <img *ngIf="fullViewItem.type === 'image'" [src]="resolveUrl(fullViewItem.url)" [alt]="fullViewItem.caption || 'Gallery image'">
+        <video #fullViewVideo *ngIf="fullViewItem.type === 'video'" [src]="resolveUrl(fullViewItem.url)" controls autoplay playsinline></video>
+      </div>
+      <p *ngIf="fullViewItem.caption" class="fullview-caption">{{ fullViewItem.caption }}</p>
+    </div>
+  </div>
+</div>

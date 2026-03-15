@@ -1,0 +1,448 @@
+// Match profile card: padding, radius, shadow (see .social-card / profile-card)
+:host {
+  display: block;
+}
+
+.gallery-modal {
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  min-width: 320px;
+  padding: 1.5rem;
+  background: #fff;
+  border-radius: var(--app-border-radius, 12px);
+  box-shadow: rgba(0, 0, 0, 0.35) 0 5px 15px;
+}
+
+.gallery-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0 1rem 0;
+  border-bottom: 1px solid #eee;
+  flex-shrink: 0;
+}
+
+.gallery-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  button mat-icon { font-size: 20px; width: 20px; height: 20px; }
+}
+
+.shared-with-me-section {
+  margin-bottom: 1rem;
+  .sharing-label {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: rgba(40, 98, 225, 0.7);
+  }
+  .no-shared { margin: 0.5rem 0 0; font-size: 0.9rem; color: #666; }
+}
+
+.shared-with-me-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.shared-with-me-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  &:last-child { border-bottom: none; }
+  .shared-name { font-weight: 500; }
+  button mat-icon { margin-right: 0.25rem; font-size: 18px; width: 18px; height: 18px; }
+}
+
+.gallery-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #333;
+
+  > mat-icon {
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+    color: #555;
+  }
+
+  .gallery-help-trigger {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .help-icon-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    padding: 0;
+    color: #666;
+
+    mat-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  .gallery-help-popover {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 6px;
+    padding: 1.25rem 1.5rem;
+    min-width: 320px;
+    max-width: 420px;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    font-size: 0.9375rem;
+    line-height: 1.55;
+    color: #333;
+    text-align: left;
+    pointer-events: auto;
+
+    p {
+      margin: 0 0 0.75rem;
+      &:last-child { margin-bottom: 0; }
+    }
+    .inline-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      vertical-align: middle;
+    }
+  }
+}
+
+:host ::ng-deep .gallery-modal-title .help-icon-btn .mat-icon {
+  margin: 0;
+}
+
+// Light blue inner area + darker gold top border (match profile card)
+.gallery-modal-inner {
+  background-color: #e3f2fd;
+  border-top: 4px solid #c9a227;
+  border-radius: 0 0 var(--app-border-radius, 12px) var(--app-border-radius, 12px);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.gallery-modal-content {
+  overflow-y: auto;
+  padding: 1.25rem 0.5rem 1rem;
+  flex: 1;
+}
+
+.gallery-actions {
+  margin-bottom: 1rem;
+}
+
+.sharing-control {
+  .sharing-label {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: rgba(40, 98, 225, 0.7);
+  }
+
+  // One row: visibility buttons + Add photo/video at far right, inside one bordered box
+  .sharing-options-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.6);
+    margin-bottom: 0.75rem;
+  }
+
+  .sharing-options {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .add-media-btn {
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  .member-list-wrap {
+    margin-top: 0.5rem;
+  }
+
+  .member-list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.4rem 0.5rem;
+    background: #f5f5f5;
+    border-radius: 8px;
+    border: 1px solid #eee;
+  }
+
+  .member-list-summary {
+    font-size: 0.875rem;
+    color: #555;
+  }
+
+  .member-list-toggle {
+    font-size: 0.85rem;
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      vertical-align: middle;
+      margin-right: 2px;
+    }
+  }
+
+  .member-list {
+    margin-top: 0.35rem;
+    padding: 0.75rem;
+    background: #fafafa;
+    border-radius: 8px;
+    border: 1px solid #eee;
+
+    .member-list-hint {
+      font-size: 0.85rem;
+      color: #666;
+      margin: 0 0 0.5rem 0;
+    }
+
+    .loading-members, .no-members {
+      font-size: 0.9rem;
+      color: #666;
+    }
+
+    .member-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+
+      .member-chip mat-icon.check {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+        margin-left: 4px;
+      }
+    }
+  }
+}
+
+.upload-area {
+  padding: 1rem;
+  background: #f5f5f5;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+
+  .upload-progress {
+    margin: 0.75rem 0;
+    .upload-progress-label {
+      margin: 0 0 0.35rem 0;
+      font-size: 0.9rem;
+      color: #555;
+    }
+    mat-progress-bar {
+      height: 8px;
+      border-radius: 4px;
+    }
+  }
+
+  .file-name {
+    margin-left: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .caption-input {
+    display: block;
+    width: 100%;
+    max-width: 320px;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+
+  .upload-buttons {
+    margin-top: 0.75rem;
+    display: flex;
+    gap: 0.5rem;
+
+    .inline-spinner {
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 4px;
+    }
+  }
+}
+
+.gallery-loading {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.gallery-empty {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 0.5rem;
+  }
+
+  .hint {
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+  }
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1rem;
+}
+
+.gallery-item {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #eee;
+
+  .media-wrap {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+
+    img, video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    video {
+      max-height: 180px;
+    }
+  }
+
+  .caption {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+    margin: 0;
+    background: rgba(0,0,0,0.05);
+  }
+
+  .delete-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: rgba(255,255,255,0.9);
+  }
+}
+
+// Full-view overlay: click image/video in gallery to open
+.gallery-fullview-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  cursor: pointer;
+}
+
+// X close button: top-right corner of the full-view overlay so it's obvious how to close
+.gallery-fullview-overlay .fullview-close {
+  position: absolute;
+  top: 4.5rem;
+  right: 1rem;
+  z-index: 1001;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.15);
+  &:hover {
+    background: rgba(255, 255, 255, 0.25);
+  }
+
+  mat-icon {
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+  }
+}
+
+.gallery-fullview-content {
+  position: relative;
+  max-width: 95vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: default;
+}
+
+.gallery-fullview-content .fullview-media {
+  max-width: 95vw;
+  max-height: 85vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    max-width: 100%;
+    max-height: 85vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+
+  video {
+    max-width: 100%;
+    max-height: 85vh;
+    width: auto;
+    height: auto;
+  }
+}
+
+.gallery-fullview-content .fullview-caption {
+  margin: 0.75rem 0 0;
+  padding: 0.5rem 1rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.95rem;
+  text-align: center;
+  max-width: 100%;
+}

@@ -47,6 +47,35 @@
     z-index: 2;
 }
 
+.profile-tabs-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    justify-content: flex-start;
+    margin: 0 0 -30px 10px;
+    // padding-bottom: 0.5rem;
+    // margin-bottom: 0.5rem;
+    // border-bottom: 1px solid #eee;
+    width: 100%;
+}
+
+.profile-tab {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.9rem;
+    color: #555;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    cursor: default;
+
+    &--active {
+        color: #333;
+        font-weight: 500;
+        border-bottom-color: #eebbbb;
+    }
+}
+
 .profile-image-wrapper {
     position: absolute;
     z-index: 3;
@@ -128,7 +157,7 @@
     font-size: 22px;
     text-decoration: none;
     transition: all 0.2s ease;
-    
+
     &:hover {
         background: #e3f2fd;
         color: #1976d2;
@@ -365,20 +394,20 @@ h3 {
   button {
     margin-top: 10px;
   }
-  
+
   // Blue suggestion style variant
   &.suggestion {
     background-color: #e3f2fd;
     border: 1px solid #bbdefb;
-    
+
     mat-icon {
       color: #1976d2;
     }
-    
+
     h3 {
       color: #1976d2;
     }
-    
+
     p {
       color: #0d47a1;
     }
@@ -400,13 +429,13 @@ h3 {
   cursor: pointer;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   z-index: 100;
-  
+
   mat-icon {
     font-size: 24px;
     height: 24px;
     width: 24px;
   }
-  
+
   .online-users-badge {
     position: absolute;
     top: -5px;
@@ -434,4 +463,4 @@ h3 {
   border: 1px solid white;
   border-radius: 50%;
   z-index: 10;
-} 
+}

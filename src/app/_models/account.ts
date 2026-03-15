@@ -1,4 +1,4 @@
-﻿import { Role } from './role';
+import { Role } from './role';
 import { ProfileTemplateType } from './profile-template';
 
 export interface FollowerImage {
@@ -74,6 +74,9 @@ export interface Account {
         description: string;
     }[];
     token?: string;
+    /** Set when user signed in via Auth0 or Google; used to decide whether to redirect to Auth0 logout. */
+    authProvider?: string;
+    auth0Id?: string;
 }
 
 export interface AccountUpdate {

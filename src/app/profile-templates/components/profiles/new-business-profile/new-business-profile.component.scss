@@ -4,6 +4,35 @@
   width: 80%;
   max-width: 1200px;
 
+  .profile-tabs-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    justify-content: flex-start;
+    margin: 0 0 0px 10px;
+    /* padding-bottom: 0.5rem; */
+    /* margin-bottom: 0.75rem; */
+    /* border-bottom: 1px solid #eee; */
+    width: 100%;
+  }
+
+  .profile-tab {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.9rem;
+    color: #555;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    cursor: default;
+
+    &--active {
+      color: #333;
+      font-weight: 500;
+      border-bottom-color: #eebbbb;
+    }
+  }
+
   .two-column-layout {
     display: flex;
     width: 100%;

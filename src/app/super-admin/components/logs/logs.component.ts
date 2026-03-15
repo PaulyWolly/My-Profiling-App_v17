@@ -17,7 +17,7 @@ interface LogEntry {
 }
 
 @Component({
-  selector: 'app-logs',
+  selector: 'app-super-admin-logs',
   standalone: true,
   imports: [CommonModule, TitleComponent],
   templateUrl: './logs.component.html',

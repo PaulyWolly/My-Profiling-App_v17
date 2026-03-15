@@ -58,6 +58,10 @@ const schema = new Schema({
         path: String
     }],
 
+    // Gallery visibility: who can see this account's gallery
+    galleryVisibility: { type: String, enum: ['private'], default: 'private' },
+    gallerySharedWith: [{ type: Schema.Types.ObjectId, ref: 'Account' }],
+
     // Auth0 integration fields
     auth0Id: String,
     authProvider: String
@@ -77,6 +81,8 @@ schema.set('toJSON', {
     virtuals: true,
     versionKey: false,
     transform: function (doc, ret) {
+        // ensure id is always present for API consumers (e.g. Gallery tab visibility)
+        if (ret._id) ret.id = ret._id.toString();
         // remove these props when object is serialized
         delete ret._id;
         delete ret.passwordHash;

@@ -13,6 +13,7 @@ import { MapDialogComponent } from '@app/profile/components/map-dialog/map-dialo
 import { ChatDockComponent } from '../../chat/chat-dock/chat-dock.component';
 import { ChatService, OnlineUser } from '@app/_services/chat.service';
 import { AccountService } from '@app/_services/account.service';
+import { GallerySectionComponent } from '../../gallery/gallery-section.component';
 
 @Component({
   selector: 'app-new-social-media-profile',
@@ -25,7 +26,8 @@ import { AccountService } from '@app/_services/account.service';
     MatProgressSpinnerModule,
     CurvedBorderComponent,
     CustomTooltipDirective,
-    ChatDockComponent
+    ChatDockComponent,
+    GallerySectionComponent
   ],
   templateUrl: './new-social-media-profile.component.html',
   styleUrls: ['./new-social-media-profile.component.scss']
@@ -49,9 +51,11 @@ export class NewSocialMediaProfileComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    // Subscribe to online users for chat dock
+    // Subscribe to online users for chat dock (exclude current user so badge/LED only show when others are online)
     this.chatService.getOnlineUsers().subscribe((users: OnlineUser[]) => {
-      this.onlineUsersCount = users.length;
+      const myId = this.profile?.id ?? this.accountService.accountValue?.id;
+      const others = myId ? users.filter(u => u.id !== myId) : [];
+      this.onlineUsersCount = others.length;
     });
     // Subscribe to pending chat requests for yellow LED
     this.chatService.getPendingChatRequests().subscribe(set => {

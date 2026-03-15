@@ -25,6 +25,7 @@ import { ChatDockComponent } from '../../chat/chat-dock/chat-dock.component';
 import { Observable } from 'rxjs';
 import { ImageService } from '@app/_services/image.service';
 import { CustomTooltipDirective } from 'src/app/shared/custom-tooltip/custom-tooltip.directive';
+import { GallerySectionComponent } from '../../gallery/gallery-section.component';
 
 @Component({
   selector: 'app-new-business-profile',
@@ -47,7 +48,8 @@ import { CustomTooltipDirective } from 'src/app/shared/custom-tooltip/custom-too
     BusinessPostsComponent,
     StarRatingComponent,
     ChatDockComponent,
-    CustomTooltipDirective
+    CustomTooltipDirective,
+    GallerySectionComponent
   ],
   providers: [ChatDialogComponent]
 })

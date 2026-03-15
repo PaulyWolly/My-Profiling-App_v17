@@ -1,0 +1,5 @@
+{
+  "watch": ["*.js", "routes", "uploads", "services", "_middleware", "_helpers"],
+  "delay": "2",
+  "signal": "SIGTERM"
+}

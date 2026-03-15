@@ -1,0 +1,8 @@
+<section class="gallery-section" [class.gallery-section--tab]="displayMode === 'tab'">
+  <button type="button" class="gallery-trigger" [class.gallery-trigger--tab]="displayMode === 'tab'" (click)="openGalleryModal()">
+    <mat-icon *ngIf="displayMode === 'link'">photo_library</mat-icon>
+    <span>Gallery</span>
+    <span *ngIf="itemCount !== null" class="count">({{ itemCount }})</span>
+    <span *ngIf="isOwnProfile && sharedItemCount !== null" class="count count--shared">[{{ sharedItemCount }}]</span>
+  </button>
+</section>

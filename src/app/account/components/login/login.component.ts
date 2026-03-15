@@ -6,6 +6,7 @@ import { AuthService } from '@auth0/auth0-angular';
 
 import { AlertService } from '@app/_services';
 import { AccountService } from '@app/_services/account.service';
+import { environment } from '@environments/environment';
 
 @Component({
     selector: 'app-login',
@@ -17,6 +18,13 @@ export class LoginComponent implements OnInit, OnDestroy {
     loading = false;
     submitted = false;
     returnUrl: string = '/';
+
+    /** True when Auth0 domain and clientId are set so "Continue with Google" can work. */
+    get isGoogleLoginEnabled(): boolean {
+        const d = environment.auth0?.domain?.trim();
+        const c = environment.auth0?.clientId?.trim();
+        return !!(d && c);
+    }
 
     constructor(
         private formBuilder: FormBuilder,
@@ -128,10 +136,13 @@ export class LoginComponent implements OnInit, OnDestroy {
             });
     }
 
-    // Auth0 Google Login
+    // Auth0 Google Login (only when Auth0 is configured; otherwise would redirect to broken URL)
     loginWithGoogle() {
-        this.loading = false; // Don't show loading message on initial click
-
+        if (!this.isGoogleLoginEnabled) {
+            this.alertService.warn('Google sign-in is not configured for this environment. Use email and password, or set Auth0 domain and clientId.');
+            return;
+        }
+        this.loading = false;
         this.auth.loginWithRedirect({
             authorizationParams: {
                 connection: 'google-oauth2',

@@ -37,10 +37,13 @@ let heartIndex = 0;
 })();
 
 // Config: use env vars on Render/production, else secrets/config.json
+// If MONGODB_URI is set but invalid (e.g. placeholder "MONGODB_URI"), fall back to file so local dev still works
 function loadConfig() {
-  if (process.env.MONGODB_URI) {
+  const envUri = process.env.MONGODB_URI;
+  const isValidMongoUri = envUri && typeof envUri === 'string' && /^mongodb(\+srv)?:\/\//i.test(envUri);
+  if (isValidMongoUri) {
     return {
-      connectionString: process.env.MONGODB_URI,
+      connectionString: envUri,
       DBName: process.env.DB_NAME || 'profiling-app'
     };
   }
@@ -50,7 +53,49 @@ function loadConfig() {
 const config = loadConfig();
 const DBName = config.DBName;
 
+// Validate MongoDB connection string so we don't spam "Invalid scheme" retries
+const connectionString = config.connectionString || process.env.MONGODB_URI;
+if (!connectionString || typeof connectionString !== 'string') {
+  console.error('\n*** MongoDB connection string is missing. ***');
+  console.error('Local dev: set "connectionString" in server/secrets/config.json to your URI (e.g. mongodb+srv://user:pass@cluster.mongodb.net/dbname).');
+  console.error('Or set the MONGODB_URI environment variable.');
+  process.exit(1);
+}
+if (!/^mongodb(\+srv)?:\/\//i.test(connectionString)) {
+  console.error('\n*** Invalid MongoDB connection string. ***');
+  console.error('It must start with "mongodb://" or "mongodb+srv://".');
+  console.error('Current value (first 50 chars):', connectionString.substring(0, 50) + (connectionString.length > 50 ? '...' : ''));
+  console.error('Fix server/secrets/config.json (connectionString) or MONGODB_URI.');
+  process.exit(1);
+}
+
 const PORT = process.env.PORT || 5001;
+
+/** Current HTTP server instance; used by graceful shutdown so the port is released when nodemon restarts. */
+let httpServer = null;
+
+function gracefulShutdown(signal) {
+  if (!httpServer) {
+    process.exit(0);
+    return;
+  }
+  console.log(blue(`\n${signal} received, closing server...`));
+  httpServer.close(() => {
+    console.log('HTTP server closed, port released.');
+    mongoose.connection.close(false).then(() => {
+      console.log('MongoDB connection closed.');
+      process.exit(0);
+    }).catch(() => process.exit(0));
+  });
+  // Force exit after 5s in case close() never fires (e.g. hanging connections)
+  setTimeout(() => {
+    console.log('Forcing exit after timeout.');
+    process.exit(0);
+  }, 5000);
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Configure body parser
 app.use(bodyParser.json());
@@ -73,8 +118,9 @@ app.use(cors(corsOptions));
 const uploadsDir = path.join(__dirname, 'uploads');
 const profilesDir = path.join(__dirname, 'uploads', 'profiles');
 const followersDir = path.join(__dirname, 'uploads', 'followers');
+const galleryDir = path.join(__dirname, 'uploads', 'gallery');
 
-[uploadsDir, profilesDir, followersDir].forEach(dir => {
+[uploadsDir, profilesDir, followersDir, galleryDir].forEach(dir => {
     const relPath = path.relative(__dirname, dir);
     if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
@@ -125,6 +171,7 @@ app.use('/api/admin/scripts', adminScriptsRouter);
 
 app.use('/admin', require('./controllers/admin.controller'));
 app.use('/api/posts', require('./controllers/posts.controller'));
+app.use('/api/gallery', require('./gallery/gallery.controller'));
 app.use('/api/chat', chatApi);
 
 // Add config route - use the specific function as middleware
@@ -146,6 +193,8 @@ try {
 }
 const green = chalk ? chalk.green : (s) => `\x1b[32m${s}\x1b[0m`;
 const blue = chalk ? chalk.blue : (s) => `\x1b[34m${s}\x1b[0m`;
+const red = chalk ? chalk.red : (s) => `\x1b[31m${s}\x1b[0m`;
+const yellow = chalk ? chalk.yellow : (s) => `\x1b[33m${s}\x1b[0m`;
 
 // Print all registered routes at startup
 app._router.stack
@@ -176,20 +225,28 @@ function connectWithRetry() {
 
 // Only start the server after Mongoose is connected
 function startServer() {
-  // Create HTTP server
   const server = http.createServer(app);
-  // Start server
+  httpServer = server; // so gracefulShutdown can close it and release the port
   const port = process.env.NODE_ENV === 'production' ? (process.env.PORT || 80) : PORT;
+
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(red(`\nPort ${port} is already in use.`));
+      console.log('Nodemon should wait for the previous process to exit (check delay in server/nodemon.json).');
+      console.log('To free the port manually: npx kill-port ' + port);
+      process.exit(1);
+    }
+    throw err;
+  });
+
   server.listen(port, () => {
       console.log(blue(`Server listening on port ${port}`));
       console.log('Connected to DB:', DBName);
       console.log('Environment:', process.env.NODE_ENV || 'development');
-      // Initialize WebSocket service after server is listening
       try {
           websocketService.initialize(server);
           console.log(green('Ready for connections... '));
-          console.log('--------------------------------')
-          // Add green 'Server is ready for connections...' after WebSocket group
+          console.log('--------------------------------');
           console.log(green('Server is ready for connections...'));
       } catch (error) {
           console.error('Failed to initialize WebSocket service:', error);
