@@ -31,7 +31,7 @@ Do these in order. Fill in your real URLs and secrets where shown.
 | `MONGODB_URI` | Your MongoDB Atlas connection string (replace `<password>`) |
 | `JWT_SECRET` | Long random string, e.g. run: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
 
-**Backend env vars (optional):** `DB_NAME`, `GOOGLE_MAPS_API_KEY`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `S3_BUCKET_NAME` (see section 1 below).
+**Backend env vars (optional):** `API_URL` (your backend URL, e.g. `https://my-profiling-app-api.onrender.com` — needed so image upload URLs are correct when S3 is not used), `DB_NAME`, `GOOGLE_MAPS_API_KEY`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `S3_BUCKET_NAME` (see section 1 below).
 
 After deploy, copy your **backend URL** (e.g. `https://my-profiling-app-api.onrender.com`).
 
@@ -64,6 +64,7 @@ After deploy, copy your **frontend URL** (e.g. `https://my-profiling-app.onrende
 
 ### Images (profile / followers)
 
+- **Uploads:** The app uses the **hybrid** upload endpoint so uploads work on Render even without S3. Set **`API_URL`** on the backend to your Render backend URL so returned image URLs are correct.
 - **Option A:** Follower and profile image files under `server/uploads/` are in Git, so the backend serves them. After deploy they work if the backend has those files.
 - **Option B:** Set S3 env vars on the **backend** (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `S3_BUCKET_NAME`) and re-upload images in the live app so they’re stored in S3 and URLs in the DB point to S3.
 

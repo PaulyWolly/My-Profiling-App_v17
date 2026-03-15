@@ -603,6 +603,26 @@ export class AccountService {
         return this.getHttp().post<any>(`${environment.apiUrl}/accounts/upload-follower-image`, formData);
     }
 
+    /**
+     * Upload follower image via hybrid endpoint (S3 + local). Use this so uploads work on Render:
+     * when S3 is configured they persist in S3; when not, backend still saves locally and returns a URL.
+     */
+    uploadFollowerImageHybrid(file: File, followerName: string, followerTitle?: string): Observable<{ id?: string; imageUrl: string; path: string }> {
+        const formData = new FormData();
+        formData.append('followerImage', file);
+        formData.append('name', followerName);
+        if (followerTitle) {
+            formData.append('followerTitle', followerTitle);
+        }
+        return this.getHttp().post<any>(`${environment.apiUrl}/api/hybrid-upload/follower-image`, formData).pipe(
+            map((res: any) => ({
+                id: res.id || (Date.now().toString()),
+                imageUrl: res.imageUrl || res.imagePath || res.localPath || '',
+                path: res.path || res.localPath || ''
+            }))
+        );
+    }
+
     // Timer methods
     private startRefreshTokenTimer() {
         console.log('[AccountService] Starting refresh token timer');

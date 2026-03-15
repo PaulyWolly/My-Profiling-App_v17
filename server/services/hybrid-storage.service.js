@@ -30,36 +30,36 @@ class HybridStorageService {
      * @returns {Promise<{s3Url: string, localPath: string}>} - Both URLs
      */
     async uploadFile(fileBuffer, fileName, contentType, folder = 'profiles') {
+        console.log('[HybridStorage] Uploading file:', {
+            fileName,
+            contentType,
+            folder,
+            size: fileBuffer.length
+        });
+
+        // Always save to local first so we have something to return if S3 fails
+        let localPath;
         try {
-            console.log('[HybridStorage] Uploading file to both S3 and local storage:', {
-                fileName,
-                contentType,
-                folder,
-                size: fileBuffer.length
-            });
-
-            // Upload to S3
-            const s3Url = await s3Service.uploadFile(fileBuffer, fileName, contentType, folder);
-
-            // Save to local storage
-            const localPath = await this.saveToLocal(fileBuffer, fileName, folder);
-
-            console.log('[HybridStorage] Upload successful:', {
-                s3Url,
-                localPath
-            });
-
-            return {
-                s3Url,
-                localPath,
-                primaryUrl: s3Url, // S3 is primary
-                fallbackUrl: localPath // Local is fallback
-            };
-
-        } catch (error) {
-            console.error('[HybridStorage] Upload error:', error);
-            throw new Error(`Failed to upload file: ${error.message}`);
+            localPath = await this.saveToLocal(fileBuffer, fileName, folder);
+        } catch (localErr) {
+            console.error('[HybridStorage] Local save error:', localErr);
+            throw new Error(`Failed to save file locally: ${localErr.message}`);
         }
+
+        let s3Url = null;
+        try {
+            s3Url = await s3Service.uploadFile(fileBuffer, fileName, contentType, folder);
+            console.log('[HybridStorage] S3 upload successful:', s3Url);
+        } catch (s3Err) {
+            console.warn('[HybridStorage] S3 upload failed (will use local only):', s3Err.message);
+        }
+
+        return {
+            s3Url,
+            localPath,
+            primaryUrl: s3Url || localPath,
+            fallbackUrl: localPath
+        };
     }
 
     /**

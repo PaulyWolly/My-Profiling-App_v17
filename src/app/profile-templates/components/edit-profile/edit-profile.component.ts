@@ -219,16 +219,16 @@ export class EditProfileComponent implements OnInit, OnChanges, AfterViewInit {
     }
 
     try {
-      // If we have an image file, upload it first
+      // If we have an image file, upload via hybrid endpoint (works on Render with or without S3)
       if (this.currentFollower.imageFile) {
-        const result = await this.uploadService.uploadFollowerImage(
+        const result = await this.accountService.uploadFollowerImageHybrid(
           this.currentFollower.imageFile,
           this.currentFollower.name,
           this.currentFollower.title
         ).toPromise();
 
         if (result) {
-          this.currentFollower.imageUrl = result.imageUrl;
+          this.currentFollower.imageUrl = result.imageUrl || this.accountService.getFollowerImageUrl({ imageUrl: result.imageUrl, path: result.path });
           this.currentFollower.path = result.path;
         }
       }

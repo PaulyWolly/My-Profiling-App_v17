@@ -2,6 +2,12 @@ const multer = require('multer');
 const path = require('path');
 const hybridStorage = require('../services/hybrid-storage.service');
 
+/** Build full URL for a local path (used when S3 is not configured). */
+function buildFullUrl(req, localPath) {
+    const base = process.env.API_URL || (req.protocol + '://' + (req.get('host') || 'localhost'));
+    return base.replace(/\/+$/, '') + (localPath.startsWith('/') ? localPath : '/' + localPath);
+}
+
 // Configure multer for memory storage (we'll upload to both S3 and local)
 const storage = multer.memoryStorage();
 
@@ -57,19 +63,21 @@ async function uploadProfileImage(req, res, next) {
             localPath: result.localPath
         });
 
-        // Update database with both URLs (we'll store S3 as primary, local as fallback)
+        const profileImageUrl = result.s3Url || buildFullUrl(req, result.localPath);
         const accountService = require('../accounts/account.service');
-        const account = await accountService.uploadImage(req.body.userId, result.s3Url);
+        await accountService.uploadImage(req.body.userId, profileImageUrl);
 
         const response = {
-            message: 'Profile image uploaded successfully to both S3 and local storage',
-            imagePath: result.s3Url, // Primary URL
-            profileImage: result.s3Url,
-            localPath: result.localPath, // Fallback URL
+            message: result.s3Url
+                ? 'Profile image uploaded successfully to both S3 and local storage'
+                : 'Profile image uploaded to local storage (S3 not configured)',
+            imagePath: profileImageUrl,
+            profileImage: profileImageUrl,
+            localPath: result.localPath,
             hybrid: {
                 s3Url: result.s3Url,
                 localPath: result.localPath,
-                primary: 's3',
+                primary: result.s3Url ? 's3' : 'local',
                 fallback: 'local'
             }
         };
@@ -118,15 +126,19 @@ async function uploadFollowerImage(req, res, next) {
             localPath: result.localPath
         });
 
+        const imageUrl = result.s3Url || buildFullUrl(req, result.localPath);
         const response = {
-            message: 'Follower image uploaded successfully to both S3 and local storage',
-            imagePath: result.s3Url,
-            imageUrl: result.s3Url,
+            message: result.s3Url
+                ? 'Follower image uploaded successfully to both S3 and local storage'
+                : 'Follower image uploaded to local storage (S3 not configured)',
+            imagePath: result.s3Url || result.localPath,
+            imageUrl,
             localPath: result.localPath,
+            path: result.localPath,
             hybrid: {
                 s3Url: result.s3Url,
                 localPath: result.localPath,
-                primary: 's3',
+                primary: result.s3Url ? 's3' : 'local',
                 fallback: 'local'
             }
         };

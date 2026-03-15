@@ -659,12 +659,11 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
         alert('Follower name is required');
         return;
     }
-    // If we have an image file, upload it first
+    // If we have an image file, upload via hybrid endpoint (works on Render with or without S3)
     if (this.currentFollower.imageFile) {
       console.log('Uploading follower image for:', this.currentFollower.name);
-      this.uploadService.uploadFollowerImage(
+      this.accountService.uploadFollowerImageHybrid(
         this.currentFollower.imageFile!,
-        // this.currentFollower.email || this.currentFollower.name || '',
         this.currentFollower.name ?? '',
         this.currentFollower.title ?? ''
       )
@@ -674,12 +673,7 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
           console.log('Follower image uploaded successfully:', follower);
           this.currentFollower.id = follower.id;
           this.currentFollower.path = follower.path;
-          // Resolve to full URL so the preview and list display correctly on Render
-          const resolved = this.accountService.getFollowerImageUrl({
-            imageUrl: follower.imageUrl,
-            path: follower.path
-          });
-          this.currentFollower.imageUrl = resolved || follower.imageUrl || '';
+          this.currentFollower.imageUrl = follower.imageUrl || this.accountService.getFollowerImageUrl({ imageUrl: follower.imageUrl, path: follower.path });
           this.saveFollowerToList();
         },
         error: (error) => {
