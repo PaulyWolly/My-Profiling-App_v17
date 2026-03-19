@@ -91,7 +91,15 @@ router.get('/shared-with-me/total-items', authenticate(), async (req, res, next)
         if (accountIds.length === 0) {
             return res.json({ totalItems: 0 });
         }
-        const totalItems = await GalleryItem.countDocuments({ accountId: { $in: accountIds } });
+        const totalItems = await GalleryItem.countDocuments({
+            accountId: { $in: accountIds },
+            $or: [
+                { shareMode: 'all-shared' },
+                { shareMode: { $exists: false } },
+                { shareMode: null },
+                { shareMode: 'specific', sharedWith: viewerId }
+            ]
+        });
         res.json({ totalItems: totalItems || 0 });
     } catch (error) {
         next(error);
@@ -121,7 +129,15 @@ router.get('/:accountId', authenticate(), async (req, res, next) => {
             return res.status(403).json({ message: 'You do not have permission to view this gallery' });
         }
 
-        const items = await GalleryItem.find({ accountId }).sort({ createdAt: -1 }).lean();
+        const items = await GalleryItem.find({
+            accountId,
+            $or: [
+                { shareMode: 'all-shared' },
+                { shareMode: { $exists: false } },
+                { shareMode: null },
+                { shareMode: 'specific', sharedWith: viewerId }
+            ]
+        }).sort({ createdAt: -1 }).lean();
         res.json(items.map(d => ({ ...d, id: d._id?.toString(), _id: undefined })));
     } catch (error) {
         next(error);
@@ -143,9 +159,49 @@ router.post('/', authenticate(), async (req, res, next) => {
             url,
             type,
             caption: caption || '',
-            thumbnailUrl: thumbnailUrl || null
+            thumbnailUrl: thumbnailUrl || null,
+            shareMode: 'all-shared',
+            sharedWith: []
         });
         res.status(201).json(item);
+    } catch (error) {
+        next(error);
+    }
+});
+
+
+// Update item-level sharing (owner only)
+router.patch('/:id', authenticate(), async (req, res, next) => {
+    try {
+        const item = await GalleryItem.findById(req.params.id);
+        if (!item) {
+            return res.status(404).json({ message: 'Gallery item not found' });
+        }
+        if (item.accountId.toString() !== req.user.id) {
+            return res.status(403).json({ message: 'You can only update your own gallery items' });
+        }
+
+        const update = {};
+        if (req.body.shareMode !== undefined) {
+            if (!['all-shared', 'specific'].includes(req.body.shareMode)) {
+                return res.status(400).json({ message: 'shareMode must be all-shared or specific' });
+            }
+            update.shareMode = req.body.shareMode;
+        }
+        if (req.body.sharedWith !== undefined) {
+            update.sharedWith = Array.isArray(req.body.sharedWith) ? req.body.sharedWith : [];
+        }
+        if (update.shareMode === 'all-shared') {
+            update.sharedWith = [];
+        }
+
+        const updated = await GalleryItem.findByIdAndUpdate(
+            req.params.id,
+            { $set: update },
+            { new: true }
+        ).lean();
+
+        res.json({ ...updated, id: updated?._id?.toString(), _id: undefined });
     } catch (error) {
         next(error);
     }

@@ -175,7 +175,11 @@ export class GalleryModalComponent implements OnInit {
       : this.galleryService.getGalleryForAccount(this.accountId);
     req.subscribe({
       next: (list) => {
-        this.items = list || [];
+        this.items = (list || []).map(i => ({
+          ...i,
+          shareMode: i.shareMode || 'all-shared',
+          sharedWith: i.sharedWith || []
+        }));
         this.loading = false;
       },
       error: () => {
@@ -265,6 +269,46 @@ export class GalleryModalComponent implements OnInit {
     if (!item.id || !confirm('Remove this from your gallery?')) return;
     this.galleryService.deleteItem(item.id).subscribe({
       next: () => this.loadGallery()
+    });
+  }
+
+  isItemSpecific(item: GalleryItem): boolean {
+    return (item.shareMode || 'all-shared') === 'specific';
+  }
+
+  isItemSharedWith(item: GalleryItem, accountId: string): boolean {
+    return !!item.sharedWith?.includes(accountId);
+  }
+
+  getItemEligibleMembers(): Account[] {
+    return (this.otherMembers || []).filter(m => !!m.id && this.gallerySharedWith.includes(m.id!));
+  }
+
+  setItemShareMode(item: GalleryItem, specific: boolean): void {
+    if (!item.id) return;
+    const payload = specific
+      ? { shareMode: 'specific' as const, sharedWith: item.sharedWith || [] }
+      : { shareMode: 'all-shared' as const, sharedWith: [] };
+    this.galleryService.updateItemSharing(item.id, payload).subscribe({
+      next: (updated) => {
+        item.shareMode = updated.shareMode || payload.shareMode;
+        item.sharedWith = updated.sharedWith || payload.sharedWith;
+      },
+      error: () => this.alertService.error('Failed to update sharing for this item.')
+    });
+  }
+
+  toggleItemShareWith(item: GalleryItem, member: Account): void {
+    if (!item.id || !member.id) return;
+    const next = (item.sharedWith || []).includes(member.id)
+      ? (item.sharedWith || []).filter(id => id !== member.id)
+      : [...(item.sharedWith || []), member.id];
+    this.galleryService.updateItemSharing(item.id, { shareMode: 'specific', sharedWith: next }).subscribe({
+      next: (updated) => {
+        item.shareMode = updated.shareMode || 'specific';
+        item.sharedWith = updated.sharedWith || next;
+      },
+      error: () => this.alertService.error('Failed to update member access for this item.')
     });
   }
 

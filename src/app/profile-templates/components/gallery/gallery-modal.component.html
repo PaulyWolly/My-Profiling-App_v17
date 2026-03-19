@@ -77,7 +77,7 @@
             <div *ngIf="loadingMembers" class="loading-members"><mat-spinner diameter="24"></mat-spinner></div>
             <div *ngIf="!loadingMembers && otherMembers.length === 0" class="no-members">No other members in the app yet.</div>
             <div *ngIf="!loadingMembers && otherMembers.length > 0" class="member-chips">
-              <button *ngFor="let member of otherMembers"
+              <button *ngFor="let member of getItemEligibleMembers()"
                       type="button"
                       mat-stroked-button
                       [color]="isSharedWith(member.id!) ? 'primary' : ''"
@@ -126,7 +126,27 @@
           <img *ngIf="item.type === 'image'" [src]="resolveUrl(item.url)" [alt]="item.caption || 'Gallery image'" loading="lazy">
           <video #gridVideo *ngIf="item.type === 'video'" [src]="resolveUrl(item.url)" preload="metadata" muted playsinline></video>
         </div>
+        <span *ngIf="isItemSpecific(item)" class="item-private-lock" title="Private item: shared only with selected members">
+          <mat-icon>lock</mat-icon>
+        </span>
         <p *ngIf="item.caption" class="caption">{{ item.caption }}</p>
+        <div *ngIf="isOwnProfile && !isViewingSharedGallery" class="item-share-controls" (click)="$event.stopPropagation()">
+          <label class="item-share-toggle">
+            <input type="checkbox" [checked]="isItemSpecific(item)" (change)="setItemShareMode(item, $any($event.target).checked)">
+            Share only with selected members
+          </label>
+          <div *ngIf="isItemSpecific(item)" class="item-member-chips">
+            <p *ngIf="getItemEligibleMembers().length === 0" class="item-member-empty">No members selected in "Share with specific member(s)" yet.</p>
+            <button *ngFor="let member of getItemEligibleMembers()"
+                    type="button"
+                    mat-stroked-button
+                    [color]="isItemSharedWith(item, member.id!) ? 'primary' : ''"
+                    (click)="toggleItemShareWith(item, member)">
+              {{ member.firstName }} {{ member.lastName }}
+              <mat-icon *ngIf="isItemSharedWith(item, member.id!)" class="check">check</mat-icon>
+            </button>
+          </div>
+        </div>
         <button *ngIf="isOwnProfile" mat-icon-button color="warn" class="delete-btn" (click)="deleteItem(item); $event.stopPropagation()" title="Remove">
           <mat-icon>delete</mat-icon>
         </button>

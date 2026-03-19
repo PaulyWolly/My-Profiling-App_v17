@@ -7,6 +7,10 @@ const galleryItemSchema = new Schema({
     url: { type: String, required: true },
     thumbnailUrl: { type: String },
     caption: { type: String, default: '' },
+    // all-shared = visible to all members in gallerySharedWith
+    // specific = visible only to users listed in sharedWith
+    shareMode: { type: String, enum: ['all-shared', 'specific'], default: 'all-shared' },
+    sharedWith: [{ type: Schema.Types.ObjectId, ref: 'Account' }],
     createdAt: { type: Date, default: Date.now }
 });
 

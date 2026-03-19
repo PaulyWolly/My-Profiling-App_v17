@@ -358,11 +358,68 @@
     }
   }
 
+  .item-private-lock {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(20, 20, 20, 0.75);
+    color: #fff;
+
+    mat-icon {
+      font-size: 15px;
+      width: 15px;
+      height: 15px;
+    }
+  }
+
   .caption {
     padding: 0.25rem 0.5rem;
     font-size: 0.8rem;
     margin: 0;
     background: rgba(0,0,0,0.05);
+  }
+
+  .item-share-controls {
+    padding: 0.35rem 0.5rem 0.5rem;
+    background: rgba(255, 255, 255, 0.95);
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+
+    .item-share-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.74rem;
+      color: #333;
+      input { margin: 0; }
+    }
+
+    .item-member-chips {
+      margin-top: 0.4rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+
+      button {
+        font-size: 0.72rem;
+        line-height: 1.2;
+        min-height: 28px;
+        padding: 0 0.4rem;
+      }
+
+      .check {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        margin-left: 2px;
+      }
+    }
   }
 
   .delete-btn {

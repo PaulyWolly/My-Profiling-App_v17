@@ -6,6 +6,8 @@ export interface GalleryItem {
   thumbnailUrl?: string;
   caption?: string;
   createdAt?: string | Date;
+  shareMode?: 'all-shared' | 'specific';
+  sharedWith?: string[];
 }
 
 /** Only private sharing: either only me or share with specific members. No public viewing. */
