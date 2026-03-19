@@ -272,19 +272,19 @@ export class GalleryModalComponent implements OnInit {
     });
   }
 
-  isItemSpecific(item: GalleryItem): boolean {
+  public isItemSpecific(item: GalleryItem): boolean {
     return (item.shareMode || 'all-shared') === 'specific';
   }
 
-  isItemSharedWith(item: GalleryItem, accountId: string): boolean {
+  public isItemSharedWith(item: GalleryItem, accountId: string): boolean {
     return !!item.sharedWith?.includes(accountId);
   }
 
-  getItemEligibleMembers(): Account[] {
+  public getItemEligibleMembers(): Account[] {
     return (this.otherMembers || []).filter(m => !!m.id && this.gallerySharedWith.includes(m.id!));
   }
 
-  setItemShareMode(item: GalleryItem, specific: boolean): void {
+  public setItemShareMode(item: GalleryItem, specific: boolean): void {
     if (!item.id) return;
     const payload = specific
       ? { shareMode: 'specific' as const, sharedWith: item.sharedWith || [] }
@@ -298,7 +298,7 @@ export class GalleryModalComponent implements OnInit {
     });
   }
 
-  toggleItemShareWith(item: GalleryItem, member: Account): void {
+  public toggleItemShareWith(item: GalleryItem, member: Account): void {
     if (!item.id || !member.id) return;
     const next = (item.sharedWith || []).includes(member.id)
       ? (item.sharedWith || []).filter(id => id !== member.id)
