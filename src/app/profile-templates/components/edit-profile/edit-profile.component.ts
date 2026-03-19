@@ -240,6 +240,7 @@ export class EditProfileComponent implements OnInit, OnChanges, AfterViewInit {
         if (result) {
           this.currentFollower.imageUrl = result.imageUrl || this.accountService.getFollowerImageUrl({ imageUrl: result.imageUrl, path: result.path });
           this.currentFollower.path = result.path;
+          this.alertService.success('Follower image uploaded successfully');
         }
         // Keep spinner/disabled until modal closes (reset in closeFollowerDialog)
       }

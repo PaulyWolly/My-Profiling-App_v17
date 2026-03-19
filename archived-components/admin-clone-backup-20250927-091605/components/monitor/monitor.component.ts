@@ -2,12 +2,12 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { AccountService } from '@app/_services/account.service';
-import { AlertService } from '@app/_services';
-import { TitleComponent } from '@app/shared/components/title/title.component';
-import { Account } from '@app/_models';
+import { AccountService } from '../../../../src/app/_services/account.service';
+import { AlertService } from '../../../../src/app/_services';
+import { TitleComponent } from '../../../../src/app/shared/components/title/title.component';
+import { Account } from '../../../../src/app/_models';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { environment } from '@environments/environment';
+import { environment } from '../../../../src/environments/environment';
 
 @Component({
     selector: 'app-monitor',
@@ -41,9 +41,8 @@ export class MonitorComponent implements OnInit, OnDestroy {
     ) {}
 
     ngOnInit(): void {
-        this.accountService.account.subscribe(account => {
-            this.currentAccountId = account?.id || null;
-        });
+        const account = this.accountService.account();
+        this.currentAccountId = account?.id || null;
         this.loadSessions(); // Initial load for page 1
     }
 

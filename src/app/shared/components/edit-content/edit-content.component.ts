@@ -684,6 +684,7 @@ export class EditContentComponent implements OnInit, OnChanges, EditContentState
           this.currentFollower.id = follower.id;
           this.currentFollower.path = follower.path;
           this.currentFollower.imageUrl = follower.imageUrl || this.accountService.getFollowerImageUrl({ imageUrl: follower.imageUrl, path: follower.path });
+          this.alertService.success('Follower image uploaded successfully');
           // Keep spinner/disabled until modal closes (reset in closeFollowerDialog)
           this.saveFollowerToList();
         },

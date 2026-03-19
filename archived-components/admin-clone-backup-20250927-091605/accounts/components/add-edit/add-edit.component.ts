@@ -1,17 +1,17 @@
-﻿import { Component, OnInit, HostListener, OnDestroy, Renderer2 } from '@angular/core';
+import { Component, OnInit, HostListener, OnDestroy, Renderer2 } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
 import { first } from 'rxjs/operators';
 
-import { AccountService } from '../../../../_services/account.service';
-import { AlertService } from '../../../../_services/alert.service';
-import { MustMatch } from '../../../../_helpers/must-match.validator';
-import { Account } from '../../../../_models/account';
-import { Role } from '../../../../_models/role';
-import { environment } from '../../../../../environments/environment';
-import { PROFILE_TEMPLATES, ProfileTemplate, ProfileTemplateType } from '@app/_models/profile-template';
-import { EditMode } from '@app/shared/components/edit-content/edit-content.component';
-import { UploadService } from '@app/_services/upload.service';
+import { AccountService } from '../../../../../src/app/_services/account.service';
+import { AlertService } from '../../../../../src/app/_services/alert.service';
+import { MustMatch } from '../../../../../src/app/_helpers/must-match.validator';
+import { Account } from '../../../../../src/app/_models/account';
+import { Role } from '../../../../../src/app/_models/role';
+import { environment } from '../../../../../src/environments/environment';
+import { PROFILE_TEMPLATES, ProfileTemplate, ProfileTemplateType } from '../../../../../src/app/_models/profile-template';
+import { EditMode } from '../../../../../src/app/shared/components/edit-content/edit-content.component';
+import { UploadService } from '../../../../../src/app/_services/upload.service';
 
 @Component({
     templateUrl: './add-edit.component.html',
@@ -278,51 +278,54 @@ export class AddEditComponent implements OnInit, OnDestroy {
     }
 
     confirmOverwrite() {
-        if (this.pendingFormData) {
-            // Update the confirmed flag in the existing FormData
-            this.pendingFormData.set('confirmed', 'true');
-        
-        this.uploading = true;
-            this.accountService.uploadImage(this.id!, this.pendingFormData)
-                .pipe(first())
-                .subscribe({
-                    next: (response) => {
-                        if (response.profileImage) {
-                            // Update the account's profile image
-                            this.account.profileImage = response.profileImage;
-                            this.imageUrl = response.profileImage;
-                            
-                            // Clear states
-                            this.imageConflict = false;
-                            this.selectedFile = null;
-                            this.pendingFormData = null;
-                            
-                            // Show success alert
-                            this.alertService.success(response.message || 'Profile image uploaded successfully');
-                            
-                            // Save the account to persist the changes
-                            this.saveAccount(this.form.value)
-                                .pipe(first())
-                                .subscribe({
-                                    next: () => {
-                                        console.log('[AddEdit] Account saved with new image');
-                                    },
-                                    error: error => {
-                                        console.error('[AddEdit] Error saving account:', error);
-                                        this.alertService.error('Failed to save account changes');
-                                    }
-                                });
-                        }
-                        this.uploading = false;
-                    },
-                    error: (error) => {
-                        console.error('[AddEdit] Upload error:', error);
-            this.error = error.message || 'Failed to upload image';
-                        this.alertService.error(this.error);
-            this.uploading = false;
-                    }
-                });
+        if (!this.pendingFormData) {
+            this.alertService.error('No image upload data found. Please select an image again.');
+            return;
         }
+
+        // Update the confirmed flag in the existing FormData
+        this.pendingFormData.set('confirmed', 'true');
+
+        this.uploading = true;
+        this.accountService.uploadImage(this.id!, this.pendingFormData)
+            .pipe(first())
+            .subscribe({
+                next: (response) => {
+                    if (response.profileImage) {
+                        // Update the account's profile image
+                        this.account.profileImage = response.profileImage;
+                        this.imageUrl = response.profileImage;
+
+                        // Clear states
+                        this.imageConflict = false;
+                        this.selectedFile = null;
+                        this.pendingFormData = null;
+
+                        // Show success alert
+                        this.alertService.success(response.message || 'Profile image uploaded successfully');
+
+                        // Save the account to persist the changes
+                        this.saveAccount(this.form.value)
+                            .pipe(first())
+                            .subscribe({
+                                next: () => {
+                                    console.log('[AddEdit] Account saved with new image');
+                                },
+                                error: error => {
+                                    console.error('[AddEdit] Error saving account:', error);
+                                    this.alertService.error('Failed to save account changes');
+                                }
+                            });
+                    }
+                    this.uploading = false;
+                },
+                error: (error) => {
+                    console.error('[AddEdit] Upload error:', error);
+                    this.error = error.message || 'Failed to upload image';
+                    this.alertService.error(this.error);
+                    this.uploading = false;
+                }
+            });
     }
 
     cancelOverwrite() {
