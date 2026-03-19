@@ -12,8 +12,8 @@
         <div class="gallery-help-popover" *ngIf="showHelpPopover"
              (mouseenter)="showHelpPopover = true" (mouseleave)="showHelpPopover = false">
           <p><strong>Who's online?</strong> Check the <mat-icon class="inline-icon">chat</mat-icon> icon on the profile page.</p>
-          <p><strong>Shared with you?</strong> See the list below.</p>
-          <p><strong>Where to view?</strong> Click "View gallery" next to their name.</p>
+          <p><strong>Shared with you?</strong> The list shows people who have put <em>at least one</em> photo/video in your view.</p>
+          <p><strong>Where to view?</strong> Click "View gallery" — you only see items they chose to share with you.</p>
         </div>
       </span>
     </h2>
@@ -126,15 +126,24 @@
           <img *ngIf="item.type === 'image'" [src]="resolveUrl(item.url)" [alt]="item.caption || 'Gallery image'" loading="lazy">
           <video #gridVideo *ngIf="item.type === 'video'" [src]="resolveUrl(item.url)" preload="metadata" muted playsinline></video>
         </div>
-        <span *ngIf="isItemSpecific(item)" class="item-private-lock" title="Private item: shared only with selected members">
+        <span *ngIf="showLockOnThumbnail(item)" class="item-private-lock" [title]="lockIconTitle(item)">
           <mat-icon>lock</mat-icon>
         </span>
         <p *ngIf="item.caption" class="caption">{{ item.caption }}</p>
         <div *ngIf="isOwnProfile && !isViewingSharedGallery" class="item-share-controls" (click)="$event.stopPropagation()">
-          <label class="item-share-toggle">
-            <input type="checkbox" [checked]="isItemSpecific(item)" (change)="setItemShareMode(item, $any($event.target).checked)">
-            Share only with selected members
-          </label>
+          <span class="item-share-label">Who can see this item:</span>
+          <div class="item-share-mode-btns">
+            <button type="button" mat-stroked-button
+                    [color]="getItemShareMode(item) === 'owner-only' ? 'primary' : ''"
+                    (click)="setItemShareCategory(item, 'owner-only')">Only me</button>
+            <button type="button" mat-stroked-button
+                    [color]="getItemShareMode(item) === 'all-shared' ? 'primary' : ''"
+                    (click)="setItemShareCategory(item, 'all-shared')">All shared members</button>
+            <button type="button" mat-stroked-button
+                    [color]="getItemShareMode(item) === 'specific' ? 'primary' : ''"
+                    (click)="setItemShareCategory(item, 'specific')">Selected only</button>
+          </div>
+          <p class="item-share-hint">Others only see items you mark as “All shared members” or “Selected only”. “Only me” keeps the item private. New uploads start as Only me.</p>
           <div *ngIf="isItemSpecific(item)" class="item-member-chips">
             <p *ngIf="getItemEligibleMembers().length === 0" class="item-member-empty">No members selected in "Share with specific member(s)" yet.</p>
             <button *ngFor="let member of getItemEligibleMembers()"

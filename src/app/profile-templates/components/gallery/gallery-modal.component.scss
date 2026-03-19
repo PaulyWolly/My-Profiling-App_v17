@@ -391,6 +391,35 @@
     background: rgba(255, 255, 255, 0.95);
     border-top: 1px solid rgba(0, 0, 0, 0.08);
 
+    .item-share-label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+      color: #333;
+    }
+
+    .item-share-mode-btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-bottom: 0.35rem;
+
+      button {
+        font-size: 0.69rem;
+        line-height: 1.2;
+        min-height: 30px;
+        padding: 0 0.5rem;
+      }
+    }
+
+    .item-share-hint {
+      font-size: 0.66rem;
+      color: #555;
+      margin: 0 0 0.35rem;
+      line-height: 1.4;
+    }
+
     .item-share-toggle {
       display: flex;
       align-items: center;

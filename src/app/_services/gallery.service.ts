@@ -40,7 +40,10 @@ export class GalleryService {
     return this.http.delete<{ message: string }>(`${apiUrl}/${id}`);
   }
 
-  updateItemSharing(id: string, payload: { shareMode?: 'all-shared' | 'specific'; sharedWith?: string[] }): Observable<GalleryItem> {
+  updateItemSharing(
+    id: string,
+    payload: { shareMode?: 'owner-only' | 'all-shared' | 'specific'; sharedWith?: string[] }
+  ): Observable<GalleryItem> {
     return this.http.patch<GalleryItem>(`${apiUrl}/${id}`, payload);
   }
 

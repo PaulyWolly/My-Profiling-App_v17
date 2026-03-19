@@ -6,7 +6,12 @@ export interface GalleryItem {
   thumbnailUrl?: string;
   caption?: string;
   createdAt?: string | Date;
-  shareMode?: 'all-shared' | 'specific';
+  /**
+   * owner-only = not visible to gallery viewers.
+   * all-shared (stored legacy only): prefer specific + full gallerySharedWith from API.
+   * specific + sharedWith: only those user ids can see the item when viewing your gallery.
+   */
+  shareMode?: 'owner-only' | 'all-shared' | 'specific';
   sharedWith?: string[];
 }
 

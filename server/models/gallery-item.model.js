@@ -7,9 +7,10 @@ const galleryItemSchema = new Schema({
     url: { type: String, required: true },
     thumbnailUrl: { type: String },
     caption: { type: String, default: '' },
-    // all-shared = visible to all members in gallerySharedWith
-    // specific = visible only to users listed in sharedWith
-    shareMode: { type: String, enum: ['all-shared', 'specific'], default: 'all-shared' },
+    // owner-only = private to owner (default); viewers never see these
+    // all-shared = legacy/UI label only; API stores as specific + gallerySharedWith ids
+    // specific + sharedWith = only those user ids see the item when viewing your gallery (opt-in)
+    shareMode: { type: String, enum: ['owner-only', 'all-shared', 'specific'], default: 'owner-only' },
     sharedWith: [{ type: Schema.Types.ObjectId, ref: 'Account' }],
     createdAt: { type: Date, default: Date.now }
 });

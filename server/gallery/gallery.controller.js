@@ -62,13 +62,24 @@ router.patch('/settings/me', authenticate(), async (req, res, next) => {
     }
 });
 
-// List accounts that have shared their gallery with the current user (for "Shared with me" in modal)
+// List accounts that have explicitly shared at least one gallery item with the current user
 router.get('/shared-with-me', authenticate(), async (req, res, next) => {
     try {
         const viewerId = req.user.id;
+        const ownerIdGroups = await GalleryItem.aggregate([
+            { $match: { shareMode: 'specific', sharedWith: viewerId } },
+            { $group: { _id: '$accountId' } }
+        ]);
+        const ownerIds = (ownerIdGroups || []).map((g) => g._id).filter(Boolean);
+        if (ownerIds.length === 0) {
+            return res.json([]);
+        }
         const accounts = await db.Account.find({
+            _id: { $in: ownerIds },
             gallerySharedWith: viewerId
-        }).select('firstName lastName').lean();
+        })
+            .select('firstName lastName')
+            .lean();
         const list = (accounts || []).map(a => ({
             id: (a._id && a._id.toString()) || '',
             firstName: a.firstName || '',
@@ -91,14 +102,11 @@ router.get('/shared-with-me/total-items', authenticate(), async (req, res, next)
         if (accountIds.length === 0) {
             return res.json({ totalItems: 0 });
         }
+        // Viewers only count items explicitly shared with them (specific + in sharedWith)
         const totalItems = await GalleryItem.countDocuments({
             accountId: { $in: accountIds },
-            $or: [
-                { shareMode: 'all-shared' },
-                { shareMode: { $exists: false } },
-                { shareMode: null },
-                { shareMode: 'specific', sharedWith: viewerId }
-            ]
+            shareMode: 'specific',
+            sharedWith: viewerId
         });
         res.json({ totalItems: totalItems || 0 });
     } catch (error) {
@@ -129,14 +137,11 @@ router.get('/:accountId', authenticate(), async (req, res, next) => {
             return res.status(403).json({ message: 'You do not have permission to view this gallery' });
         }
 
+        // Opt-in: viewers only see items where the owner added them on that item (not legacy all-shared)
         const items = await GalleryItem.find({
             accountId,
-            $or: [
-                { shareMode: 'all-shared' },
-                { shareMode: { $exists: false } },
-                { shareMode: null },
-                { shareMode: 'specific', sharedWith: viewerId }
-            ]
+            shareMode: 'specific',
+            sharedWith: viewerId
         }).sort({ createdAt: -1 }).lean();
         res.json(items.map(d => ({ ...d, id: d._id?.toString(), _id: undefined })));
     } catch (error) {
@@ -160,7 +165,7 @@ router.post('/', authenticate(), async (req, res, next) => {
             type,
             caption: caption || '',
             thumbnailUrl: thumbnailUrl || null,
-            shareMode: 'all-shared',
+            shareMode: 'owner-only',
             sharedWith: []
         });
         res.status(201).json(item);
@@ -183,16 +188,31 @@ router.patch('/:id', authenticate(), async (req, res, next) => {
 
         const update = {};
         if (req.body.shareMode !== undefined) {
-            if (!['all-shared', 'specific'].includes(req.body.shareMode)) {
-                return res.status(400).json({ message: 'shareMode must be all-shared or specific' });
+            const mode = req.body.shareMode;
+            if (!['owner-only', 'all-shared', 'specific'].includes(mode)) {
+                return res.status(400).json({ message: 'shareMode must be owner-only, all-shared, or specific' });
             }
-            update.shareMode = req.body.shareMode;
-        }
-        if (req.body.sharedWith !== undefined) {
+            if (mode === 'owner-only') {
+                update.shareMode = 'owner-only';
+                update.sharedWith = [];
+            } else if (mode === 'all-shared') {
+                // UI "all gallery members" → store as specific + full gallerySharedWith list (still explicit)
+                const account = await db.Account.findById(req.user.id).select('gallerySharedWith').lean();
+                update.shareMode = 'specific';
+                update.sharedWith = (account?.gallerySharedWith || []).map((id) => id.toString());
+            } else {
+                update.shareMode = 'specific';
+                update.sharedWith = req.body.sharedWith !== undefined
+                    ? (Array.isArray(req.body.sharedWith) ? req.body.sharedWith : [])
+                    : (item.sharedWith || []).map((id) => id.toString());
+            }
+        } else if (req.body.sharedWith !== undefined) {
+            update.shareMode = 'specific';
             update.sharedWith = Array.isArray(req.body.sharedWith) ? req.body.sharedWith : [];
         }
-        if (update.shareMode === 'all-shared') {
-            update.sharedWith = [];
+
+        if (Object.keys(update).length === 0) {
+            return res.status(400).json({ message: 'Nothing to update' });
         }
 
         const updated = await GalleryItem.findByIdAndUpdate(

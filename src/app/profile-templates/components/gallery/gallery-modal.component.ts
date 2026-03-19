@@ -177,7 +177,6 @@ export class GalleryModalComponent implements OnInit {
       next: (list) => {
         this.items = (list || []).map(i => ({
           ...i,
-          shareMode: i.shareMode || 'all-shared',
           sharedWith: i.sharedWith || []
         }));
         this.loading = false;
@@ -272,8 +271,57 @@ export class GalleryModalComponent implements OnInit {
     });
   }
 
+  /**
+   * UI: owner-only | all-shared (everyone in gallery member list) | specific (subset).
+   * Stored as owner-only, or specific with sharedWith = full gallerySharedWith or a subset.
+   * Legacy DB all-shared / missing shareMode → still show as "all shared" for owner until they save.
+   */
+  public getItemShareMode(item: GalleryItem): 'owner-only' | 'all-shared' | 'specific' {
+    const m = item.shareMode;
+    if (m === 'owner-only') return 'owner-only';
+    if (m === 'all-shared' || m === undefined || m === null || (m as string) === '') {
+      return 'all-shared';
+    }
+    if (m === 'specific') {
+      const sw = new Set((item.sharedWith || []).map(String));
+      const gw = new Set((this.gallerySharedWith || []).filter(Boolean).map(String));
+      if (gw.size > 0 && sw.size === gw.size && [...gw].every((id) => sw.has(id))) {
+        return 'all-shared';
+      }
+      return 'specific';
+    }
+    return 'owner-only';
+  }
+
+  public isItemOwnerOnly(item: GalleryItem): boolean {
+    return this.getItemShareMode(item) === 'owner-only';
+  }
+
   public isItemSpecific(item: GalleryItem): boolean {
-    return (item.shareMode || 'all-shared') === 'specific';
+    return this.getItemShareMode(item) === 'specific';
+  }
+
+  /** Viewers only see explicitly shared items — lock all; owner: no lock for "all gallery members" */
+  public showLockOnThumbnail(item: GalleryItem): boolean {
+    if (this.isViewingSharedGallery) {
+      return true;
+    }
+    const mode = this.getItemShareMode(item);
+    if (mode === 'all-shared') return false;
+    return mode === 'owner-only' || mode === 'specific';
+  }
+
+  public lockIconTitle(item: GalleryItem): string {
+    if (this.isViewingSharedGallery) {
+      return 'Shared with you';
+    }
+    if (this.isItemOwnerOnly(item)) {
+      return 'Only you can see this (not shared with gallery viewers)';
+    }
+    if (this.getItemShareMode(item) === 'all-shared') {
+      return 'Visible to everyone in your gallery share list';
+    }
+    return 'Shared only with selected members';
   }
 
   public isItemSharedWith(item: GalleryItem, accountId: string): boolean {
@@ -284,15 +332,19 @@ export class GalleryModalComponent implements OnInit {
     return (this.otherMembers || []).filter(m => !!m.id && this.gallerySharedWith.includes(m.id!));
   }
 
-  public setItemShareMode(item: GalleryItem, specific: boolean): void {
+  public setItemShareCategory(item: GalleryItem, mode: 'owner-only' | 'all-shared' | 'specific'): void {
     if (!item.id) return;
-    const payload = specific
-      ? { shareMode: 'specific' as const, sharedWith: item.sharedWith || [] }
-      : { shareMode: 'all-shared' as const, sharedWith: [] };
+    const payload =
+      mode === 'specific'
+        ? { shareMode: 'specific' as const, sharedWith: item.sharedWith || [] }
+        : mode === 'owner-only'
+          ? { shareMode: 'owner-only' as const, sharedWith: [] as string[] }
+          : { shareMode: 'all-shared' as const, sharedWith: [] as string[] };
     this.galleryService.updateItemSharing(item.id, payload).subscribe({
       next: (updated) => {
-        item.shareMode = updated.shareMode || payload.shareMode;
+        item.shareMode = (updated.shareMode || mode) as GalleryItem['shareMode'];
         item.sharedWith = updated.sharedWith || payload.sharedWith;
+        if (!item.sharedWith) item.sharedWith = [];
       },
       error: () => this.alertService.error('Failed to update sharing for this item.')
     });
