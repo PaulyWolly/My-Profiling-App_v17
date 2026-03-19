@@ -77,6 +77,12 @@ export class NewSocialMediaProfileComponent implements OnInit {
     return url || 'assets/images/default-avatar.svg';
   }
 
+  /** When follower image fails to load (e.g. only exists locally, not on production), show default avatar. */
+  onFollowerImageError(event: Event): void {
+    const el = event.target as HTMLImageElement;
+    if (el) el.src = 'assets/images/default-avatar.svg';
+  }
+
   /** Resolve main profile image to full URL so it loads on Render. */
   getProfileImageUrl(): string {
     return this.profile?.profileImage ? this.accountService.getProfileImageUrl(this.profile.profileImage) : '';

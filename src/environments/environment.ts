@@ -11,7 +11,7 @@ export const environment = {
         domain: 'pwconsulting.auth0.com',
         clientId: 'rPt7mWcx4eKBj1b4tqz8wH5Zr7ILR7PG',
         authorizationParams: {
-            redirect_uri: 'http://localhost:5000/profile',
+            redirect_uri: window.location.origin + '/profile',
             audience: 'https://my-profiling-app-api'
         }
     }

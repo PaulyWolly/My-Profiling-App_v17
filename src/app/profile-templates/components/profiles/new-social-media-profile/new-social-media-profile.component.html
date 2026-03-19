@@ -76,7 +76,9 @@
                 <div class="followers-preview" *ngIf="profile.followerImages?.length">
                     <div class="follower-avatars">
                         <div class="follower-avatar" *ngFor="let follower of profile.followerImages">
-                            <img [src]="getFollowerImageUrl(follower)" [alt]="follower.name" class="follower-image" [appCustomTooltip]="(follower.title ? follower.title + ' - ' : '') + follower.name"/>
+                            <img [src]="getFollowerImageUrl(follower)" [alt]="follower.name" class="follower-image"
+                                 (error)="onFollowerImageError($event)"
+                                 [appCustomTooltip]="(follower.title ? follower.title + ' - ' : '') + follower.name"/>
                         </div>
                     </div>
                     <div class="followers-you-know-label">{{profile.followerImages?.length}} followers you know</div>

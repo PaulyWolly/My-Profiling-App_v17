@@ -65,9 +65,31 @@ After deploy, copy your **frontend URL** (e.g. `https://my-profiling-app.onrende
 ### Images (profile / followers)
 
 - **Uploads:** The app uses the **hybrid** upload endpoint so uploads work on Render even without S3. Set **`API_URL`** on the backend to your Render backend URL so returned image URLs are correct.
-- **Option A:** Follower and profile image files under `server/uploads/` are in Git, so the backend serves them. After deploy they work if the backend has those files.
+- **Why follower images work locally but not on Render:** Images uploaded **locally** live only in `server/uploads/followers/` on your machine (not in Git; Render has no access). The DB stores the path, so production requests the file from Render’s server—where it doesn’t exist. **Fix:** Set S3 env vars on the backend, then **re-upload** those follower images while logged in on the **production** site so they go to S3; or the app will show the default avatar for missing images.
+- **Option A:** Follower and profile image files under `server/uploads/` are only on the machine where they were uploaded; they are typically not in Git. Production will not have them unless you use S3.
 - **Gallery:** Each user has a **Gallery** section (photos & videos). Same hybrid S3 + local storage. Sharing is **Only me** or **Share with specific member(s)** only—no public viewing; users choose exactly who can see their gallery.
 - **Option B:** Set S3 env vars on the **backend** (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `S3_BUCKET_NAME`) and re-upload images in the live app so they’re stored in S3 and URLs in the DB point to S3.
+
+---
+
+### S3 environment variables – what to assign
+
+These are **environment variables** you add in Render: open your **backend** Web Service → **Environment** tab → **Add Environment Variable**. The server reads them when it runs `npm run start:prod` (via `write-config-from-env.js`).
+
+| Key | What to assign | Where you get it |
+|-----|----------------|-------------------|
+| `AWS_ACCESS_KEY_ID` | Your AWS access key ID (e.g. `AKIA...`, ~20 characters) | **AWS Console** → **IAM** → **Users** → your user → **Security credentials** → **Create access key** → copy **Access key ID**. |
+| `AWS_SECRET_ACCESS_KEY` | The matching secret key (long string, ~40 characters) | Same **Create access key** flow → copy **Secret access key** (shown only once; store it securely). |
+| `AWS_REGION` | The region where your S3 bucket lives | e.g. `us-east-1`, `us-west-2`. In **S3** → your bucket → **Properties** → **AWS Region**. |
+| `S3_BUCKET_NAME` | The exact name of your S3 bucket | **S3** → **Buckets** → your bucket name (e.g. `my-profiling-app-images`). Must be globally unique. |
+
+**One-time setup in AWS:**
+
+1. **Create an S3 bucket** (if you don’t have one): S3 → Create bucket → choose a name and region. For this app, uploads use `public-read` so images load in the browser; you may need to allow public read in the bucket policy or turn off “Block all public access” for the bucket (or use a policy that allows public read on the uploaded object prefix).
+2. **Create an IAM user** for the app: IAM → Users → Create user → attach a policy that allows `s3:PutObject`, `s3:GetObject`, `s3:DeleteObject` (and `s3:PutObjectAcl` if using public-read) on that bucket. Create an **Access key** for programmatic access and copy the Access key ID and Secret access key into the Render env vars above.
+3. In Render, add the four variables; **do not** commit these values to Git.
+
+After you set them and redeploy, profile, follower, and gallery uploads will go to S3 and the stored URLs will work in production.
 
 ---
 
