@@ -77,7 +77,7 @@
             <div *ngIf="loadingMembers" class="loading-members"><mat-spinner diameter="24"></mat-spinner></div>
             <div *ngIf="!loadingMembers && otherMembers.length === 0" class="no-members">No other members in the app yet.</div>
             <div *ngIf="!loadingMembers && otherMembers.length > 0" class="member-chips">
-              <button *ngFor="let member of getItemEligibleMembers()"
+              <button *ngFor="let member of otherMembers"
                       type="button"
                       mat-stroked-button
                       [color]="isSharedWith(member.id!) ? 'primary' : ''"
