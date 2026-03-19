@@ -337,7 +337,8 @@
 .gallery-item {
   position: relative;
   border-radius: 8px;
-  overflow: hidden;
+  /* Don't clip per-item share controls (buttons + member chips) below the thumb */
+  overflow: visible;
   background: #eee;
 
   .media-wrap {
@@ -346,6 +347,8 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    border-radius: 8px;
+    overflow: hidden;
 
     img, video {
       width: 100%;

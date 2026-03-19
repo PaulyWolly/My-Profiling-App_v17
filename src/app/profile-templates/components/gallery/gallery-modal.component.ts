@@ -101,8 +101,8 @@ export class GalleryModalComponent implements OnInit {
     this.loadGallery();
     if (this.isOwnProfile) {
       this.galleryService.getSettings().subscribe(s => {
-        this.gallerySharedWith = s.gallerySharedWith || [];
-        this.onlyMe = (s.gallerySharedWith?.length ?? 0) === 0;
+        this.gallerySharedWith = (s.gallerySharedWith || []).map((id) => String(id));
+        this.onlyMe = this.gallerySharedWith.length === 0;
       });
       this.loadOtherMembers();
       this.loadSharedWithMe();
@@ -157,7 +157,9 @@ export class GalleryModalComponent implements OnInit {
     this.accountService.getAll().subscribe({
       next: (accounts) => {
         const myId = this.accountService.accountValue?.id;
-        this.otherMembers = (accounts || []).filter(a => a.id && a.id !== myId);
+        this.otherMembers = (accounts || []).filter(
+          (a) => a.id != null && (!myId || String(a.id) !== String(myId))
+        );
         this.loadingMembers = false;
       },
       error: () => { this.loadingMembers = false; }
@@ -177,7 +179,7 @@ export class GalleryModalComponent implements OnInit {
       next: (list) => {
         this.items = (list || []).map(i => ({
           ...i,
-          sharedWith: i.sharedWith || []
+          sharedWith: (i.sharedWith || []).map((id) => String(id))
         }));
         this.loading = false;
       },
@@ -325,11 +327,14 @@ export class GalleryModalComponent implements OnInit {
   }
 
   public isItemSharedWith(item: GalleryItem, accountId: string): boolean {
-    return !!item.sharedWith?.includes(accountId);
+    const id = String(accountId);
+    return (item.sharedWith || []).some((x) => String(x) === id);
   }
 
+  /** Members who appear in the gallery share list — compare ids as strings (API may mix formats). */
   public getItemEligibleMembers(): Account[] {
-    return (this.otherMembers || []).filter(m => !!m.id && this.gallerySharedWith.includes(m.id!));
+    const allowed = new Set((this.gallerySharedWith || []).map((id) => String(id)));
+    return (this.otherMembers || []).filter((m) => m.id != null && allowed.has(String(m.id)));
   }
 
   public setItemShareCategory(item: GalleryItem, mode: 'owner-only' | 'all-shared' | 'specific'): void {
@@ -343,8 +348,7 @@ export class GalleryModalComponent implements OnInit {
     this.galleryService.updateItemSharing(item.id, payload).subscribe({
       next: (updated) => {
         item.shareMode = (updated.shareMode || mode) as GalleryItem['shareMode'];
-        item.sharedWith = updated.sharedWith || payload.sharedWith;
-        if (!item.sharedWith) item.sharedWith = [];
+        item.sharedWith = (updated.sharedWith || payload.sharedWith || []).map((id) => String(id));
       },
       error: () => this.alertService.error('Failed to update sharing for this item.')
     });
@@ -352,13 +356,13 @@ export class GalleryModalComponent implements OnInit {
 
   public toggleItemShareWith(item: GalleryItem, member: Account): void {
     if (!item.id || !member.id) return;
-    const next = (item.sharedWith || []).includes(member.id)
-      ? (item.sharedWith || []).filter(id => id !== member.id)
-      : [...(item.sharedWith || []), member.id];
+    const mid = String(member.id);
+    const cur = (item.sharedWith || []).map(String);
+    const next = cur.includes(mid) ? cur.filter((id) => id !== mid) : [...cur, mid];
     this.galleryService.updateItemSharing(item.id, { shareMode: 'specific', sharedWith: next }).subscribe({
       next: (updated) => {
         item.shareMode = updated.shareMode || 'specific';
-        item.sharedWith = updated.sharedWith || next;
+        item.sharedWith = (updated.sharedWith || next).map((id) => String(id));
       },
       error: () => this.alertService.error('Failed to update member access for this item.')
     });
@@ -371,14 +375,15 @@ export class GalleryModalComponent implements OnInit {
   }
 
   isSharedWith(accountId: string): boolean {
-    return this.gallerySharedWith.some(id => id === accountId);
+    const id = String(accountId);
+    return this.gallerySharedWith.some((x) => String(x) === id);
   }
 
   toggleShareWith(member: Account): void {
     if (!member.id) return;
-    const id = member.id;
-    if (this.gallerySharedWith.includes(id)) {
-      this.gallerySharedWith = this.gallerySharedWith.filter(m => m !== id);
+    const id = String(member.id);
+    if (this.gallerySharedWith.some((x) => String(x) === id)) {
+      this.gallerySharedWith = this.gallerySharedWith.filter((m) => String(m) !== id);
     } else {
       this.gallerySharedWith = [...this.gallerySharedWith, id];
     }
