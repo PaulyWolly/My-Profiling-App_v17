@@ -76,7 +76,28 @@
           <div class="member-upload-blue-card">
             <div class="upload-area">
             <input type="file" #fileInput hidden accept="image/*,.mkv,.webm,.mp4" (change)="onFileSelected($event)">
-            <button mat-button (click)="fileInput.click()">Choose file</button>
+            <div class="choose-file-row">
+              <button
+                mat-raised-button
+                color="primary"
+                type="button"
+                class="choose-file-btn"
+                (click)="fileInput.click()"
+              >
+                Choose file
+              </button>
+              <button
+                *ngIf="!selectedFile"
+                mat-stroked-button
+                color="warn"
+                type="button"
+                class="choose-cancel-btn"
+                (click)="cancelUpload()"
+                [disabled]="uploading"
+              >
+                Cancel
+              </button>
+            </div>
             <span *ngIf="selectedFile" class="file-name">{{ selectedFile.name }}</span>
             <input *ngIf="selectedFile" type="text" [(ngModel)]="caption" placeholder="Caption (optional)" class="caption-input">
             <p class="upload-compat-disclaimer">
