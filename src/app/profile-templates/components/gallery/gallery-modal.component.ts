@@ -346,8 +346,23 @@ export class GalleryModalComponent implements OnInit {
     return this.getItemShareMode(item) === 'owner-only';
   }
 
-  public isItemSpecific(item: GalleryItem): boolean {
-    return this.getItemShareMode(item) === 'specific';
+  /**
+   * Whether to show per-item Paul / Tweety / … chips.
+   * NOT the same as getItemShareMode === 'specific': when the picked set equals the full gallery list,
+   * getItemShareMode() returns 'all-shared' (for button + lock), but we must still show chips or the
+   * UI looks like everyone's selection vanished and users can't toggle Tweety.
+   */
+  public showItemMemberChips(item: GalleryItem): boolean {
+    if (this.isItemOwnerOnly(item)) {
+      return false;
+    }
+    if (item.shareWithAllGalleryMembers === true) {
+      return false;
+    }
+    if (item.shareMode === 'all-shared') {
+      return false;
+    }
+    return true;
   }
 
   /** Viewers only see explicitly shared items — lock all; owner: no lock for "all gallery members" */

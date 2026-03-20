@@ -147,7 +147,7 @@
                     [color]="getItemShareMode(item) === 'specific' ? 'primary' : ''"
                     (click)="setItemShareCategory(item, 'specific')">Selected only</button>
           </div>
-          <div *ngIf="isItemSpecific(item)" class="item-member-chips">
+          <div *ngIf="showItemMemberChips(item)" class="item-member-chips">
             <p *ngIf="getItemEligibleMembers().length === 0" class="item-member-empty">No members selected in "Share with specific member(s)" yet.</p>
             <button *ngFor="let member of getItemEligibleMembers()"
                     type="button"
