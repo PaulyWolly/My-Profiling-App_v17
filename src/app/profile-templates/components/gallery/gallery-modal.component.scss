@@ -335,6 +335,21 @@
   }
 }
 
+.gallery-grid-block {
+  margin-top: 0.5rem;
+}
+
+.gallery-grid-share-hint {
+  font-size: 0.72rem;
+  color: #444;
+  line-height: 1.45;
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 0.65rem;
+  background: rgba(40, 98, 225, 0.06);
+  border-radius: 8px;
+  border: 1px solid rgba(40, 98, 225, 0.12);
+}
+
 .gallery-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
@@ -427,13 +442,6 @@
         width: 100%;
         justify-content: center;
       }
-    }
-
-    .item-share-hint {
-      font-size: 0.66rem;
-      color: #555;
-      margin: 0 0 0.35rem;
-      line-height: 1.4;
     }
 
     .item-share-toggle {

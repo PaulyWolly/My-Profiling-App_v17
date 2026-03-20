@@ -120,7 +120,11 @@
       <p *ngIf="isOwnProfile" class="hint">Add some above to build your gallery.</p>
     </div>
 
-    <div *ngIf="!loading && items.length > 0" class="gallery-grid">
+    <div *ngIf="!loading && items.length > 0" class="gallery-grid-block">
+      <p *ngIf="isOwnProfile && !isViewingSharedGallery" class="gallery-grid-share-hint">
+        Others only see items you mark as “All shared members” or “Selected only”. “Only me” keeps the item private. New uploads start as Only me.
+      </p>
+      <div class="gallery-grid">
       <div *ngFor="let item of items" class="gallery-item">
         <div class="media-wrap" (click)="openFullView(item)" role="button" tabindex="0" (keydown.enter)="openFullView(item)" (keydown.space)="openFullView(item)">
           <img *ngIf="item.type === 'image'" [src]="resolveUrl(item.url)" [alt]="item.caption || 'Gallery image'" loading="lazy">
@@ -143,7 +147,6 @@
                     [color]="getItemShareMode(item) === 'specific' ? 'primary' : ''"
                     (click)="setItemShareCategory(item, 'specific')">Selected only</button>
           </div>
-          <p class="item-share-hint">Others only see items you mark as “All shared members” or “Selected only”. “Only me” keeps the item private. New uploads start as Only me.</p>
           <div *ngIf="isItemSpecific(item)" class="item-member-chips">
             <p *ngIf="getItemEligibleMembers().length === 0" class="item-member-empty">No members selected in "Share with specific member(s)" yet.</p>
             <button *ngFor="let member of getItemEligibleMembers()"
@@ -159,6 +162,7 @@
         <button *ngIf="isOwnProfile" mat-icon-button color="warn" class="delete-btn" (click)="deleteItem(item); $event.stopPropagation()" title="Remove">
           <mat-icon>delete</mat-icon>
         </button>
+      </div>
       </div>
     </div>
   </div>
