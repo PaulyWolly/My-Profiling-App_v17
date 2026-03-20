@@ -12,6 +12,8 @@ const galleryItemSchema = new Schema({
     // specific + sharedWith = only those user ids see the item when viewing your gallery (opt-in)
     shareMode: { type: String, enum: ['owner-only', 'all-shared', 'specific'], default: 'owner-only' },
     sharedWith: [{ type: Schema.Types.ObjectId, ref: 'Account' }],
+    // "All shared members" in UI — any current gallerySharedWith member can see the item
+    shareWithAllGalleryMembers: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now }
 });
 

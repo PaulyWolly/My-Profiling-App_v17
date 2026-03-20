@@ -177,9 +177,10 @@ export class GalleryModalComponent implements OnInit {
       : this.galleryService.getGalleryForAccount(this.accountId);
     req.subscribe({
       next: (list) => {
-        this.items = (list || []).map(i => ({
+        this.items = (list || []).map((i) => ({
           ...i,
-          sharedWith: (i.sharedWith || []).map((id) => String(id))
+          sharedWith: (i.sharedWith || []).map((id) => String(id)),
+          shareWithAllGalleryMembers: !!(i as GalleryItem).shareWithAllGalleryMembers
         }));
         this.loading = false;
       },
@@ -285,6 +286,9 @@ export class GalleryModalComponent implements OnInit {
       return 'all-shared';
     }
     if (m === 'specific') {
+      if (item.shareWithAllGalleryMembers) {
+        return 'all-shared';
+      }
       const sw = new Set((item.sharedWith || []).map(String));
       const gw = new Set((this.gallerySharedWith || []).filter(Boolean).map(String));
       if (gw.size > 0 && sw.size === gw.size && [...gw].every((id) => sw.has(id))) {
@@ -337,6 +341,23 @@ export class GalleryModalComponent implements OnInit {
     return (this.otherMembers || []).filter((m) => m.id != null && allowed.has(String(m.id)));
   }
 
+  /**
+   * Two accounts can share the same first/last name (different emails / user ids).
+   * When that happens, append email so chips are distinguishable.
+   */
+  memberDisplayName(member: Account): string {
+    const base = [member.firstName, member.lastName].filter(Boolean).join(' ').trim() || 'Member';
+    const norm = base.toLowerCase();
+    const sameNameCount = (this.otherMembers || []).filter((m) => {
+      const n = [m.firstName, m.lastName].filter(Boolean).join(' ').trim().toLowerCase();
+      return n === norm;
+    }).length;
+    if (sameNameCount > 1 && member.email) {
+      return `${base} (${member.email})`;
+    }
+    return base;
+  }
+
   public setItemShareCategory(item: GalleryItem, mode: 'owner-only' | 'all-shared' | 'specific'): void {
     if (!item.id) return;
     const payload =
@@ -349,6 +370,7 @@ export class GalleryModalComponent implements OnInit {
       next: (updated) => {
         item.shareMode = (updated.shareMode || mode) as GalleryItem['shareMode'];
         item.sharedWith = (updated.sharedWith || payload.sharedWith || []).map((id) => String(id));
+        item.shareWithAllGalleryMembers = !!updated.shareWithAllGalleryMembers;
       },
       error: () => this.alertService.error('Failed to update sharing for this item.')
     });
@@ -363,6 +385,7 @@ export class GalleryModalComponent implements OnInit {
       next: (updated) => {
         item.shareMode = updated.shareMode || 'specific';
         item.sharedWith = (updated.sharedWith || next).map((id) => String(id));
+        item.shareWithAllGalleryMembers = !!updated.shareWithAllGalleryMembers;
       },
       error: () => this.alertService.error('Failed to update member access for this item.')
     });

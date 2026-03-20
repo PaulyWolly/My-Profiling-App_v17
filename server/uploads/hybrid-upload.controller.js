@@ -1,6 +1,7 @@
 const multer = require('multer');
 const path = require('path');
 const hybridStorage = require('../services/hybrid-storage.service');
+const Role = require('../_helpers/role');
 
 /** Build full URL for a local path (used when S3 is not configured). */
 function buildFullUrl(req, localPath) {
@@ -62,6 +63,17 @@ async function uploadProfileImage(req, res, next) {
 
         if (!req.body.userId) {
             return res.status(400).json({ message: 'User ID is required' });
+        }
+
+        if (!req.user || !req.user.id) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        const targetId = String(req.body.userId);
+        const selfId = String(req.user.id);
+        const isElevated = req.user.role === Role.Admin || req.user.role === Role.SuperAdmin;
+        if (targetId !== selfId && !isElevated) {
+            return res.status(403).json({ message: 'You can only upload a profile image for your own account' });
         }
 
         // Generate a unique filename

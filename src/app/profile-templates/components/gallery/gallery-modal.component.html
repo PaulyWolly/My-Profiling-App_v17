@@ -12,8 +12,8 @@
         <div class="gallery-help-popover" *ngIf="showHelpPopover"
              (mouseenter)="showHelpPopover = true" (mouseleave)="showHelpPopover = false">
           <p><strong>Who's online?</strong> Check the <mat-icon class="inline-icon">chat</mat-icon> icon on the profile page.</p>
-          <p><strong>Shared with you?</strong> The list shows people who have put <em>at least one</em> photo/video in your view.</p>
-          <p><strong>Where to view?</strong> Click "View gallery" — you only see items they chose to share with you.</p>
+          <p><strong>Someone else's gallery?</strong> When people share with you, a section appears above your settings — click <em>View gallery</em>.</p>
+          <p><strong>What you see</strong> depends on their per-photo settings (only you, all gallery members, or selected people).</p>
         </div>
       </span>
     </h2>
@@ -30,11 +30,11 @@
 
   <div class="gallery-modal-inner">
   <div class="gallery-modal-content">
-    <!-- Sharing content at top: shared-with-me list + who can see / add media -->
-    <div class="shared-with-me-section" *ngIf="myAccountId && !isViewingSharedGallery">
-      <span class="sharing-label">Galleries shared with you:</span>
+    <!-- Only when others have shared at least one item (or still loading). No empty placeholder — saves vertical space. -->
+    <div class="shared-with-me-section" *ngIf="myAccountId && !isViewingSharedGallery && (loadingSharedWithMe || sharedWithMeList.length > 0)">
+      <span class="sharing-label">Open someone else's gallery</span>
+      <p class="shared-with-me-intro">People below have shared at least one photo or video with you. Your own sharing settings are below.</p>
       <div *ngIf="loadingSharedWithMe" class="loading-members"><mat-spinner diameter="24"></mat-spinner></div>
-      <p *ngIf="!loadingSharedWithMe && sharedWithMeList.length === 0" class="no-shared">No one has shared their gallery with you yet.</p>
       <div *ngIf="!loadingSharedWithMe && sharedWithMeList.length > 0" class="shared-with-me-list">
         <div *ngFor="let person of sharedWithMeList" class="shared-with-me-item">
           <span class="shared-name">{{ person.firstName }} {{ person.lastName }}</span>
@@ -83,7 +83,7 @@
                       [color]="isSharedWith(member.id!) ? 'primary' : ''"
                       (click)="toggleShareWith(member)"
                       class="member-chip">
-                {{ member.firstName }} {{ member.lastName }}
+                {{ memberDisplayName(member) }}
                 <mat-icon *ngIf="isSharedWith(member.id!)" class="check">check</mat-icon>
               </button>
             </div>
@@ -151,7 +151,7 @@
                     mat-stroked-button
                     [color]="isItemSharedWith(item, member.id!) ? 'primary' : ''"
                     (click)="toggleItemShareWith(item, member)">
-              {{ member.firstName }} {{ member.lastName }}
+              {{ memberDisplayName(member) }}
               <mat-icon *ngIf="isItemSharedWith(item, member.id!)" class="check">check</mat-icon>
             </button>
           </div>

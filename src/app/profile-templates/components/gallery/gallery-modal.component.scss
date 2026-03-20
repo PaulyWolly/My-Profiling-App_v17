@@ -32,14 +32,21 @@
 
 .shared-with-me-section {
   margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   .sharing-label {
     display: block;
-    font-size: 1.2rem;
+    font-size: 1.05rem;
     font-weight: 600;
-    margin-bottom: 0.5rem;
-    color: rgba(40, 98, 225, 0.7);
+    margin-bottom: 0.35rem;
+    color: rgba(40, 98, 225, 0.85);
   }
-  .no-shared { margin: 0.5rem 0 0; font-size: 0.9rem; color: #666; }
+  .shared-with-me-intro {
+    margin: 0 0 0.65rem;
+    font-size: 0.82rem;
+    color: #666;
+    line-height: 1.4;
+  }
 }
 
 .shared-with-me-list {
@@ -330,8 +337,9 @@
 
 .gallery-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
   gap: 1rem;
+  align-items: start;
 }
 
 .gallery-item {
@@ -340,6 +348,8 @@
   /* Don't clip per-item share controls (buttons + member chips) below the thumb */
   overflow: visible;
   background: #eee;
+  align-self: start;
+  min-width: 0;
 
   .media-wrap {
     aspect-ratio: 1;
@@ -404,8 +414,9 @@
 
     .item-share-mode-btns {
       display: flex;
-      flex-wrap: wrap;
-      gap: 0.35rem;
+      flex-direction: column;
+      flex-wrap: nowrap;
+      gap: 0.3rem;
       margin-bottom: 0.35rem;
 
       button {
@@ -413,6 +424,8 @@
         line-height: 1.2;
         min-height: 30px;
         padding: 0 0.5rem;
+        width: 100%;
+        justify-content: center;
       }
     }
 

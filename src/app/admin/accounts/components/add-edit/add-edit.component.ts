@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, HostListener, OnDestroy, Renderer2 } from '@angular/core';
+import { Component, OnInit, HostListener, OnDestroy, Renderer2 } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
 import { first } from 'rxjs/operators';
@@ -362,9 +362,43 @@ export class AddEditComponent implements OnInit, OnDestroy {
         this.saveAccount(formData)
             .pipe(first())
             .subscribe({
-                next: () => {
-                    this.alertService.success('Account saved', { keepAfterRouteChange: true });
-                    this.router.navigate(['/admin/accounts']);
+                next: (account) => {
+                    // New account: temp file on disk may be missing on another host (e.g. Render).
+                    // If we still have the file locally and the server did not attach an image, upload via hybrid (S3/local).
+                    const needImageUpload =
+                        this.isAddMode &&
+                        !!this.selectedFile &&
+                        !!account?.id &&
+                        !account.profileImage;
+
+                    const finish = () => {
+                        this.submitting = false;
+                        this.alertService.success('Account saved', { keepAfterRouteChange: true });
+                        this.router.navigate(['/admin/accounts']);
+                    };
+
+                    if (needImageUpload) {
+                        const fd = new FormData();
+                        fd.append('profileImage', this.selectedFile);
+                        if (account.email) {
+                            fd.append('userEmail', account.email);
+                        }
+                        this.accountService
+                            .uploadImage(account.id, fd)
+                            .pipe(first())
+                            .subscribe({
+                                next: () => finish(),
+                                error: () => {
+                                    this.alertService.error(
+                                        'Account created, but the profile photo could not be uploaded. Edit the account and upload the image again.'
+                                    );
+                                    finish();
+                                }
+                            });
+                        return;
+                    }
+
+                    finish();
                 },
                 error: error => {
                     this.alertService.error(error);

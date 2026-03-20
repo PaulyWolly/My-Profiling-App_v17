@@ -248,9 +248,25 @@ export class NewAccountEditComponent implements OnInit, OnChanges {
     return this.isFormDisabled() || this.submitting;
   }
 
-  // Add method to check if image controls should be disabled
+  /**
+   * Temp profile upload (server) allows email OR first+last name.
+   * Admin "create account" previously required valid email only, which blocked Super-Admin
+   * from uploading until every field validated — align UI with server and with name-only temp files.
+   */
   isImageControlsDisabled(): boolean {
-    // Disable if form is disabled or email is invalid
-    return this.isFormDisabled() || !this.form?.get('email')?.valid;
+    if (this.isFormDisabled()) {
+      return true;
+    }
+    const emailCtrl = this.form?.get('email');
+    const first = (this.form?.get('firstName')?.value || '').trim();
+    const last = (this.form?.get('lastName')?.value || '').trim();
+    const emailOk = !!(emailCtrl?.valid && (emailCtrl.value || '').toString().trim());
+
+    if (this.isAdminView && !this.account?.id) {
+      const hasNames = !!(first && last);
+      return !emailOk && !hasNames;
+    }
+
+    return !emailCtrl?.valid;
   }
 } 

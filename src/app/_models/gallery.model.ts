@@ -13,6 +13,8 @@ export interface GalleryItem {
    */
   shareMode?: 'owner-only' | 'all-shared' | 'specific';
   sharedWith?: string[];
+  /** Server: true when owner chose "All shared members" — any current gallery member can see the item. */
+  shareWithAllGalleryMembers?: boolean;
 }
 
 /** Only private sharing: either only me or share with specific members. No public viewing. */

@@ -1,9 +1,13 @@
 <!-- Edit container -->
 <div class="edit-container" *ngIf="!loading">
   <!-- Helper message for new accounts -->
-  <div class="alert alert-info mb-3" *ngIf="!account?.id">
+  <div class="alert alert-info mb-3" *ngIf="!account?.id && !isAdminView">
     <i class="material-icons small-icon align-middle">info</i>
     Please enter an email address FIRST, before uploading a profile image. This ensures your image is properly linked to your account.
+  </div>
+  <div class="alert alert-info mb-3" *ngIf="!account?.id && isAdminView">
+    <i class="material-icons small-icon align-middle">info</i>
+    Enter a <strong>valid email</strong> or both <strong>first and last name</strong> before uploading a profile image (so the temp file can be named correctly). After save, the photo is synced again if the server could not use the temp file (e.g. cloud hosting).
   </div>
 
   <div class="row">

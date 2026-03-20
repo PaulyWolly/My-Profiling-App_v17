@@ -1,8 +1,62 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const router = express.Router();
 const authenticate = require('../_middleware/authenticate');
 const GalleryItem = require('../models/gallery-item.model');
 const db = require('../_helpers/db');
+
+/**
+ * Aggregation $match does NOT use Mongoose query casting. req.user.id is a string;
+ * sharedWith in DB is ObjectId[], so we must compare with ObjectId or matches fail.
+ */
+function toObjectId(id) {
+    if (id == null) return null;
+    try {
+        return new mongoose.Types.ObjectId(String(id));
+    } catch {
+        return null;
+    }
+}
+
+/** Match viewer id against sharedWith (ObjectId or string stored in DB). */
+function sharedWithContainsViewer(viewerId) {
+    const oid = toObjectId(viewerId);
+    const s = String(viewerId);
+    if (oid) {
+        return { $in: [oid, s] };
+    }
+    return s;
+}
+
+/**
+ * Items a viewer may see on someone else's gallery (they already passed gallerySharedWith check).
+ * - Legacy all-shared rows
+ * - shareWithAllGalleryMembers: everyone on owner's gallery list (see PATCH all-shared)
+ * - specific + viewer in sharedWith (ObjectId-safe)
+ */
+function viewerVisibleItemsQuery(viewerId) {
+    const or = [
+        { shareMode: 'all-shared' },
+        { shareMode: 'specific', shareWithAllGalleryMembers: true },
+        { shareMode: 'specific', sharedWith: sharedWithContainsViewer(viewerId) }
+    ];
+    return { $or: or };
+}
+
+/** $match stage for aggregation (same logic; aggregation does not cast strings to ObjectId). */
+function viewerVisibleItemsMatch(viewerId) {
+    const oid = toObjectId(viewerId);
+    const s = String(viewerId);
+    const or = [
+        { shareMode: 'all-shared' },
+        { shareMode: 'specific', shareWithAllGalleryMembers: true }
+    ];
+    if (oid) {
+        or.push({ shareMode: 'specific', sharedWith: oid });
+        or.push({ shareMode: 'specific', sharedWith: s });
+    }
+    return { $match: { $or: or } };
+}
 
 // List current user's gallery
 router.get('/me', authenticate(), async (req, res, next) => {
@@ -67,7 +121,7 @@ router.get('/shared-with-me', authenticate(), async (req, res, next) => {
     try {
         const viewerId = req.user.id;
         const ownerIdGroups = await GalleryItem.aggregate([
-            { $match: { shareMode: 'specific', sharedWith: viewerId } },
+            viewerVisibleItemsMatch(viewerId),
             { $group: { _id: '$accountId' } }
         ]);
         const ownerIds = (ownerIdGroups || []).map((g) => g._id).filter(Boolean);
@@ -102,11 +156,10 @@ router.get('/shared-with-me/total-items', authenticate(), async (req, res, next)
         if (accountIds.length === 0) {
             return res.json({ totalItems: 0 });
         }
-        // Viewers only count items explicitly shared with them (specific + in sharedWith)
+        // Count items visible to this viewer (specific + in sharedWith, or legacy all-shared)
         const totalItems = await GalleryItem.countDocuments({
             accountId: { $in: accountIds },
-            shareMode: 'specific',
-            sharedWith: viewerId
+            ...viewerVisibleItemsQuery(viewerId)
         });
         res.json({ totalItems: totalItems || 0 });
     } catch (error) {
@@ -137,13 +190,33 @@ router.get('/:accountId', authenticate(), async (req, res, next) => {
             return res.status(403).json({ message: 'You do not have permission to view this gallery' });
         }
 
-        // Opt-in: viewers only see items where the owner added them on that item (not legacy all-shared)
-        const items = await GalleryItem.find({
+        const viewerStr = String(viewerId);
+        const galleryIdSet = new Set(sharedWith.map((id) => id.toString()));
+
+        const candidates = await GalleryItem.find({
             accountId,
-            shareMode: 'specific',
-            sharedWith: viewerId
-        }).sort({ createdAt: -1 }).lean();
-        res.json(items.map(d => ({ ...d, id: d._id?.toString(), _id: undefined })));
+            shareMode: { $in: ['specific', 'all-shared'] }
+        })
+            .sort({ createdAt: -1 })
+            .lean();
+
+        const items = (candidates || []).filter((item) => {
+            if (item.shareMode === 'all-shared') return true;
+            if (item.shareWithAllGalleryMembers) return true;
+            const sw = (item.sharedWith || []).map((x) => x.toString());
+            if (sw.includes(viewerStr)) return true;
+            // Legacy "all gallery members" saved as specific + id list equal to current gallery members
+            if (
+                galleryIdSet.size > 0 &&
+                sw.length === galleryIdSet.size &&
+                sw.every((id) => galleryIdSet.has(id))
+            ) {
+                return true;
+            }
+            return false;
+        });
+
+        res.json(items.map((d) => ({ ...d, id: d._id?.toString(), _id: undefined })));
     } catch (error) {
         next(error);
     }
@@ -195,20 +268,24 @@ router.patch('/:id', authenticate(), async (req, res, next) => {
             if (mode === 'owner-only') {
                 update.shareMode = 'owner-only';
                 update.sharedWith = [];
+                update.shareWithAllGalleryMembers = false;
             } else if (mode === 'all-shared') {
-                // UI "all gallery members" → store as specific + full gallerySharedWith list (still explicit)
+                // UI "all gallery members" → flag + snapshot of ids (for owner UI); viewers use the flag
                 const account = await db.Account.findById(req.user.id).select('gallerySharedWith').lean();
                 update.shareMode = 'specific';
                 update.sharedWith = (account?.gallerySharedWith || []).map((id) => id.toString());
+                update.shareWithAllGalleryMembers = true;
             } else {
                 update.shareMode = 'specific';
                 update.sharedWith = req.body.sharedWith !== undefined
                     ? (Array.isArray(req.body.sharedWith) ? req.body.sharedWith : [])
                     : (item.sharedWith || []).map((id) => id.toString());
+                update.shareWithAllGalleryMembers = false;
             }
         } else if (req.body.sharedWith !== undefined) {
             update.shareMode = 'specific';
             update.sharedWith = Array.isArray(req.body.sharedWith) ? req.body.sharedWith : [];
+            update.shareWithAllGalleryMembers = false;
         }
 
         if (Object.keys(update).length === 0) {
