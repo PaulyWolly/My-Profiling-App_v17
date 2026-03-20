@@ -80,3 +80,6 @@ reference_repo_5-11-25/
 # Backup directories (contain secrets and should not be tracked)
 backups/
 enhanced_backup_*/
+
+# Local one-off tooling (not needed for repo/test)
+/scripts/convert-avi-to-mkv.js
