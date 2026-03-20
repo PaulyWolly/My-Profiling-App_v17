@@ -88,6 +88,33 @@
   }
 }
 
+// Owner upload area: separated section like the top "Open someone else's gallery" block.
+.upload-section-wrap {
+  margin-bottom: 1rem;
+  padding: 0.9rem;
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+// Blue inner card (inside the white wrapper).
+.member-upload-blue-card {
+  background: rgba(13, 110, 253, 0.12);
+  border: 1px solid rgba(13, 110, 253, 0.22);
+  border-radius: 10px;
+  padding: 0.85rem;
+  margin-bottom: 0;
+
+  .upload-area {
+    /* remove the default gray upload background so the outer card controls styling */
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
+    margin-bottom: 0;
+    border: none;
+  }
+}
+
 .shared-with-me-list {
   display: flex;
   flex-direction: column;

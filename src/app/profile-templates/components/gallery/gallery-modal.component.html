@@ -72,6 +72,31 @@
             Add photo or video
           </button>
         </div>
+        <div *ngIf="showUploadArea && isOwnProfile" class="upload-section-wrap">
+          <div class="member-upload-blue-card">
+            <div class="upload-area">
+            <input type="file" #fileInput hidden accept="image/*,.mkv,.webm,.mp4" (change)="onFileSelected($event)">
+            <button mat-button (click)="fileInput.click()">Choose file</button>
+            <span *ngIf="selectedFile" class="file-name">{{ selectedFile.name }}</span>
+            <input *ngIf="selectedFile" type="text" [(ngModel)]="caption" placeholder="Caption (optional)" class="caption-input">
+            <p class="upload-compat-disclaimer">
+              Video uploads must be browser-compatible: <strong>.mkv</strong>, <strong>.mp4</strong>, or <strong>.webm</strong>.
+              Other formats (for example <strong>.avi</strong>) may upload but may not play in the gallery.
+            </p>
+            <div *ngIf="uploading" class="upload-progress">
+              <p class="upload-progress-label">Uploading… {{ uploadProgressPercent !== null ? uploadProgressPercent + '%' : '' }}</p>
+              <mat-progress-bar mode="determinate" [value]="uploadProgressPercent ?? 0"></mat-progress-bar>
+            </div>
+            <div *ngIf="selectedFile" class="upload-buttons">
+              <button mat-raised-button color="primary" (click)="upload()" [disabled]="uploading">
+                <mat-spinner *ngIf="uploading" diameter="20" class="inline-spinner"></mat-spinner>
+                <span *ngIf="!uploading">Upload</span>
+              </button>
+              <button mat-button (click)="cancelUpload()" [disabled]="uploading">Cancel</button>
+            </div>
+            </div>
+          </div>
+        </div>
         <div *ngIf="!onlyMe" class="member-list-wrap">
           <div class="member-list-header">
             <span class="member-list-summary">
@@ -99,28 +124,6 @@
             </div>
           </div>
         </div>
-      </div>
-    </div>
-
-    <div *ngIf="showUploadArea && isOwnProfile" class="upload-area">
-      <input type="file" #fileInput hidden accept="image/*,.mkv,.webm,.mp4" (change)="onFileSelected($event)">
-      <button mat-button (click)="fileInput.click()">Choose file</button>
-      <span *ngIf="selectedFile" class="file-name">{{ selectedFile.name }}</span>
-      <input *ngIf="selectedFile" type="text" [(ngModel)]="caption" placeholder="Caption (optional)" class="caption-input">
-      <p class="upload-compat-disclaimer">
-        Video uploads must be browser-compatible: <strong>.mkv</strong>, <strong>.mp4</strong>, or <strong>.webm</strong>.
-        Other formats (for example <strong>.avi</strong>) may upload but may not play in the gallery.
-      </p>
-      <div *ngIf="uploading" class="upload-progress">
-        <p class="upload-progress-label">Uploading… {{ uploadProgressPercent !== null ? uploadProgressPercent + '%' : '' }}</p>
-        <mat-progress-bar mode="determinate" [value]="uploadProgressPercent ?? 0"></mat-progress-bar>
-      </div>
-      <div *ngIf="selectedFile" class="upload-buttons">
-        <button mat-raised-button color="primary" (click)="upload()" [disabled]="uploading">
-          <mat-spinner *ngIf="uploading" diameter="20" class="inline-spinner"></mat-spinner>
-          <span *ngIf="!uploading">Upload</span>
-        </button>
-        <button mat-button (click)="cancelUpload()" [disabled]="uploading">Cancel</button>
       </div>
     </div>
 
