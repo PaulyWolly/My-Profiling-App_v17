@@ -14,6 +14,9 @@ export class CustomTooltipDirective implements OnDestroy {
   @Input() tooltipFont = 'Arial, sans-serif';
   @Input() tooltipBorder = '1px solid #333';
   @Input() tooltipPosition: 'auto' | 'left' | 'right' | 'top' | 'bottom' = 'auto';
+  /** Used for viewport edge checks (longer phrases need a larger estimate). */
+  @Input() tooltipApproxWidth = 120;
+  @Input() tooltipApproxHeight = 30;
 
   private tooltipRef: ComponentRef<CustomTooltipComponent> | null = null;
 
@@ -77,8 +80,8 @@ export class CustomTooltipDirective implements OnDestroy {
   private calculatePosition(event: MouseEvent): { top: number; left: number } {
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
-    const tooltipWidth = 120; // Approximate tooltip width
-    const tooltipHeight = 30; // Approximate tooltip height
+    const tooltipWidth = this.tooltipApproxWidth;
+    const tooltipHeight = this.tooltipApproxHeight;
     const offset = 12;
 
     switch (this.tooltipPosition) {

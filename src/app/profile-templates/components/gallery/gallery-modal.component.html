@@ -136,16 +136,31 @@
         <p *ngIf="item.caption" class="caption">{{ item.caption }}</p>
         <div *ngIf="isOwnProfile && !isViewingSharedGallery" class="item-share-controls" (click)="$event.stopPropagation()">
           <span class="item-share-label">Who can see this item:</span>
-          <div class="item-share-mode-btns">
-            <button type="button" mat-stroked-button
+          <div class="item-share-mode-btns" role="group" aria-label="Who can see this item">
+            <button type="button" mat-stroked-button class="item-share-mode-compact"
+                    appCustomTooltip="Just for Me"
+                    tooltipPosition="top"
+                    [tooltipApproxWidth]="200"
+                    [tooltipApproxHeight]="34"
                     [color]="getItemShareMode(item) === 'owner-only' ? 'primary' : ''"
-                    (click)="setItemShareCategory(item, 'owner-only')">Only me</button>
-            <button type="button" mat-stroked-button
+                    (click)="setItemShareCategory(item, 'owner-only')"
+                    aria-label="Just for Me">Me</button>
+            <button type="button" mat-stroked-button class="item-share-mode-compact"
+                    appCustomTooltip="All Shared Members"
+                    tooltipPosition="top"
+                    [tooltipApproxWidth]="200"
+                    [tooltipApproxHeight]="34"
                     [color]="getItemShareMode(item) === 'all-shared' ? 'primary' : ''"
-                    (click)="setItemShareCategory(item, 'all-shared')">All shared members</button>
-            <button type="button" mat-stroked-button
+                    (click)="setItemShareCategory(item, 'all-shared')"
+                    aria-label="All Shared Members">All</button>
+            <button type="button" mat-stroked-button class="item-share-mode-compact"
+                    appCustomTooltip="Selected Members Only"
+                    tooltipPosition="top"
+                    [tooltipApproxWidth]="220"
+                    [tooltipApproxHeight]="34"
                     [color]="getItemShareMode(item) === 'specific' ? 'primary' : ''"
-                    (click)="setItemShareCategory(item, 'specific')">Selected only</button>
+                    (click)="setItemShareCategory(item, 'specific')"
+                    aria-label="Selected Members Only">Selected</button>
           </div>
           <div *ngIf="showItemMemberChips(item)" class="item-member-chips">
             <p *ngIf="getItemEligibleMembers().length === 0" class="item-member-empty">No members selected in "Share with specific member(s)" yet.</p>

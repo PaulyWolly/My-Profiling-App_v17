@@ -13,6 +13,7 @@ import { AlertService } from '@app/_services/alert.service';
 import { GalleryItem } from '@app/_models/gallery.model';
 import { Account } from '@app/_models';
 import { environment } from '@environments/environment';
+import { CustomTooltipDirective } from '@app/shared/custom-tooltip/custom-tooltip.directive';
 
 export interface GalleryModalData {
   accountId: string;
@@ -36,7 +37,8 @@ export interface SharedWithMeAccount {
     MatProgressSpinnerModule,
     MatProgressBarModule,
     MatFormFieldModule,
-    MatDialogModule
+    MatDialogModule,
+    CustomTooltipDirective
   ],
   templateUrl: './gallery-modal.component.html',
   styleUrls: ['./gallery-modal.component.scss']
