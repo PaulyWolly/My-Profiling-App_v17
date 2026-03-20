@@ -378,8 +378,13 @@ export class AddEditComponent implements OnInit, OnDestroy {
                     };
 
                     if (needImageUpload) {
+                        const imageFile = this.selectedFile;
+                        if (!imageFile) {
+                            finish();
+                            return;
+                        }
                         const fd = new FormData();
-                        fd.append('profileImage', this.selectedFile);
+                        fd.append('profileImage', imageFile);
                         if (account.email) {
                             fd.append('userEmail', account.email);
                         }
