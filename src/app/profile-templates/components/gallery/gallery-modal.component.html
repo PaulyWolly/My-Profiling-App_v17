@@ -65,7 +65,7 @@
         <div *ngIf="!onlyMe" class="member-list-wrap">
           <div class="member-list-header">
             <span class="member-list-summary">
-              {{ gallerySharedWith.length }} member{{ gallerySharedWith.length !== 1 ? 's' : '' }} selected
+              {{ galleryShareSummaryCount() }} member{{ galleryShareSummaryCount() !== 1 ? 's' : '' }} selected
             </span>
             <button mat-button type="button" class="member-list-toggle" (click)="memberListExpanded = !memberListExpanded">
               <mat-icon>{{ memberListExpanded ? 'expand_less' : 'expand_more' }}</mat-icon>

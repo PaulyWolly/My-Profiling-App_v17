@@ -100,9 +100,10 @@ export class GalleryModalComponent implements OnInit {
   ngOnInit(): void {
     this.loadGallery();
     if (this.isOwnProfile) {
-      this.galleryService.getSettings().subscribe(s => {
+      this.galleryService.getSettings().subscribe((s) => {
         this.gallerySharedWith = (s.gallerySharedWith || []).map((id) => String(id));
         this.onlyMe = this.gallerySharedWith.length === 0;
+        this.tryPruneOrphanGallerySharedWith();
       });
       this.loadOtherMembers();
       this.loadSharedWithMe();
@@ -161,9 +162,51 @@ export class GalleryModalComponent implements OnInit {
           (a) => a.id != null && (!myId || String(a.id) !== String(myId))
         );
         this.loadingMembers = false;
+        this.tryPruneOrphanGallerySharedWith();
       },
-      error: () => { this.loadingMembers = false; }
+      error: () => {
+        this.loadingMembers = false;
+      }
     });
+  }
+
+  /**
+   * Members shown with a checkmark (must exist in directory). Can be less than gallerySharedWith.length
+   * if the saved list still has deleted/duplicate account ids.
+   */
+  visibleGallerySharePickCount(): number {
+    return this.otherMembers.filter((m) => m.id != null && this.isSharedWith(m.id!)).length;
+  }
+
+  /** Summary line: match chips once directory is loaded; avoids "3 selected" with only 2 checkmarks. */
+  galleryShareSummaryCount(): number {
+    if (this.loadingMembers || this.otherMembers.length === 0) {
+      return this.gallerySharedWith.length;
+    }
+    return this.visibleGallerySharePickCount();
+  }
+
+  /**
+   * Remove gallerySharedWith ids that are not current accounts (stale after merges/deletes).
+   * Persists so server and per-item sharing stay consistent.
+   */
+  private tryPruneOrphanGallerySharedWith(): void {
+    if (!this.isOwnProfile || this.loadingMembers || this.otherMembers.length === 0) {
+      return;
+    }
+    if (this.gallerySharedWith.length === 0) {
+      return;
+    }
+    const allowed = new Set(this.otherMembers.map((m) => String(m.id)));
+    const pruned = this.gallerySharedWith.filter((id) => allowed.has(String(id)));
+    if (pruned.length === this.gallerySharedWith.length) {
+      return;
+    }
+    this.gallerySharedWith = pruned;
+    this.onlyMe = pruned.length === 0;
+    this.galleryService
+      .updateSettings({ galleryVisibility: 'private', gallerySharedWith: pruned })
+      .subscribe({ error: () => {} });
   }
 
   loadGallery(): void {
