@@ -30,17 +30,56 @@
   button mat-icon { font-size: 20px; width: 20px; height: 20px; }
 }
 
+.member-upload-cta {
+  margin: 0 0 1rem 0;
+  padding: 0.85rem 0.95rem;
+  background: rgba(13, 110, 253, 0.08);
+  border: 1px solid rgba(13, 110, 253, 0.25);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  .member-upload-cta-text {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: rgba(13, 60, 150, 0.9);
+  }
+
+  .member-upload-cta-btn {
+    flex-shrink: 0;
+    border-color: rgba(13, 110, 253, 0.65) !important;
+    color: rgba(13, 110, 253, 1) !important;
+
+    mat-icon {
+      margin-right: 0.25rem;
+    }
+  }
+}
+
 .shared-with-me-section {
   margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  padding: 0.9rem;
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+
+  .member-galleries-blue-card {
+    background: rgba(13, 110, 253, 0.12);
+    border: 1px solid rgba(13, 110, 253, 0.22);
+    border-radius: 10px;
+    padding: 0.85rem;
+  }
+
   .sharing-label {
     display: block;
     font-size: 1.05rem;
     font-weight: 600;
     margin-bottom: 0.35rem;
-    color: rgba(40, 98, 225, 0.85);
+    color: rgba(40, 98, 225, 0.9);
   }
+
   .shared-with-me-intro {
     margin: 0 0 0.65rem;
     font-size: 0.82rem;

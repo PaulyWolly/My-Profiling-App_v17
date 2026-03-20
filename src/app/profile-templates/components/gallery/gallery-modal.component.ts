@@ -139,6 +139,13 @@ export class GalleryModalComponent implements OnInit {
     this.loadGallery();
   }
 
+  /** Member-facing: while viewing someone else's gallery, jump back to your gallery and open the upload UI. */
+  backToMyGalleryAndOpenUpload(): void {
+    this.showUploadArea = false;
+    this.backToMyGallery();
+    this.showUploadArea = true;
+  }
+
   openFullView(item: GalleryItem): void {
     this.gridVideos?.forEach((ref: ElementRef) => {
       const video = ref.nativeElement as HTMLVideoElement;

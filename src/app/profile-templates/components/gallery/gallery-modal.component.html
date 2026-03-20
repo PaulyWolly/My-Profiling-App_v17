@@ -3,7 +3,8 @@
     <h2 class="gallery-modal-title">
       <mat-icon>photo_library</mat-icon>
       <span *ngIf="isViewingSharedGallery">Viewing {{ viewingSharedName }}'s gallery</span>
-      <span *ngIf="!isViewingSharedGallery">Gallery</span>
+      <span *ngIf="!isViewingSharedGallery && isOwnProfile">Your Gallery</span>
+      <span *ngIf="!isViewingSharedGallery && !isOwnProfile">Gallery</span>
       <span class="gallery-help-trigger" *ngIf="myAccountId && !isViewingSharedGallery"
             (mouseenter)="showHelpPopover = true" (mouseleave)="showHelpPopover = false">
         <button mat-icon-button class="help-icon-btn" aria-label="Gallery help">
@@ -30,18 +31,27 @@
 
   <div class="gallery-modal-inner">
   <div class="gallery-modal-content">
+    <div *ngIf="myAccountId && isViewingSharedGallery" class="member-upload-cta">
+      <span class="member-upload-cta-text">To add media, go to your gallery:</span>
+      <button mat-stroked-button type="button" class="member-upload-cta-btn" (click)="backToMyGalleryAndOpenUpload()" [disabled]="uploading">
+        <mat-icon>add_photo_alternate</mat-icon>
+        Add photo or video
+      </button>
+    </div>
     <!-- Only when others have shared at least one item (or still loading). No empty placeholder — saves vertical space. -->
     <div class="shared-with-me-section" *ngIf="myAccountId && !isViewingSharedGallery && (loadingSharedWithMe || sharedWithMeList.length > 0)">
-      <span class="sharing-label">Open someone else's gallery</span>
-      <p class="shared-with-me-intro">People below have shared at least one photo or video with you. Your own sharing settings are below.</p>
-      <div *ngIf="loadingSharedWithMe" class="loading-members"><mat-spinner diameter="24"></mat-spinner></div>
-      <div *ngIf="!loadingSharedWithMe && sharedWithMeList.length > 0" class="shared-with-me-list">
-        <div *ngFor="let person of sharedWithMeList" class="shared-with-me-item">
-          <span class="shared-name">{{ person.firstName }} {{ person.lastName }}</span>
-          <button mat-raised-button color="primary" (click)="viewSharedGallery(person)">
-            <mat-icon>photo_library</mat-icon>
-            View gallery
-          </button>
+      <div class="member-galleries-blue-card">
+        <span class="sharing-label">Open someone else's gallery</span>
+        <p class="shared-with-me-intro">People below have shared at least one photo or video with you. Your own sharing settings are below.</p>
+        <div *ngIf="loadingSharedWithMe" class="loading-members"><mat-spinner diameter="24"></mat-spinner></div>
+        <div *ngIf="!loadingSharedWithMe && sharedWithMeList.length > 0" class="shared-with-me-list">
+          <div *ngFor="let person of sharedWithMeList" class="shared-with-me-item">
+            <span class="shared-name">{{ person.firstName }} {{ person.lastName }}</span>
+            <button mat-raised-button color="primary" (click)="viewSharedGallery(person)">
+              <mat-icon>photo_library</mat-icon>
+              View gallery
+            </button>
+          </div>
         </div>
       </div>
     </div>
