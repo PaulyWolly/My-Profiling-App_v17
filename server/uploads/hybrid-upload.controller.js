@@ -28,12 +28,14 @@ const upload = multer({
 
 // Gallery: allow images and videos (including .mkv, .mp4, .mpeg, etc.), 1GB limit for large videos
 const GALLERY_MAX_FILE_SIZE = 1024 * 1024 * 1024; // 1 GB
-const ALLOWED_VIDEO_EXT = ['.mkv', '.webm', '.mp4', '.mov', '.avi', '.m4v', '.ogv', '.wmv', '.mpeg', '.mpg'];
+// Keep this aligned with the gallery modal disclaimer + client-side validation.
+// Browser support is inconsistent for legacy containers (e.g. .avi), so we only allow
+// the reliably viewable formats we ask users to upload.
+const ALLOWED_VIDEO_EXT = ['.mkv', '.webm', '.mp4'];
 function isAllowedGalleryFile(file) {
-    if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) return true;
+    if (file.mimetype.startsWith('image/')) return true;
     const ext = path.extname(file.originalname || '').toLowerCase();
-    if (ALLOWED_VIDEO_EXT.includes(ext)) return true; // e.g. .mkv when browser sends application/octet-stream
-    return false;
+    return ALLOWED_VIDEO_EXT.includes(ext);
 }
 const uploadGallery = multer({
     storage: storage,
@@ -42,7 +44,7 @@ const uploadGallery = multer({
         if (isAllowedGalleryFile(file)) {
             cb(null, true);
         } else {
-            cb(new Error('Only image and video files are allowed (e.g. jpg, png, gif, mp4, mkv, webm, mpeg)'), false);
+            cb(new Error('Only browser-compatible gallery videos are allowed: .mp4, .webm, .mkv (images are also allowed).'), false);
         }
     }
 });

@@ -270,6 +270,13 @@
   border-radius: 8px;
   margin-bottom: 1rem;
 
+  .upload-compat-disclaimer {
+    margin-top: 0.5rem;
+    font-size: 0.82rem;
+    color: #666;
+    line-height: 1.35;
+  }
+
   .upload-progress {
     margin: 0.75rem 0;
     .upload-progress-label {

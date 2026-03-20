@@ -244,7 +244,7 @@ export class GalleryModalComponent implements OnInit {
   }
 
   /** Allowed video extensions for gallery (e.g. .mkv when browser reports application/octet-stream). */
-  private static readonly ALLOWED_VIDEO_EXT = ['.mkv', '.webm', '.mp4', '.mov', '.avi', '.m4v', '.ogv', '.wmv', '.mpeg', '.mpg'];
+  private static readonly ALLOWED_VIDEO_EXT = ['.mkv', '.webm', '.mp4'];
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -255,9 +255,10 @@ export class GalleryModalComponent implements OnInit {
     }
     const isImage = file.type.startsWith('image/');
     const ext = '.' + (file.name.split('.').pop() || '').toLowerCase();
-    const isVideoByType = file.type.startsWith('video/');
     const isVideoByExt = GalleryModalComponent.ALLOWED_VIDEO_EXT.includes(ext);
-    if (isImage || isVideoByType || isVideoByExt) {
+    // Only allow video files when their extension is known-browser-compatible.
+    // (We intentionally reject formats like .avi that often upload but won't play.)
+    if (isImage || isVideoByExt) {
       this.selectedFile = file;
       this.showUploadArea = true;
     }
