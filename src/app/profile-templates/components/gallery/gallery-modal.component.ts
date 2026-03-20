@@ -403,9 +403,20 @@ export class GalleryModalComponent implements OnInit {
 
   public setItemShareCategory(item: GalleryItem, mode: 'owner-only' | 'all-shared' | 'specific'): void {
     if (!item.id) return;
+    /** When leaving "all shared" UI, never PATCH specific + [] — that hides the item from everyone. */
+    let specificSharedWith: string[] = [];
+    if (mode === 'specific') {
+      const existing = (item.sharedWith || []).map(String).filter(Boolean);
+      const wasAllSharedUi = this.getItemShareMode(item) === 'all-shared';
+      if (existing.length > 0) {
+        specificSharedWith = existing;
+      } else if (wasAllSharedUi && this.gallerySharedWith.length > 0) {
+        specificSharedWith = this.gallerySharedWith.map(String);
+      }
+    }
     const payload =
       mode === 'specific'
-        ? { shareMode: 'specific' as const, sharedWith: item.sharedWith || [] }
+        ? { shareMode: 'specific' as const, sharedWith: specificSharedWith }
         : mode === 'owner-only'
           ? { shareMode: 'owner-only' as const, sharedWith: [] as string[] }
           : { shareMode: 'all-shared' as const, sharedWith: [] as string[] };
