@@ -39,15 +39,23 @@ body.mat-typography {
 /* Gallery modal: constrain dialog height so inner .gallery-modal-content can scroll */
 .cdk-overlay-pane.gallery-modal-panel,
 .cdk-overlay-pane.mat-mdc-dialog-panel.gallery-modal-panel {
-  /* Nudge whole dialog down without inner “empty strip” (see gallery-modal: no translateY). */
-  margin-top: 20px !important;
-  height: calc(90vh - 20px) !important;
-  max-height: calc(90vh - 20px) !important;
+  /* Move the whole dialog down (caller requested) but keep it within the viewport. */
+  margin-top: 40px !important;
+  height: calc(90vh - 40px) !important;
+  max-height: calc(90vh - 40px) !important;
   /* Never wider than the visible layout viewport (avoids scrollbar off-screen). */
   max-width: min(1440px, calc(100vw - 24px), calc(100dvw - 24px)) !important;
   box-sizing: border-box !important;
   display: flex !important;
   flex-direction: column !important;
+}
+
+/* Remove MDC default surface padding (white “frame”) and round the real card */
+.cdk-overlay-pane.gallery-modal-panel .mat-mdc-dialog-surface,
+.cdk-overlay-pane.mat-mdc-dialog-panel.gallery-modal-panel .mat-mdc-dialog-surface {
+  border-radius: var(--app-border-radius, 12px) !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
 }
 
 .cdk-overlay-pane.gallery-modal-panel .mat-mdc-dialog-container,

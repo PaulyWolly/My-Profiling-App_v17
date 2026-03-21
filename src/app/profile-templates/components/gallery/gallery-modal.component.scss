@@ -19,7 +19,8 @@
   box-sizing: border-box;
   overflow: hidden;
   min-width: 320px;
-  padding: 1.5rem;
+  /* Extra top breathing room so rounded corners read clearly below the app header */
+  padding: 1.75rem 1.5rem 1.25rem;
   background: #fff;
   border-radius: var(--app-border-radius, 12px);
   box-shadow: rgba(0, 0, 0, 0.35) 0 5px 15px;
@@ -224,34 +225,40 @@
 
 // Light blue inner area + darker gold top border (match profile card)
 .gallery-modal-inner {
-  background-color: #e3f2fd;
-  border-top: 4px solid #c9a227;
+  /* White below short galleries — avoids a huge empty blue slab when the grid doesn’t fill the modal */
+  background-color: #fff;
   border-radius: 0 0 var(--app-border-radius, 12px) var(--app-border-radius, 12px);
   flex: 1;
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
   min-height: 0;
   overflow: hidden;
-  /* Space below the blue gallery block inside the white modal */
-  margin-bottom: 20px; //adding spacing to bottom of the blue area
+  margin-bottom: 20px;
 }
 
 .gallery-modal-content {
-  /* Critical for flex children: without min-height:0, content grows and never scrolls */
-  flex: 1 1 auto;
+  /*
+   * flex: 0 1 auto + max-height: 100% — blue area only as tall as content until it hits the
+   * remaining modal height, then scrolls. (flex: 1 alone stretched the blue to the full modal
+   * and looked like “empty space at the bottom”.)
+   */
+  flex: 0 1 auto;
   min-height: 0;
+  max-height: 100%;
   max-width: 100%;
   box-sizing: border-box;
+  background-color: #e3f2fd;
+  border-top: 4px solid #c9a227;
+  border-radius: 0 0 10px 10px;
   overflow-x: hidden;
-  /* scroll: keeps a visible gutter on many desktops; overlay scrollbars may still hide until hover */
-  overflow-y: scroll;
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
-  /* Extra end padding so the scrollbar thumb sits clearly inside the modal, not past the white edge */
   padding: 1.25rem 0.75rem 1rem 0.5rem;
-  /* Space below scrollable content + scrollbar track inside the blue area */
-  margin-bottom: 2px; //adding spacing to bottom of the blue area
+  margin-bottom: 20px;
 
   &::-webkit-scrollbar {
     width: 10px;
