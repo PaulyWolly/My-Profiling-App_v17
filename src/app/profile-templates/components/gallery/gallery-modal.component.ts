@@ -20,6 +20,12 @@ export interface GalleryModalData {
   isOwnProfile: boolean;
 }
 
+/**
+ * MatDialog `panelClass` for the gallery modal overlay pane.
+ * Styles live in `src/styles/gallery-dialog-overlay.scss` — keep this string in sync.
+ */
+export const GALLERY_DIALOG_OVERLAY_PANEL_CLASS = 'app-gallery-dialog-overlay';
+
 export interface SharedWithMeAccount {
   id: string;
   firstName: string;
