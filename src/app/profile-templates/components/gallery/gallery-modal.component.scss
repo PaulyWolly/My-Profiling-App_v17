@@ -366,23 +366,85 @@
   margin-bottom: 1rem;
 }
 
-/* Green “Add photo or video” — filled (sharing row) */
-:host ::ng-deep .sharing-control .gallery-cta-add-media.mat-mdc-raised-button {
-  --mdc-filled-button-container-color: #2e7d32;
-  --mdc-filled-button-label-text-color: #fff;
-  --mat-filled-button-state-layer-color: #fff;
+/* Green “Add photo or video” — filled (sharing row); vars + fallbacks for MDC / Emulated encapsulation */
+:host ::ng-deep .gallery-cta-add-media.mat-mdc-raised-button,
+:host ::ng-deep .gallery-cta-add-media.mat-mdc-unelevated-button {
+  --mdc-filled-button-container-color: #2e7d32 !important;
+  --mdc-filled-button-label-text-color: #fff !important;
+  --mat-filled-button-state-layer-color: #fff !important;
   --mdc-filled-button-hover-state-layer-opacity: 0.12;
   --mdc-filled-button-focus-state-layer-opacity: 0.12;
   --mdc-filled-button-pressed-state-layer-opacity: 0.14;
+}
 
-  &:hover:not([disabled]) {
-    --mdc-filled-button-container-color: #27642a;
-  }
+:host ::ng-deep .gallery-cta-add-media.mdc-button--filled,
+:host ::ng-deep .gallery-cta-add-media.mdc-button--raised,
+:host ::ng-deep .gallery-cta-add-media.mdc-button--unelevated {
+  background-color: #2e7d32 !important;
+  color: #fff !important;
+}
 
-  &[disabled] {
-    --mdc-filled-button-container-color: rgba(46, 125, 50, 0.38);
-    --mdc-filled-button-label-text-color: rgba(255, 255, 255, 0.78);
-  }
+:host ::ng-deep .gallery-cta-add-media .mdc-button__label,
+:host ::ng-deep .gallery-cta-add-media mat-icon {
+  color: #fff !important;
+}
+
+:host ::ng-deep .gallery-cta-add-media:hover:not([disabled]).mdc-button--filled,
+:host ::ng-deep .gallery-cta-add-media:hover:not([disabled]).mdc-button--raised,
+:host ::ng-deep .gallery-cta-add-media:hover:not([disabled]).mdc-button--unelevated {
+  background-color: #27642a !important;
+}
+
+:host ::ng-deep .gallery-cta-add-media[disabled].mdc-button--filled,
+:host ::ng-deep .gallery-cta-add-media[disabled].mdc-button--raised,
+:host ::ng-deep .gallery-cta-add-media[disabled].mdc-button--unelevated {
+  background-color: rgba(46, 125, 50, 0.38) !important;
+  color: rgba(255, 255, 255, 0.78) !important;
+}
+
+/* Last resort: paint the actual <button> host (some MDC builds keep surface on inner nodes) */
+:host ::ng-deep button.gallery-cta-add-media:not([disabled]) {
+  background-color: #2e7d32 !important;
+  color: #fff !important;
+}
+
+:host ::ng-deep button.gallery-cta-add-media:not([disabled]):hover {
+  background-color: #27642a !important;
+}
+
+:host ::ng-deep button.gallery-choose-file-teal:not([disabled]) {
+  background-color: #00897b !important;
+  color: #fff !important;
+}
+
+:host ::ng-deep button.gallery-choose-file-teal:not([disabled]):hover {
+  background-color: #00796b !important;
+}
+
+/* Teal “Choose file” (upload area) */
+:host ::ng-deep .gallery-choose-file-teal.mat-mdc-raised-button,
+:host ::ng-deep .gallery-choose-file-teal.mat-mdc-unelevated-button {
+  --mdc-filled-button-container-color: #00897b !important;
+  --mdc-filled-button-label-text-color: #fff !important;
+  --mat-filled-button-state-layer-color: #fff !important;
+}
+
+:host ::ng-deep .gallery-choose-file-teal.mdc-button--filled,
+:host ::ng-deep .gallery-choose-file-teal.mdc-button--raised,
+:host ::ng-deep .gallery-choose-file-teal.mdc-button--unelevated {
+  background-color: #00897b !important;
+  color: #fff !important;
+}
+
+:host ::ng-deep .gallery-choose-file-teal .mdc-button__label,
+:host ::ng-deep .gallery-choose-file-teal mat-icon {
+  color: #fff !important;
+}
+
+:host ::ng-deep .gallery-choose-file-teal:hover:not([disabled]).mdc-button--filled,
+:host ::ng-deep .gallery-choose-file-teal:hover:not([disabled]).mdc-button--raised,
+:host ::ng-deep .gallery-choose-file-teal:hover:not([disabled]).mdc-button--unelevated {
+  background-color: #00796b !important;
 }
 
 /* Green “Add photo or video” — stroked (viewing someone else’s gallery CTA) */
@@ -514,7 +576,7 @@
   .choose-file-btn {
     border-radius: 10px !important;
     padding: 0.6rem 1.05rem !important;
-    box-shadow: 0 10px 22px rgba(13, 110, 253, 0.25);
+    box-shadow: 0 10px 22px rgba(0, 137, 123, 0.28);
     font-weight: 650;
     letter-spacing: 0.1px;
   }
