@@ -251,7 +251,7 @@
   /* Extra end padding so the scrollbar thumb sits clearly inside the modal, not past the white edge */
   padding: 1.25rem 0.75rem 1rem 0.5rem;
   /* Space below scrollable content + scrollbar track inside the blue area */
-  margin-bottom: 10px; //adding spacing to bottom of the blue area
+  margin-bottom: 2px; //adding spacing to bottom of the blue area
 
   &::-webkit-scrollbar {
     width: 10px;
