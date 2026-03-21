@@ -232,6 +232,8 @@
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
+  /* Space below the blue gallery block inside the white modal */
+  margin-bottom: 20px;
 }
 
 .gallery-modal-content {
@@ -248,6 +250,8 @@
   scrollbar-width: thin;
   /* Extra end padding so the scrollbar thumb sits clearly inside the modal, not past the white edge */
   padding: 1.25rem 0.75rem 1rem 0.5rem;
+  /* Space below scrollable content + scrollbar track inside the blue area */
+  margin-bottom: 20px;
 
   &::-webkit-scrollbar {
     width: 10px;
