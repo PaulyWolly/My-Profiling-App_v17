@@ -75,6 +75,8 @@ export class GallerySectionComponent implements OnInit {
       data,
       width: '95vw',
       maxWidth: '1440px',
+      /* Fixed viewport height so inner flex + overflow-y can actually scroll (maxHeight alone often grows with content). */
+      height: '90vh',
       maxHeight: '90vh',
       panelClass: 'gallery-modal-panel'
     });

@@ -13,7 +13,10 @@
   flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
+  height: 100%;
   max-height: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   overflow: hidden;
   min-width: 320px;
   padding: 1.5rem;
@@ -235,11 +238,30 @@
   /* Critical for flex children: without min-height:0, content grows and never scrolls */
   flex: 1 1 auto;
   min-height: 0;
+  max-width: 100%;
+  box-sizing: border-box;
   overflow-x: hidden;
-  overflow-y: auto;
+  /* scroll: keeps a visible gutter on many desktops; overlay scrollbars may still hide until hover */
+  overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
   scrollbar-gutter: stable;
-  padding: 1.25rem 0.5rem 1rem;
+  scrollbar-width: thin;
+  /* Extra end padding so the scrollbar thumb sits clearly inside the modal, not past the white edge */
+  padding: 1.25rem 0.75rem 1rem 0.5rem;
+
+  &::-webkit-scrollbar {
+    width: 10px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.28);
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  &::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.06);
+    border-radius: 8px;
+  }
 }
 
 .gallery-actions {
