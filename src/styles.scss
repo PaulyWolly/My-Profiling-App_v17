@@ -50,6 +50,8 @@ body.mat-typography {
 
 .cdk-overlay-pane.gallery-modal-panel .mat-mdc-dialog-container,
 .cdk-overlay-pane.mat-mdc-dialog-panel.gallery-modal-panel .mat-mdc-dialog-container {
+  /* So the gap from .mdc-dialog__container margin-top shows the dimmed backdrop, not a white band */
+  background: transparent !important;
   display: flex !important;
   flex-direction: column !important;
   flex: 1 1 auto !important;
@@ -61,6 +63,7 @@ body.mat-typography {
 .cdk-overlay-pane.gallery-modal-panel .mat-mdc-dialog-container .mdc-dialog__container,
 .cdk-overlay-pane.mat-mdc-dialog-panel.gallery-modal-panel .mat-mdc-dialog-container .mdc-dialog__container {
   margin-top: 20px !important;
+  background: transparent !important;
   flex: 1 1 auto !important;
   min-height: 0 !important;
   max-height: 100% !important;
@@ -72,6 +75,8 @@ body.mat-typography {
 
 .cdk-overlay-pane.gallery-modal-panel .mat-mdc-dialog-surface,
 .cdk-overlay-pane.mat-mdc-dialog-panel.gallery-modal-panel .mat-mdc-dialog-surface {
+  /* White card only on the surface; outer shells stay transparent for margin-top gap */
+  background: #fff !important;
   flex: 1 1 auto !important;
   min-height: 0 !important;
   max-height: 100% !important;
