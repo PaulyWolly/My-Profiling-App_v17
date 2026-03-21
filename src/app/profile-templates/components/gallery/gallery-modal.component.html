@@ -49,9 +49,15 @@
         <div *ngIf="!loadingSharedWithMe && sharedWithMeList.length > 0" class="shared-with-me-list">
           <div *ngFor="let person of sharedWithMeList" class="shared-with-me-item">
             <span class="shared-name">{{ person.firstName }} {{ person.lastName }}</span>
-            <button mat-raised-button color="primary" (click)="viewSharedGallery(person)">
+            <button
+              mat-raised-button
+              color="primary"
+              type="button"
+              (click)="viewSharedGallery(person)"
+              [attr.aria-label]="viewOthersGalleryButtonLabel(person)"
+            >
               <mat-icon>photo_library</mat-icon>
-              View gallery
+              {{ viewOthersGalleryButtonLabel(person) }}
             </button>
           </div>
         </div>

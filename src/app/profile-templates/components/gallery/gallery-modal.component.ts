@@ -138,6 +138,17 @@ export class GalleryModalComponent implements OnInit {
     });
   }
 
+  /**
+   * "View Amy's Gallery" — uses first name when present, else last name, else generic label.
+   */
+  viewOthersGalleryButtonLabel(person: SharedWithMeAccount): string {
+    const first = (person.firstName || '').trim();
+    if (first) return `View ${first}'s Gallery`;
+    const last = (person.lastName || '').trim();
+    if (last) return `View ${last}'s Gallery`;
+    return 'View gallery';
+  }
+
   viewSharedGallery(account: SharedWithMeAccount): void {
     if (!account?.id) return;
     this.accountId = account.id;
