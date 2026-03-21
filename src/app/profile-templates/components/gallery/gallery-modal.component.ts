@@ -88,8 +88,8 @@ export class GalleryModalComponent implements OnInit {
   /** Show help popover when hovering over (?) icon. */
   showHelpPopover = false;
 
-  /** When true, the "Select members" list is expanded; when false, it's collapsed to save space. */
-  memberListExpanded = true;
+  /** When true, the "Select members" list is expanded; starts collapsed so the modal isn’t noisy on open. */
+  memberListExpanded = false;
 
   @ViewChildren('gridVideo') gridVideos: QueryList<ElementRef> | undefined;
 
