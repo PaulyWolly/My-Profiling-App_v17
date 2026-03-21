@@ -3,7 +3,9 @@
     <h2 class="gallery-modal-title">
       <mat-icon>photo_library</mat-icon>
       <span *ngIf="isViewingSharedGallery">Viewing {{ viewingSharedName }}'s gallery</span>
-      <span *ngIf="!isViewingSharedGallery && isOwnProfile">Your Gallery</span>
+      <span *ngIf="!isViewingSharedGallery && isOwnProfile">
+        {{ ownerFirstName ? (ownerFirstName + \"'s Gallery\") : 'Your Gallery' }}
+      </span>
       <span *ngIf="!isViewingSharedGallery && !isOwnProfile">Gallery</span>
       <span class="gallery-help-trigger" *ngIf="myAccountId && !isViewingSharedGallery"
             (mouseenter)="showHelpPopover = true" (mouseleave)="showHelpPopover = false">

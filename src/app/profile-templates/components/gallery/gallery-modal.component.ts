@@ -49,6 +49,8 @@ export class GalleryModalComponent implements OnInit {
 
   /** When opened from own profile, we can switch to viewing someone's shared gallery; this is our own id to switch back. */
   myAccountId: string = '';
+  /** Logged-in user's first name (used for the "Amy's Gallery" style title). */
+  ownerFirstName: string = '';
 
   items: GalleryItem[] = [];
   loading = true;
@@ -92,6 +94,8 @@ export class GalleryModalComponent implements OnInit {
     if (data.isOwnProfile && data.accountId) {
       this.myAccountId = data.accountId;
     }
+    // MatDialog sometimes instantiates before signals fully settle; fall back safely.
+    this.ownerFirstName = this.accountService.accountValue?.firstName?.trim() || '';
   }
 
   /** True when we opened from own profile but are currently viewing someone else's shared gallery. */
