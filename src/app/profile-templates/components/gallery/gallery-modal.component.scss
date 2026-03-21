@@ -6,25 +6,6 @@
   min-height: 0;
   max-height: 100%;
   overflow: hidden;
-  /* Compact density (works with 14px base set on overlay host) */
-  font-size: 0.875rem;
-  line-height: 1.45;
-}
-
-/* Slightly shorter MDC buttons inside this dialog (sharing row, chips, upload) */
-:host ::ng-deep .gallery-modal .mat-mdc-button-base {
-  min-height: 32px;
-  padding: 0 10px;
-}
-
-:host ::ng-deep .gallery-modal .mat-mdc-button-base .mdc-button__label {
-  letter-spacing: normal;
-}
-
-/* Per-item share row: keep extra-compact (overrides rule above) */
-:host ::ng-deep .gallery-modal .item-share-mode-compact.mat-mdc-button-base {
-  min-height: 28px;
-  padding: 0 0.25rem;
 }
 
 .gallery-modal {
@@ -38,18 +19,18 @@
   box-sizing: border-box;
   overflow: hidden;
   min-width: 320px;
-  padding: 1rem 1rem 0.75rem;
+  padding: 1.5rem;
   background: #fff;
   border-radius: var(--app-border-radius, 12px);
   box-shadow: rgba(0, 0, 0, 0.35) 0 5px 15px;
-  /* Do not use translateY here — it leaves an empty white band inside the dialog surface above this card. */
+  transform: translateY(20px);
 }
 
 .gallery-modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 0 0.65rem 0;
+  padding: 0 0 1rem 0;
   border-bottom: 1px solid #eee;
   flex-shrink: 0;
 }
@@ -62,18 +43,18 @@
 }
 
 .member-upload-cta {
-  margin: 0 0 0.65rem 0;
-  padding: 0.55rem 0.65rem;
+  margin: 0 0 1rem 0;
+  padding: 0.85rem 0.95rem;
   background: rgba(13, 110, 253, 0.08);
   border: 1px solid rgba(13, 110, 253, 0.25);
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.65rem;
+  gap: 1rem;
 
   .member-upload-cta-text {
-    font-size: 0.8125rem;
+    font-size: 0.95rem;
     font-weight: 600;
     color: rgba(13, 60, 150, 0.9);
   }
@@ -90,8 +71,8 @@
 }
 
 .shared-with-me-section {
-  margin-bottom: 0.65rem;
-  padding: 0.55rem 0.65rem;
+  margin-bottom: 1rem;
+  padding: 0.9rem;
   background: #fff;
   border-radius: 10px;
   border: 1px solid rgba(0, 0, 0, 0.06);
@@ -100,12 +81,12 @@
     background: rgba(13, 110, 253, 0.12);
     border: 1px solid rgba(13, 110, 253, 0.22);
     border-radius: 10px;
-    padding: 0.55rem 0.65rem;
+    padding: 0.85rem;
   }
 
   .sharing-label {
     display: block;
-    font-size: 0.9375rem;
+    font-size: 1.05rem;
     font-weight: 600;
     margin-bottom: 0.35rem;
     color: rgba(40, 98, 225, 0.9);
@@ -121,8 +102,8 @@
 
 // Owner upload area: separated section like the top "Open someone else's gallery" block.
 .upload-section-wrap {
-  margin-bottom: 0.65rem;
-  padding: 0.55rem 0.65rem;
+  margin-bottom: 1rem;
+  padding: 0.9rem;
   background: #fff;
   border-radius: 10px;
   border: 1px solid rgba(0, 0, 0, 0.06);
@@ -133,7 +114,7 @@
   background: rgba(13, 110, 253, 0.12);
   border: 1px solid rgba(13, 110, 253, 0.22);
   border-radius: 10px;
-  padding: 0.55rem 0.65rem;
+  padding: 0.85rem;
   margin-bottom: 0;
 
   .upload-area {
@@ -174,9 +155,9 @@
   color: #333;
 
   > mat-icon {
-    font-size: 22px;
-    width: 22px;
-    height: 22px;
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
     color: #555;
   }
 
@@ -191,17 +172,17 @@
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    width: 32px;
-    height: 32px;
-    min-width: 32px;
-    min-height: 32px;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
     padding: 0;
     color: #666;
 
     mat-icon {
-      font-size: 20px;
-      width: 20px;
-      height: 20px;
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
     }
   }
 
@@ -243,40 +224,34 @@
 
 // Light blue inner area + darker gold top border (match profile card)
 .gallery-modal-inner {
-  /* White below short galleries — avoids a huge empty blue slab when the grid doesn’t fill the modal */
-  background-color: #fff;
+  background-color: #e3f2fd;
+  border-top: 4px solid #c9a227;
   border-radius: 0 0 var(--app-border-radius, 12px) var(--app-border-radius, 12px);
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  align-items: stretch;
   min-height: 0;
   overflow: hidden;
-  margin-bottom: 6px;
+  /* Space below the blue gallery block inside the white modal */
+  margin-bottom: 20px;
 }
 
 .gallery-modal-content {
-  /*
-   * flex: 0 1 auto + max-height: 100% — blue area only as tall as content until it hits the
-   * remaining modal height, then scrolls. (flex: 1 alone stretched the blue to the full modal
-   * and looked like “empty space at the bottom”.)
-   */
-  flex: 0 1 auto;
+  /* Critical for flex children: without min-height:0, content grows and never scrolls */
+  flex: 1 1 auto;
   min-height: 0;
-  max-height: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  background-color: #e3f2fd;
-  border-top: 4px solid #c9a227;
-  border-radius: 0 0 10px 10px;
   overflow-x: hidden;
-  overflow-y: auto;
+  /* scroll: keeps a visible gutter on many desktops; overlay scrollbars may still hide until hover */
+  overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
-  padding: 0.75rem 0.6rem 0.65rem 0.45rem;
-  margin-bottom: 0;
+  /* Extra end padding so the scrollbar thumb sits clearly inside the modal, not past the white edge */
+  padding: 1.25rem 0.75rem 1rem 0.5rem;
+  /* Space below scrollable content + scrollbar track inside the blue area */
+  margin-bottom: 20px;
 
   &::-webkit-scrollbar {
     width: 10px;
@@ -300,9 +275,9 @@
 .sharing-control {
   .sharing-label {
     display: block;
-    font-size: 0.9375rem;
+    font-size: 1.2rem;
     font-weight: 600;
-    margin-bottom: 0.35rem;
+    margin-bottom: 0.5rem;
     color: rgba(40, 98, 225, 0.7);
   }
 
@@ -364,7 +339,7 @@
 
   .member-list {
     margin-top: 0.35rem;
-    padding: 0.5rem 0.55rem;
+    padding: 0.75rem;
     background: #fafafa;
     border-radius: 8px;
     border: 1px solid #eee;
@@ -383,7 +358,7 @@
     .member-chips {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.35rem;
+      gap: 0.5rem;
 
       .member-chip mat-icon.check {
         font-size: 18px;
@@ -410,16 +385,16 @@
   }
 
   .choose-file-btn {
-    border-radius: 8px !important;
-    padding: 0.4rem 0.75rem !important;
+    border-radius: 10px !important;
+    padding: 0.6rem 1.05rem !important;
     box-shadow: 0 10px 22px rgba(13, 110, 253, 0.25);
     font-weight: 650;
     letter-spacing: 0.1px;
   }
 
   .choose-cancel-btn {
-    border-radius: 8px !important;
-    padding: 0.4rem 0.75rem !important;
+    border-radius: 10px !important;
+    padding: 0.55rem 1rem !important;
   }
 
   .upload-compat-disclaimer {
@@ -541,7 +516,7 @@
     }
 
     video {
-      max-height: 140px;
+      max-height: 180px;
     }
   }
 
