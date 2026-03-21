@@ -1,13 +1,19 @@
 // Match profile card: padding, radius, shadow (see .social-card / profile-card)
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
+  overflow: hidden;
 }
 
 .gallery-modal {
   display: flex;
   flex-direction: column;
-  max-height: 90vh;
+  flex: 1 1 auto;
   min-height: 0;
+  max-height: 100%;
   overflow: hidden;
   min-width: 320px;
   padding: 1.5rem;
@@ -226,9 +232,14 @@
 }
 
 .gallery-modal-content {
+  /* Critical for flex children: without min-height:0, content grows and never scrolls */
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
   padding: 1.25rem 0.5rem 1rem;
-  flex: 1;
 }
 
 .gallery-actions {

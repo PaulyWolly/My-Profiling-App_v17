@@ -31,3 +31,45 @@ body.mat-typography {
   background-color: #4caf50 !important;
   color: #fff !important;
 }
+
+/* Gallery modal: constrain dialog height so inner .gallery-modal-content can scroll */
+.cdk-overlay-pane.gallery-modal-panel {
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.cdk-overlay-pane.gallery-modal-panel .mat-mdc-dialog-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
+}
+
+.cdk-overlay-pane.gallery-modal-panel .mat-mdc-dialog-container .mdc-dialog__container {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cdk-overlay-pane.gallery-modal-panel .mat-mdc-dialog-surface {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cdk-overlay-pane.gallery-modal-panel .mat-mdc-dialog-component-host {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
