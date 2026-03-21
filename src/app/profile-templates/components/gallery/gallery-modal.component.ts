@@ -5,6 +5,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
 import { GalleryService } from '@app/_services/gallery.service';
@@ -37,6 +39,8 @@ export interface SharedWithMeAccount {
     MatProgressSpinnerModule,
     MatProgressBarModule,
     MatFormFieldModule,
+    MatInputModule,
+    MatCheckboxModule,
     MatDialogModule,
     CustomTooltipDirective
   ],
@@ -73,6 +77,13 @@ export class GalleryModalComponent implements OnInit {
 
   /** Item shown in full-view overlay (click gallery image/video to open). */
   fullViewItem: GalleryItem | null = null;
+
+  /**
+   * Per-item “who can see this” member list: opened from share icon instead of one button per member.
+   */
+  sharePickerItem: GalleryItem | null = null;
+  sharePickerSearch = '';
+  sharePickerDraftIds: string[] = [];
 
   /** Show help popover when hovering over (?) icon. */
   showHelpPopover = false;
@@ -151,6 +162,7 @@ export class GalleryModalComponent implements OnInit {
   }
 
   openFullView(item: GalleryItem): void {
+    this.closeItemSharePicker();
     this.gridVideos?.forEach((ref: ElementRef) => {
       const video = ref.nativeElement as HTMLVideoElement;
       if (video?.pause) video.pause();
@@ -189,6 +201,13 @@ export class GalleryModalComponent implements OnInit {
 
   @HostListener('document:keydown', ['$event'])
   onDocumentKeydown(event: KeyboardEvent): void {
+    if (this.sharePickerItem) {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        this.closeItemSharePicker();
+      }
+      return;
+    }
     if (!this.fullViewItem) return;
     if (event.key === 'ArrowLeft') {
       event.preventDefault();
@@ -455,6 +474,72 @@ export class GalleryModalComponent implements OnInit {
   public getItemEligibleMembers(): Account[] {
     const allowed = new Set((this.gallerySharedWith || []).map((id) => String(id)));
     return (this.otherMembers || []).filter((m) => m.id != null && allowed.has(String(m.id)));
+  }
+
+  /** Count of this item’s shared-with ids that are still in the gallery share list (eligible). */
+  itemSelectedMemberCount(item: GalleryItem): number {
+    const allowed = new Set(this.getItemEligibleMembers().map((m) => String(m.id)));
+    return (item.sharedWith || []).filter((id) => allowed.has(String(id))).length;
+  }
+
+  openItemSharePicker(item: GalleryItem): void {
+    if (!item?.id) return;
+    this.sharePickerItem = item;
+    this.sharePickerSearch = '';
+    const allowed = new Set(this.getItemEligibleMembers().map((m) => String(m.id)));
+    const current = (item.sharedWith || []).map(String).filter((id) => allowed.has(id));
+    this.sharePickerDraftIds = [...current];
+  }
+
+  closeItemSharePicker(): void {
+    this.sharePickerItem = null;
+    this.sharePickerSearch = '';
+    this.sharePickerDraftIds = [];
+  }
+
+  getSharePickerMembersFiltered(): Account[] {
+    if (!this.sharePickerItem) return [];
+    const members = this.getItemEligibleMembers();
+    const q = this.sharePickerSearch.trim().toLowerCase();
+    if (!q) return members;
+    return members.filter((m) => this.memberDisplayName(m).toLowerCase().includes(q));
+  }
+
+  isSharePickerDraftChecked(accountId: string | undefined): boolean {
+    if (!accountId) return false;
+    return this.sharePickerDraftIds.includes(String(accountId));
+  }
+
+  onSharePickerMemberChange(member: Account, checked: boolean): void {
+    if (!member.id) return;
+    const id = String(member.id);
+    if (checked) {
+      if (!this.sharePickerDraftIds.includes(id)) {
+        this.sharePickerDraftIds = [...this.sharePickerDraftIds, id];
+      }
+    } else {
+      this.sharePickerDraftIds = this.sharePickerDraftIds.filter((x) => x !== id);
+    }
+  }
+
+  applyItemSharePicker(): void {
+    const item = this.sharePickerItem;
+    if (!item?.id) return;
+    const allowed = new Set(this.getItemEligibleMembers().map((m) => String(m.id)));
+    const next = this.sharePickerDraftIds.filter((id) => allowed.has(String(id)));
+    this.galleryService.updateItemSharing(item.id, { shareMode: 'specific', sharedWith: next }).subscribe({
+      next: (updated) => {
+        item.shareMode = (updated.shareMode || 'specific') as GalleryItem['shareMode'];
+        item.sharedWith = (updated.sharedWith || next).map((id) => String(id));
+        item.shareWithAllGalleryMembers = !!updated.shareWithAllGalleryMembers;
+        this.closeItemSharePicker();
+      },
+      error: () => this.alertService.error('Failed to update member access for this item.')
+    });
+  }
+
+  trackByMemberId(_index: number, member: Account): string {
+    return String(member.id ?? '');
   }
 
   /**
