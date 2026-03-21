@@ -228,6 +228,28 @@
     <button mat-icon-button class="fullview-close" (click)="closeFullView(); $event.stopPropagation()" aria-label="Close full view" title="Close">
       <mat-icon>close</mat-icon>
     </button>
+    <button
+      *ngIf="items.length > 1"
+      mat-icon-button
+      class="fullview-nav fullview-prev"
+      (click)="prevFullView(); $event.stopPropagation()"
+      [disabled]="!canGoPrev"
+      aria-label="Previous item"
+      title="Previous"
+    >
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+    <button
+      *ngIf="items.length > 1"
+      mat-icon-button
+      class="fullview-nav fullview-next"
+      (click)="nextFullView(); $event.stopPropagation()"
+      [disabled]="!canGoNext"
+      aria-label="Next item"
+      title="Next"
+    >
+      <mat-icon>chevron_right</mat-icon>
+    </button>
     <div class="gallery-fullview-content" (click)="$event.stopPropagation()">
       <div class="fullview-media">
         <img *ngIf="fullViewItem.type === 'image'" [src]="resolveUrl(fullViewItem.url)" [alt]="fullViewItem.caption || 'Gallery image'">

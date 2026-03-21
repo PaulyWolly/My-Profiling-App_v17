@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, ViewChildren, QueryList, ElementRef } from '@angular/core';
+import { Component, Inject, OnInit, ViewChildren, QueryList, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -156,6 +156,45 @@ export class GalleryModalComponent implements OnInit {
       if (video?.pause) video.pause();
     });
     this.fullViewItem = item;
+  }
+
+  get fullViewIndex(): number {
+    if (!this.fullViewItem) return -1;
+    return this.items.indexOf(this.fullViewItem);
+  }
+
+  get canGoPrev(): boolean {
+    return this.fullViewIndex > 0;
+  }
+
+  get canGoNext(): boolean {
+    const idx = this.fullViewIndex;
+    return idx > -1 && idx < this.items.length - 1;
+  }
+
+  prevFullView(): void {
+    if (!this.canGoPrev) return;
+    this.fullViewItem = this.items[this.fullViewIndex - 1];
+  }
+
+  nextFullView(): void {
+    if (!this.canGoNext) return;
+    this.fullViewItem = this.items[this.fullViewIndex + 1];
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  onDocumentKeydown(event: KeyboardEvent): void {
+    if (!this.fullViewItem) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      this.prevFullView();
+    } else if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      this.nextFullView();
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      this.closeFullView();
+    }
   }
 
   closeFullView(): void {

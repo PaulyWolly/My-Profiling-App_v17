@@ -653,6 +653,37 @@
   }
 }
 
+.gallery-fullview-overlay .fullview-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1001;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.15);
+
+  &:hover:not([disabled]) {
+    background: rgba(255, 255, 255, 0.25);
+  }
+
+  &[disabled] {
+    opacity: 0.35;
+  }
+
+  mat-icon {
+    font-size: 34px;
+    width: 34px;
+    height: 34px;
+  }
+}
+
+.gallery-fullview-overlay .fullview-prev {
+  left: 0.85rem;
+}
+
+.gallery-fullview-overlay .fullview-next {
+  right: 0.85rem;
+}
+
 .gallery-fullview-content {
   position: relative;
   max-width: 95vw;
