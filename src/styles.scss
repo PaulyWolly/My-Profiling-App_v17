@@ -29,7 +29,7 @@ body.mat-typography {
   max-height: 90vh;
   z-index: 1200;
   background: white;
-} 
+}
 
 .chat-badge .mat-badge-content {
   background-color: #4caf50 !important;
@@ -58,8 +58,13 @@ body.mat-typography {
   height: 100% !important;
 }
 
+.cdk-overlay-pane.gallery-modal-panel.mdc-dialog__container {
+  margin-top: 20px !important;
+}
+
 .cdk-overlay-pane.gallery-modal-panel .mat-mdc-dialog-container .mdc-dialog__container,
 .cdk-overlay-pane.mat-mdc-dialog-panel.gallery-modal-panel .mat-mdc-dialog-container .mdc-dialog__container {
+  margin-top: 20px !important;
   flex: 1 1 auto !important;
   min-height: 0 !important;
   max-height: 100% !important;
