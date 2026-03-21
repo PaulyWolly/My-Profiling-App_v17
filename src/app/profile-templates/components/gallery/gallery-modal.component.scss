@@ -88,14 +88,33 @@
 }
 
 .item-share-picker-list {
-  flex: 1 1 auto;
+  /* Cap list height so the dialog doesn’t grow with hundreds of members */
+  flex: 0 1 auto;
   min-height: 0;
-  max-height: min(45vh, 360px);
+  max-height: 30vh;
   overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
   padding: 0.5rem 1rem 0.75rem;
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
+
+  &::-webkit-scrollbar {
+    width: 10px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.28);
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  &::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.06);
+    border-radius: 8px;
+  }
 }
 
 .item-share-picker-row {
