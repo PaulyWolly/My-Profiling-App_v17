@@ -36,6 +36,11 @@ body.mat-typography {
   color: #fff !important;
 }
 
+.cdk-overlay-pane {
+  position: absolute !important;
+  top: 60px !important;
+}
+
 /* Gallery modal: constrain dialog height so inner .gallery-modal-content can scroll */
 .cdk-overlay-pane:has(.mat-mdc-dialog-panel.gallery-modal-panel) {
   /* Move the whole overlay down on load (so we don't fight nested DIVs) */
