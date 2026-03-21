@@ -23,7 +23,7 @@
   background: #fff;
   border-radius: var(--app-border-radius, 12px);
   box-shadow: rgba(0, 0, 0, 0.35) 0 5px 15px;
-  transform: translateY(20px);
+  /* Do not use translateY here — it leaves an empty white band inside the dialog surface above this card. */
 }
 
 .gallery-modal-header {

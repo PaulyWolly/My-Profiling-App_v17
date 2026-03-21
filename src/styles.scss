@@ -39,8 +39,10 @@ body.mat-typography {
 /* Gallery modal: constrain dialog height so inner .gallery-modal-content can scroll */
 .cdk-overlay-pane.gallery-modal-panel,
 .cdk-overlay-pane.mat-mdc-dialog-panel.gallery-modal-panel {
-  height: 90vh !important;
-  max-height: 90vh !important;
+  /* Nudge whole dialog down without inner “empty strip” (see gallery-modal: no translateY). */
+  margin-top: 20px !important;
+  height: calc(90vh - 20px) !important;
+  max-height: calc(90vh - 20px) !important;
   /* Never wider than the visible layout viewport (avoids scrollbar off-screen). */
   max-width: min(1440px, calc(100vw - 24px), calc(100dvw - 24px)) !important;
   box-sizing: border-box !important;
