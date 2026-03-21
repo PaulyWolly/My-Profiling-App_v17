@@ -4,11 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
 import { GalleryService } from '@app/_services/gallery.service';
-import {
-  GalleryModalComponent,
-  GalleryModalData,
-  GALLERY_DIALOG_OVERLAY_PANEL_CLASS
-} from './gallery-modal.component';
+import { GalleryModalComponent, GalleryModalData } from './gallery-modal.component';
 
 @Component({
   selector: 'app-gallery-section',
@@ -79,8 +75,10 @@ export class GallerySectionComponent implements OnInit {
       data,
       width: '95vw',
       maxWidth: '1440px',
-      /* Position, height, and flex shell: src/styles/gallery-dialog-overlay.scss */
-      panelClass: GALLERY_DIALOG_OVERLAY_PANEL_CLASS
+      /* Fixed viewport height so inner flex + overflow-y can actually scroll (maxHeight alone often grows with content). */
+      height: '90vh',
+      maxHeight: '90vh',
+      panelClass: 'gallery-modal-panel'
     });
     ref.afterClosed().subscribe(() => {
       this.loadItemCount();

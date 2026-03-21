@@ -1,6 +1,5 @@
 // Import scrollable styles
 @import './styles/scrollable.scss';
-@import './styles/gallery-dialog-overlay.scss';
 
 html, body {
   background: red !important;
@@ -37,4 +36,57 @@ body.mat-typography {
   color: #fff !important;
 }
 
-/* Gallery dialog overlay: see src/styles/gallery-dialog-overlay.scss (panelClass: app-gallery-dialog-overlay) */
+/* Gallery modal: constrain dialog height so inner .gallery-modal-content can scroll */
+.cdk-overlay-pane.gallery-modal-panel,
+.cdk-overlay-pane.mat-mdc-dialog-panel.gallery-modal-panel {
+  height: 90vh !important;
+  max-height: 90vh !important;
+  /* Never wider than the visible layout viewport (avoids scrollbar off-screen). */
+  max-width: min(1440px, calc(100vw - 24px), calc(100dvw - 24px)) !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.cdk-overlay-pane.gallery-modal-panel .mat-mdc-dialog-container,
+.cdk-overlay-pane.mat-mdc-dialog-panel.gallery-modal-panel .mat-mdc-dialog-container {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  height: 100% !important;
+}
+
+.cdk-overlay-pane.gallery-modal-panel .mat-mdc-dialog-container .mdc-dialog__container,
+.cdk-overlay-pane.mat-mdc-dialog-panel.gallery-modal-panel .mat-mdc-dialog-container .mdc-dialog__container {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+.cdk-overlay-pane.gallery-modal-panel .mat-mdc-dialog-surface,
+.cdk-overlay-pane.mat-mdc-dialog-panel.gallery-modal-panel .mat-mdc-dialog-surface {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+.cdk-overlay-pane.gallery-modal-panel .mat-mdc-dialog-component-host,
+.cdk-overlay-pane.mat-mdc-dialog-panel.gallery-modal-panel .mat-mdc-dialog-component-host {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
