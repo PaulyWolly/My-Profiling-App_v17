@@ -6,8 +6,8 @@
  * Tune vertical offset from the top of the viewport here (clears fixed app header).
  */
 .cdk-overlay-pane.app-gallery-dialog-overlay {
-  /* Set to (fixed app header height) + optional gap — clears the top bar */
-  --gallery-dialog-top-offset: 64px;
+  /* Fixed app header height + gap — increase if title still tucks under toolbar */
+  --gallery-dialog-top-offset: 80px;
 
   /* Override CDK global centering (inline transform) so the modal sits below the header */
   top: var(--gallery-dialog-top-offset) !important;
@@ -19,7 +19,7 @@
 
   height: calc(90vh - var(--gallery-dialog-top-offset)) !important;
   max-height: calc(90vh - var(--gallery-dialog-top-offset)) !important;
-  max-width: min(1440px, calc(100vw - 24px), calc(100dvw - 24px)) !important;
+  max-width: min(1200px, calc(100vw - 48px), calc(100dvw - 48px)) !important;
   box-sizing: border-box !important;
   display: flex !important;
   flex-direction: column !important;
@@ -65,4 +65,7 @@
   display: flex !important;
   flex-direction: column !important;
   overflow: hidden !important;
+  /* Slightly smaller UI density inside this dialog only */
+  font-size: 14px;
+  line-height: 1.45;
 }
