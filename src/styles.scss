@@ -58,10 +58,6 @@ body.mat-typography {
   height: 100% !important;
 }
 
-.cdk-overlay-pane.gallery-modal-panel.mdc-dialog__container {
-  margin-top: 20px !important;
-}
-
 .cdk-overlay-pane.gallery-modal-panel .mat-mdc-dialog-container .mdc-dialog__container,
 .cdk-overlay-pane.mat-mdc-dialog-panel.gallery-modal-panel .mat-mdc-dialog-container .mdc-dialog__container {
   margin-top: 20px !important;
@@ -94,4 +90,9 @@ body.mat-typography {
   display: flex !important;
   flex-direction: column !important;
   overflow: hidden !important;
+}
+
+
+.mdc-dialog__container {
+  margin-top: 20px !important;
 }
