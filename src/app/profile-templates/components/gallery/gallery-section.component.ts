@@ -75,9 +75,10 @@ export class GallerySectionComponent implements OnInit {
       data,
       width: '95vw',
       maxWidth: '1440px',
-      /* Fixed viewport height so inner flex + overflow-y can actually scroll (maxHeight alone often grows with content). */
-      height: '90vh',
-      maxHeight: '90vh',
+      /* Move dialog down by 40px from the top and keep a stable height so the inner scroll area works. */
+      position: { top: '40px' },
+      height: 'calc(90vh - 40px)',
+      maxHeight: 'calc(90vh - 40px)',
       panelClass: 'gallery-modal-panel'
     });
     ref.afterClosed().subscribe(() => {
