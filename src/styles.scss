@@ -37,8 +37,7 @@ body.mat-typography {
 }
 
 /* Gallery modal: constrain dialog height so inner .gallery-modal-content can scroll */
-.cdk-overlay-pane.gallery-modal-panel,
-.cdk-overlay-pane.mat-mdc-dialog-panel.gallery-modal-panel {
+.cdk-overlay-pane:has(.mat-mdc-dialog-panel.gallery-modal-panel) {
   /* Move the whole overlay down on load (so we don't fight nested DIVs) */
   top: clamp(20px, 3.5vh, 40px) !important;
   left: 50% !important;
@@ -57,8 +56,7 @@ body.mat-typography {
   flex-direction: column !important;
 }
 
-.cdk-overlay-pane.gallery-modal-panel .mat-mdc-dialog-container,
-.cdk-overlay-pane.mat-mdc-dialog-panel.gallery-modal-panel .mat-mdc-dialog-container {
+.cdk-overlay-pane:has(.mat-mdc-dialog-panel.gallery-modal-panel) .mat-mdc-dialog-container {
   /* So the gap from .mdc-dialog__container margin-top shows the dimmed backdrop, not a white band */
   background: transparent !important;
   display: flex !important;
@@ -69,8 +67,7 @@ body.mat-typography {
   height: 100% !important;
 }
 
-.cdk-overlay-pane.gallery-modal-panel .mat-mdc-dialog-container .mdc-dialog__container,
-.cdk-overlay-pane.mat-mdc-dialog-panel.gallery-modal-panel .mat-mdc-dialog-container .mdc-dialog__container {
+.cdk-overlay-pane:has(.mat-mdc-dialog-panel.gallery-modal-panel) .mat-mdc-dialog-container .mdc-dialog__container {
   /* Offset is handled by the CDK overlay pane */
   margin-top: 0 !important;
   background: transparent !important;
@@ -83,8 +80,7 @@ body.mat-typography {
   overflow: hidden !important;
 }
 
-.cdk-overlay-pane.gallery-modal-panel .mat-mdc-dialog-surface,
-.cdk-overlay-pane.mat-mdc-dialog-panel.gallery-modal-panel .mat-mdc-dialog-surface {
+.cdk-overlay-pane:has(.mat-mdc-dialog-panel.gallery-modal-panel) .mat-mdc-dialog-surface {
   /* White card only on the surface; outer shells stay transparent for margin-top gap */
   background: #fff !important;
   flex: 1 1 auto !important;
@@ -96,8 +92,7 @@ body.mat-typography {
   overflow: hidden !important;
 }
 
-.cdk-overlay-pane.gallery-modal-panel .mat-mdc-dialog-component-host,
-.cdk-overlay-pane.mat-mdc-dialog-panel.gallery-modal-panel .mat-mdc-dialog-component-host {
+.cdk-overlay-pane:has(.mat-mdc-dialog-panel.gallery-modal-panel) .mat-mdc-dialog-component-host {
   flex: 1 1 auto !important;
   min-height: 0 !important;
   max-height: 100% !important;
