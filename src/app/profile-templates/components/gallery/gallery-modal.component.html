@@ -233,7 +233,6 @@
       mat-icon-button
       class="fullview-nav fullview-prev"
       (click)="prevFullView(); $event.stopPropagation()"
-      [disabled]="!canGoPrev"
       aria-label="Previous item"
       title="Previous"
     >
@@ -244,7 +243,6 @@
       mat-icon-button
       class="fullview-nav fullview-next"
       (click)="nextFullView(); $event.stopPropagation()"
-      [disabled]="!canGoNext"
       aria-label="Next item"
       title="Next"
     >

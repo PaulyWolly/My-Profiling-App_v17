@@ -164,22 +164,27 @@ export class GalleryModalComponent implements OnInit {
   }
 
   get canGoPrev(): boolean {
-    return this.fullViewIndex > 0;
+    return this.items.length > 1;
   }
 
   get canGoNext(): boolean {
-    const idx = this.fullViewIndex;
-    return idx > -1 && idx < this.items.length - 1;
+    return this.items.length > 1;
   }
 
   prevFullView(): void {
-    if (!this.canGoPrev) return;
-    this.fullViewItem = this.items[this.fullViewIndex - 1];
+    if (this.items.length < 2) return;
+    const idx = this.fullViewIndex;
+    if (idx < 0) return;
+    const prevIdx = (idx - 1 + this.items.length) % this.items.length;
+    this.fullViewItem = this.items[prevIdx];
   }
 
   nextFullView(): void {
-    if (!this.canGoNext) return;
-    this.fullViewItem = this.items[this.fullViewIndex + 1];
+    if (this.items.length < 2) return;
+    const idx = this.fullViewIndex;
+    if (idx < 0) return;
+    const nextIdx = (idx + 1) % this.items.length;
+    this.fullViewItem = this.items[nextIdx];
   }
 
   @HostListener('document:keydown', ['$event'])
