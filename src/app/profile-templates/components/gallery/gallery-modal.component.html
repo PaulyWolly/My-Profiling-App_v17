@@ -35,7 +35,13 @@
   <div class="gallery-modal-content">
     <div *ngIf="myAccountId && isViewingSharedGallery" class="member-upload-cta">
       <span class="member-upload-cta-text">To add media, go to your gallery:</span>
-      <button mat-stroked-button type="button" class="member-upload-cta-btn" (click)="backToMyGalleryAndOpenUpload()" [disabled]="uploading">
+      <button
+        mat-stroked-button
+        type="button"
+        class="member-upload-cta-btn gallery-cta-add-media-stroked"
+        (click)="backToMyGalleryAndOpenUpload()"
+        [disabled]="uploading"
+      >
         <mat-icon>add_photo_alternate</mat-icon>
         Add photo or video
       </button>
@@ -75,7 +81,13 @@
               Share with specific member(s)
             </button>
           </div>
-          <button mat-raised-button color="primary" class="add-media-btn" (click)="showUploadArea = true" [disabled]="uploading">
+          <button
+            mat-raised-button
+            type="button"
+            class="add-media-btn gallery-cta-add-media"
+            (click)="showUploadArea = true"
+            [disabled]="uploading"
+          >
             <mat-icon>add_photo_alternate</mat-icon>
             Add photo or video
           </button>

@@ -1,4 +1,9 @@
 // Match profile card: padding, radius, shadow (see .social-card / profile-card)
+//
+// Emulated encapsulation adds scoped attributes + a component <style> block in DevTools — that is normal
+// for Angular. Material buttons render extra internal DOM (.mdc-*); to theme them from this file use
+// `:host ::ng-deep ...` (or move rules to global `styles.scss` without ::ng-deep).
+
 :host {
   display: flex;
   flex-direction: column;
@@ -151,8 +156,7 @@
 
   .member-upload-cta-btn {
     flex-shrink: 0;
-    border-color: rgba(13, 110, 253, 0.65) !important;
-    color: rgba(13, 110, 253, 1) !important;
+    /* Color comes from `.gallery-cta-add-media-stroked` (+ ::ng-deep MDC vars) */
 
     mat-icon {
       margin-right: 0.25rem;
@@ -360,6 +364,39 @@
 
 .gallery-actions {
   margin-bottom: 1rem;
+}
+
+/* Green “Add photo or video” — filled (sharing row) */
+:host ::ng-deep .sharing-control .gallery-cta-add-media.mat-mdc-raised-button {
+  --mdc-filled-button-container-color: #2e7d32;
+  --mdc-filled-button-label-text-color: #fff;
+  --mat-filled-button-state-layer-color: #fff;
+  --mdc-filled-button-hover-state-layer-opacity: 0.12;
+  --mdc-filled-button-focus-state-layer-opacity: 0.12;
+  --mdc-filled-button-pressed-state-layer-opacity: 0.14;
+
+  &:hover:not([disabled]) {
+    --mdc-filled-button-container-color: #27642a;
+  }
+
+  &[disabled] {
+    --mdc-filled-button-container-color: rgba(46, 125, 50, 0.38);
+    --mdc-filled-button-label-text-color: rgba(255, 255, 255, 0.78);
+  }
+}
+
+/* Green “Add photo or video” — stroked (viewing someone else’s gallery CTA) */
+:host ::ng-deep .member-upload-cta .gallery-cta-add-media-stroked.mat-mdc-outlined-button {
+  --mdc-outlined-button-label-text-color: #2e7d32;
+  --mdc-outlined-button-outline-color: #2e7d32;
+  --mat-outlined-button-state-layer-color: #2e7d32;
+  --mdc-outlined-button-hover-state-layer-opacity: 0.08;
+  --mdc-outlined-button-focus-state-layer-opacity: 0.12;
+
+  &:hover:not([disabled]) {
+    --mdc-outlined-button-label-text-color: #1b5e20;
+    --mdc-outlined-button-outline-color: #27642a;
+  }
 }
 
 .sharing-control {
