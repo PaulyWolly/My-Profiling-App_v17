@@ -1,7 +1,7 @@
 import { Component, OnInit, HostListener, Renderer2, ViewEncapsulation, AfterViewInit, OnDestroy, effect } from '@angular/core';
 import { Router, NavigationEnd, Event } from '@angular/router';
 import { filter } from 'rxjs/operators';
-import { AccountService, Auth0Service } from '@app/_services';
+import { AccountService, Auth0Service, IdleTimeoutService } from '@app/_services';
 import { Subscription } from 'rxjs';
 import { Account, Role } from './_models';
 
@@ -24,6 +24,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     constructor(
         private accountService: AccountService,
         private auth0Service: Auth0Service,
+        private idleTimeoutService: IdleTimeoutService,
         private router: Router,
         private renderer: Renderer2
     ) {
@@ -31,6 +32,12 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         effect(() => {
             const x = this.accountService.account();
             this.account = x;
+
+            if (x) {
+                this.idleTimeoutService.start();
+            } else {
+                this.idleTimeoutService.stop();
+            }
 
             // Get the current URL
             const currentUrl = window.location.pathname || '/';
@@ -123,6 +130,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     ngOnDestroy() {
+        this.idleTimeoutService.stop();
         // Clean up subscriptions
         this.subscriptions.unsubscribe();
 
