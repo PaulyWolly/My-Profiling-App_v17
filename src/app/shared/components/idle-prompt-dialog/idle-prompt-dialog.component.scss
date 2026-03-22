@@ -1,0 +1,74 @@
+.idle-prompt-dialog {
+  min-width: 360px;
+  max-width: 440px;
+}
+
+.idle-prompt-title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 500;
+}
+
+.idle-prompt-content {
+  font-size: 1rem;
+  line-height: 1.5;
+  padding-top: 8px;
+
+  p {
+    margin: 0 0 12px;
+  }
+}
+
+.idle-prompt-countdown {
+  margin-top: 8px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.04);
+  text-align: center;
+}
+
+.idle-prompt-countdown--final-minute {
+  background: rgba(183, 28, 28, 0.08);
+  border: 1px solid rgba(183, 28, 28, 0.2);
+}
+
+.idle-prompt-countdown--closing {
+  background: rgba(183, 28, 28, 0.08);
+  border: 1px solid rgba(183, 28, 28, 0.2);
+}
+
+.idle-prompt-logout-line {
+  margin: 0 !important;
+  font-size: 1.05rem;
+  color: rgba(0, 0, 0, 0.75);
+  line-height: 1.5;
+}
+
+.idle-prompt-logout-value {
+  display: inline-block;
+  margin: 0 0.2em;
+  font-variant-numeric: tabular-nums;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #b71c1c;
+  min-width: 2.25ch;
+  text-align: center;
+  vertical-align: -0.05em;
+}
+
+.idle-prompt-logout-value--time {
+  min-width: 4.5ch;
+  letter-spacing: 0.04em;
+}
+
+.idle-prompt-signing-out {
+  margin: 0 !important;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: rgba(183, 28, 28, 0.95);
+}
+
+.idle-prompt-actions {
+  padding: 8px 0 16px;
+  gap: 8px;
+}

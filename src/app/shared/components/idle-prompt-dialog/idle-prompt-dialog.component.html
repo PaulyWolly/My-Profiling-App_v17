@@ -1,0 +1,39 @@
+<div class="idle-prompt-dialog">
+  <h2 mat-dialog-title class="idle-prompt-title">Still there?</h2>
+  <mat-dialog-content class="idle-prompt-content">
+    <p>
+      You have been inactive for a while. To stay signed in, choose
+      <strong>Continue</strong>.
+    </p>
+    <div
+      class="idle-prompt-countdown"
+      [class.idle-prompt-countdown--final-minute]="secondsLeft > 0 && secondsLeft <= secondsCountdownThreshold"
+      *ngIf="secondsLeft > 0; else signingOutTpl"
+    >
+      <ng-container *ngIf="secondsLeft > secondsCountdownThreshold; else secondsCountdownTpl">
+        <p class="idle-prompt-logout-line" aria-live="polite">
+          Logging you out in:
+          <span class="idle-prompt-logout-value idle-prompt-logout-value--time">{{ timeMmSs }}</span>.
+        </p>
+      </ng-container>
+      <ng-template #secondsCountdownTpl>
+        <p class="idle-prompt-logout-line" aria-live="polite">
+          Logging you out in:
+          <span class="idle-prompt-logout-value">{{ secondsLeft }}</span>
+          {{ secondsLeft === 1 ? 'second' : 'seconds' }}.
+        </p>
+      </ng-template>
+    </div>
+    <ng-template #signingOutTpl>
+      <div class="idle-prompt-countdown idle-prompt-countdown--closing">
+        <p class="idle-prompt-signing-out" aria-live="assertive">Logging you out…</p>
+      </div>
+    </ng-template>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end" class="idle-prompt-actions">
+    <button mat-button type="button" (click)="onLogout()">Sign out</button>
+    <button mat-raised-button color="primary" type="button" (click)="onContinue()">
+      Continue
+    </button>
+  </mat-dialog-actions>
+</div>
