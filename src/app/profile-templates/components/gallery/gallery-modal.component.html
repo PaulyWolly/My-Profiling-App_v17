@@ -186,6 +186,13 @@
         <div class="media-wrap" (click)="openFullView(item)" role="button" tabindex="0" (keydown.enter)="openFullView(item)" (keydown.space)="openFullView(item)">
           <img *ngIf="item.type === 'image'" [src]="resolveUrl(item.url)" [alt]="item.caption || 'Gallery image'" loading="lazy">
           <video #gridVideo *ngIf="item.type === 'video'" [src]="resolveUrl(item.url)" preload="metadata" muted playsinline></video>
+          <span
+            class="media-type-badge"
+            [attr.aria-label]="item.type === 'video' ? 'Video' : 'Photo'"
+            title="{{ item.type === 'video' ? 'Video' : 'Photo' }}"
+          >
+            <mat-icon>{{ item.type === 'video' ? 'videocam' : 'photo_camera' }}</mat-icon>
+          </span>
         </div>
         <span *ngIf="showLockOnThumbnail(item)" class="item-private-lock" [title]="lockIconTitle(item)">
           <mat-icon>lock</mat-icon>
