@@ -188,6 +188,8 @@
           <video #gridVideo *ngIf="item.type === 'video'" [src]="resolveUrl(item.url)" preload="metadata" muted playsinline></video>
           <span
             class="media-type-badge"
+            [class.media-type-badge--photo]="item.type === 'image'"
+            [class.media-type-badge--video]="item.type === 'video'"
             [attr.aria-label]="item.type === 'video' ? 'Video' : 'Photo'"
             title="{{ item.type === 'video' ? 'Video' : 'Photo' }}"
           >
