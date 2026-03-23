@@ -83,3 +83,10 @@ enhanced_backup_*/
 
 # Local one-off tooling (not needed for repo/test)
 /scripts/convert-avi-to-mkv.js
+
+# User-uploaded media under server/uploads — kept on disk locally / URLs from S3 in production.
+# Do not commit binaries (bloat, privacy). Source files stay in server/uploads/*.js (still tracked).
+/server/uploads/profiles/
+/server/uploads/followers/
+/server/uploads/gallery/
+/server/uploads/companyLogo/
