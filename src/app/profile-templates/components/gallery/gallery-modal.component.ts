@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, ViewChildren, QueryList, ElementRef, HostListener } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit, ViewChildren, QueryList, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -16,6 +16,7 @@ import { GalleryItem } from '@app/_models/gallery.model';
 import { Account } from '@app/_models';
 import { environment } from '@environments/environment';
 import { CustomTooltipDirective } from '@app/shared/custom-tooltip/custom-tooltip.directive';
+import { Subscription } from 'rxjs';
 
 export interface GalleryModalData {
   accountId: string;
@@ -47,7 +48,7 @@ export interface SharedWithMeAccount {
   templateUrl: './gallery-modal.component.html',
   styleUrls: ['./gallery-modal.component.scss']
 })
-export class GalleryModalComponent implements OnInit {
+export class GalleryModalComponent implements OnInit, OnDestroy {
   accountId: string;
   isOwnProfile: boolean;
 
@@ -109,6 +110,8 @@ export class GalleryModalComponent implements OnInit {
     this.ownerFirstName = this.accountService.accountValue?.firstName?.trim() || '';
   }
 
+  private logoutSub: Subscription | null = null;
+
   /** True when we opened from own profile but are currently viewing someone else's shared gallery. */
   get isViewingSharedGallery(): boolean {
     return !!this.myAccountId && this.accountId !== this.myAccountId;
@@ -116,6 +119,13 @@ export class GalleryModalComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadGallery();
+    // If the user logs out while this modal is open, close the modal so the UI
+    // doesn't look like the session is still active.
+    this.logoutSub = this.accountService.account$.subscribe((acc) => {
+      if (!acc) {
+        this.dialogRef.close();
+      }
+    });
     if (this.isOwnProfile) {
       this.galleryService.getSettings().subscribe((s) => {
         this.gallerySharedWith = (s.gallerySharedWith || []).map((id) => String(id));
@@ -125,6 +135,11 @@ export class GalleryModalComponent implements OnInit {
       this.loadOtherMembers();
       this.loadSharedWithMe();
     }
+  }
+
+  ngOnDestroy(): void {
+    this.logoutSub?.unsubscribe();
+    this.logoutSub = null;
   }
 
   loadSharedWithMe(): void {
@@ -434,25 +449,6 @@ export class GalleryModalComponent implements OnInit {
     return this.getItemShareMode(item) === 'owner-only';
   }
 
-  /**
-   * Whether to show per-item Paul / Tweety / … chips.
-   * NOT the same as getItemShareMode === 'specific': when the picked set equals the full gallery list,
-   * getItemShareMode() returns 'all-shared' (for button + lock), but we must still show chips or the
-   * UI looks like everyone's selection vanished and users can't toggle Tweety.
-   */
-  public showItemMemberChips(item: GalleryItem): boolean {
-    if (this.isItemOwnerOnly(item)) {
-      return false;
-    }
-    if (item.shareWithAllGalleryMembers === true) {
-      return false;
-    }
-    if (item.shareMode === 'all-shared') {
-      return false;
-    }
-    return true;
-  }
-
   /** Viewers only see explicitly shared items — lock all; owner: no lock for "all gallery members" */
   public showLockOnThumbnail(item: GalleryItem): boolean {
     if (this.isViewingSharedGallery) {
@@ -491,6 +487,44 @@ export class GalleryModalComponent implements OnInit {
   itemSelectedMemberCount(item: GalleryItem): number {
     const allowed = new Set(this.getItemEligibleMembers().map((m) => String(m.id)));
     return (item.sharedWith || []).filter((id) => allowed.has(String(id))).length;
+  }
+
+  /** Label for the compact "Selected" share button (count only when in specific mode). */
+  selectedShareButtonLabel(item: GalleryItem): string {
+    if (this.getItemShareMode(item) === 'specific') {
+      return `Selected (${this.itemSelectedMemberCount(item)})`;
+    }
+    return 'Selected';
+  }
+
+  selectedShareAriaLabel(item: GalleryItem): string {
+    if (this.getItemShareMode(item) === 'specific') {
+      const n = this.itemSelectedMemberCount(item);
+      return `Selected members only, ${n} member${n === 1 ? '' : 's'}`;
+    }
+    return 'Selected members only';
+  }
+
+  /** Hover hint: opening the picker is done only via this button (no separate share icon). */
+  selectedShareTooltip(item: GalleryItem): string {
+    if (this.getItemShareMode(item) === 'specific') {
+      const n = this.itemSelectedMemberCount(item);
+      return `Choose who can see this item (${n} selected). Click to edit the list.`;
+    }
+    return 'Switch to selected members and choose who can see this item.';
+  }
+
+  /**
+   * Opens the member picker. If already in specific mode, opens immediately; otherwise switches to
+   * specific via API first, then opens so draft state matches server.
+   */
+  onSelectedShareClick(item: GalleryItem): void {
+    if (!item.id) return;
+    if (this.getItemShareMode(item) === 'specific') {
+      this.openItemSharePicker(item);
+      return;
+    }
+    this.setItemShareCategory(item, 'specific', () => this.openItemSharePicker(item));
   }
 
   openItemSharePicker(item: GalleryItem): void {
@@ -570,7 +604,11 @@ export class GalleryModalComponent implements OnInit {
     return base;
   }
 
-  public setItemShareCategory(item: GalleryItem, mode: 'owner-only' | 'all-shared' | 'specific'): void {
+  public setItemShareCategory(
+    item: GalleryItem,
+    mode: 'owner-only' | 'all-shared' | 'specific',
+    afterSuccess?: () => void
+  ): void {
     if (!item.id) return;
     /** When leaving "all shared" UI, never PATCH specific + [] — that hides the item from everyone. */
     let specificSharedWith: string[] = [];
@@ -594,6 +632,7 @@ export class GalleryModalComponent implements OnInit {
         item.shareMode = (updated.shareMode || mode) as GalleryItem['shareMode'];
         item.sharedWith = (updated.sharedWith || payload.sharedWith || []).map((id) => String(id));
         item.shareWithAllGalleryMembers = !!updated.shareWithAllGalleryMembers;
+        afterSuccess?.();
       },
       error: () => this.alertService.error('Failed to update sharing for this item.')
     });

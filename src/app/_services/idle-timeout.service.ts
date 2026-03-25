@@ -6,6 +6,13 @@ import { AccountService } from './account.service';
 import { Auth0Service } from './auth0.service';
 
 /**
+ * Idle timeout duration before showing the "still there?" modal.
+ * TESTING: 30 seconds
+ * PRODUCTION: 20 * 60 * 1000 (20 minutes)
+ */
+const IDLE_TIMEOUT_MS = 30 * 1000;
+
+/**
  * After no user activity for {@link IDLE_MS}, shows a prompt to continue.
  * If the user chooses Continue, the idle window restarts. If they do nothing until
  * {@link PROMPT_MS} elapses (or choose Sign out), they are logged out.
@@ -13,7 +20,7 @@ import { Auth0Service } from './auth0.service';
 @Injectable({ providedIn: 'root' })
 export class IdleTimeoutService implements OnDestroy {
   /** No activity for this long → show “still there?” prompt */
-  private static readonly IDLE_MS = 20 * 60 * 1000;
+  private static readonly IDLE_MS = IDLE_TIMEOUT_MS;
 
   /** No response on the prompt for this long → logout */
   private static readonly PROMPT_MS = 2 * 60 * 1000;
@@ -162,6 +169,8 @@ export class IdleTimeoutService implements OnDestroy {
     this.ngZone.run(() => {
       this.promptDialogRef = this.dialog.open(IdlePromptDialogComponent, {
         disableClose: true,
+        // Gallery uses fixed overlays with z-index ~1000; bump ours via CSS.
+        panelClass: 'idle-timeout-panel',
         width: '440px',
         maxWidth: '95vw',
         data: { promptSeconds }

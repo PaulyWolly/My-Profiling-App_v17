@@ -15,6 +15,13 @@ body.mat-typography {
   background: red !important;
 }
 
+/* Idle timeout prompt: must render above Gallery modal fixed overlays (z-index ~1000). */
+/* panelClass adds this class to the MatDialog panel element itself. */
+.idle-timeout-panel {
+  position: relative !important;
+  z-index: 3000 !important;
+}
+
 ::ng-deep .chat-dialog-container {
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.2);

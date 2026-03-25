@@ -220,29 +220,15 @@
                     (click)="setItemShareCategory(item, 'all-shared')"
                     aria-label="All Shared Members">All</button>
             <button type="button" mat-stroked-button class="item-share-mode-compact"
-                    appCustomTooltip="Selected Members Only"
+                    [appCustomTooltip]="selectedShareTooltip(item)"
                     tooltipPosition="top"
-                    [tooltipApproxWidth]="220"
-                    [tooltipApproxHeight]="34"
+                    [tooltipApproxWidth]="320"
+                    [tooltipApproxHeight]="44"
                     [color]="getItemShareMode(item) === 'specific' ? 'primary' : ''"
-                    (click)="setItemShareCategory(item, 'specific')"
-                    aria-label="Selected Members Only">Selected</button>
-          </div>
-          <div *ngIf="showItemMemberChips(item)" class="item-share-members-row">
-            <p *ngIf="getItemEligibleMembers().length === 0" class="item-member-empty">No members selected in "Share with specific member(s)" yet.</p>
-            <ng-container *ngIf="getItemEligibleMembers().length > 0">
-              <span class="item-share-selected-summary">{{ itemSelectedMemberCount(item) }} selected</span>
-              <button
-                type="button"
-                mat-icon-button
-                class="item-open-share-picker-btn"
-                (click)="openItemSharePicker(item); $event.stopPropagation()"
-                title="Choose members for this item"
-                aria-label="Open member list to share this item with selected people"
-              >
-                <mat-icon>share</mat-icon>
-              </button>
-            </ng-container>
+                    (click)="onSelectedShareClick(item)"
+                    [attr.aria-label]="selectedShareAriaLabel(item)">
+              {{ selectedShareButtonLabel(item) }}
+            </button>
           </div>
         </div>
         <button *ngIf="isOwnProfile" mat-icon-button color="warn" class="delete-btn" (click)="deleteItem(item); $event.stopPropagation()" title="Remove">
@@ -274,15 +260,25 @@
         <input matInput [(ngModel)]="sharePickerSearch" autocomplete="off" />
       </mat-form-field>
       <div class="item-share-picker-list">
-        <mat-checkbox
-          *ngFor="let member of getSharePickerMembersFiltered(); trackBy: trackByMemberId"
-          class="item-share-picker-row"
-          [checked]="isSharePickerDraftChecked(member.id)"
-          (change)="onSharePickerMemberChange(member, $event.checked)"
-        >
-          {{ memberDisplayName(member) }}
-        </mat-checkbox>
-        <p *ngIf="getSharePickerMembersFiltered().length === 0" class="item-share-picker-empty">No members match your search.</p>
+        <ng-container *ngIf="getItemEligibleMembers().length === 0; else sharePickerMemberList">
+          <p class="item-share-picker-empty">
+            Nobody is in your gallery share list yet. Use “Share with specific member(s)” above,
+            then open this dialog again.
+          </p>
+        </ng-container>
+        <ng-template #sharePickerMemberList>
+          <mat-checkbox
+            *ngFor="let member of getSharePickerMembersFiltered(); trackBy: trackByMemberId"
+            class="item-share-picker-row"
+            [checked]="isSharePickerDraftChecked(member.id)"
+            (change)="onSharePickerMemberChange(member, $event.checked)"
+          >
+            {{ memberDisplayName(member) }}
+          </mat-checkbox>
+          <p *ngIf="getSharePickerMembersFiltered().length === 0 && sharePickerSearch.trim()" class="item-share-picker-empty">
+            No members match your search.
+          </p>
+        </ng-template>
       </div>
       <div class="item-share-picker-actions">
         <button type="button" mat-button (click)="closeItemSharePicker()">Cancel</button>

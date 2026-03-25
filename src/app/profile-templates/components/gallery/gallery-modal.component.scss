@@ -809,7 +809,6 @@
       align-items: center;
       justify-content: stretch;
       gap: 0.25rem;
-      margin-bottom: 0.35rem;
 
       .item-share-mode-compact {
         flex: 1 1 0;
@@ -830,39 +829,6 @@
       font-size: 0.74rem;
       color: #333;
       input { margin: 0; }
-    }
-
-    .item-share-members-row {
-      margin-top: 0.35rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.35rem;
-      min-height: 36px;
-
-      .item-member-empty {
-        margin: 0;
-        font-size: 0.72rem;
-        color: #666;
-        line-height: 1.35;
-      }
-
-      .item-share-selected-summary {
-        font-size: 0.72rem;
-        font-weight: 600;
-        color: #333;
-        flex: 1 1 auto;
-        min-width: 0;
-      }
-
-      .item-open-share-picker-btn {
-        flex-shrink: 0;
-        mat-icon {
-          font-size: 20px;
-          width: 20px;
-          height: 20px;
-        }
-      }
     }
   }
 
