@@ -10,7 +10,7 @@ import { Auth0Service } from './auth0.service';
  * TESTING: 30 seconds
  * PRODUCTION: 20 * 60 * 1000 (20 minutes)
  */
-const IDLE_TIMEOUT_MS = 30 * 1000;
+const IDLE_TIMEOUT_MS = 20 * 60 * 1000; //20 minutes
 
 /**
  * After no user activity for {@link IDLE_MS}, shows a prompt to continue.
