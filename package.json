@@ -15,6 +15,9 @@
     "backup:run": "npm run backup"
   },
   "private": true,
+  "engines": {
+    "node": ">=18.19.0"
+  },
   "dependencies": {
     "@angular/animations": "17.3.12",
     "@angular/cdk": "17.3.10",

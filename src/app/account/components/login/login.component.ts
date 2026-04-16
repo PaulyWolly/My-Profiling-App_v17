@@ -146,6 +146,8 @@ export class LoginComponent implements OnInit, OnDestroy {
         this.auth.loginWithRedirect({
             authorizationParams: {
                 connection: 'google-oauth2',
+                // Ask Google to show the account picker; otherwise a single signed-in Google session logs straight in.
+                prompt: 'select_account',
                 redirect_uri: window.location.origin + '/profile'
             }
         });
