@@ -196,8 +196,12 @@ async function register(params, origin) {
     // create account object
     const account = new db.Account(params);
 
-    // Ensure role is provided and valid
-    if (!params.role || ![Role.Admin, Role.User, Role.SuperAdmin].includes(params.role)) {
+    // Self-registration and Auth0 signup omit role; default to User
+    if (!params.role) {
+        params.role = Role.User;
+    }
+
+    if (![Role.Admin, Role.User, Role.SuperAdmin].includes(params.role)) {
         console.log('Invalid role provided:', params.role);
         throw 'Role must be either "Admin", "User", or "Super-Admin"';
     }
