@@ -9,9 +9,17 @@ const path = require('path');
 const secretsDir = path.join(__dirname, '..', 'secrets');
 const configPath = path.join(secretsDir, 'config.json');
 
-if (!process.env.MONGODB_URI) {
+const mongoUri = typeof process.env.MONGODB_URI === 'string' ? process.env.MONGODB_URI.trim() : '';
+
+if (!mongoUri) {
   console.log('[write-config-from-env] MONGODB_URI not set, skipping (using existing config.json if present)');
   process.exit(0);
+}
+
+if (!/^mongodb(\+srv)?:\/\//i.test(mongoUri)) {
+  console.error('[write-config-from-env] MONGODB_URI must start with mongodb:// or mongodb+srv://');
+  console.error('[write-config-from-env] Got (first 60 chars):', mongoUri.substring(0, 60));
+  process.exit(1);
 }
 
 if (!fs.existsSync(secretsDir)) {
@@ -19,7 +27,7 @@ if (!fs.existsSync(secretsDir)) {
 }
 
 const config = {
-  connectionString: process.env.MONGODB_URI,
+  connectionString: mongoUri,
   DBName: process.env.DB_NAME || 'profiling-app',
   secret: process.env.JWT_SECRET || process.env.SECRET || 'change-me-in-production',
   googleApiKey: process.env.GOOGLE_MAPS_API_KEY || '',

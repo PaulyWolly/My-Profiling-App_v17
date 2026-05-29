@@ -1,4 +1,8 @@
-require('dotenv').config({ path: './secrets/.env' });
+try {
+  require('dotenv').config({ path: './secrets/.env' });
+} catch (e) {
+  // dotenv optional on Render (secrets come from env vars + write-config-from-env.js)
+}
 const express = require('express');
 const path = require('path');
 const app = express();
@@ -39,7 +43,7 @@ let heartIndex = 0;
 // Config: use env vars on Render/production, else secrets/config.json
 // If MONGODB_URI is set but invalid (e.g. placeholder "MONGODB_URI"), fall back to file so local dev still works
 function loadConfig() {
-  const envUri = process.env.MONGODB_URI;
+  const envUri = typeof process.env.MONGODB_URI === 'string' ? process.env.MONGODB_URI.trim() : process.env.MONGODB_URI;
   const isValidMongoUri = envUri && typeof envUri === 'string' && /^mongodb(\+srv)?:\/\//i.test(envUri);
   if (isValidMongoUri) {
     return {
@@ -113,6 +117,12 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+
+// Render/host health checks need a bound port before MongoDB finishes connecting
+app.get('/health', (req, res) => {
+  const dbReady = mongoose.connection.readyState === 1;
+  res.status(200).json({ ok: true, db: dbReady ? 'connected' : 'connecting' });
+});
 
 // Create uploads directories if they don't exist
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -197,27 +207,29 @@ const red = chalk ? chalk.red : (s) => `\x1b[31m${s}\x1b[0m`;
 const yellow = chalk ? chalk.yellow : (s) => `\x1b[33m${s}\x1b[0m`;
 
 // Print all registered routes at startup
-app._router.stack
-  .filter(r => r.route)
-  .forEach(r => {
-    console.log('[ROUTE]', r.route.stack[0].method.toUpperCase(), r.route.path);
-  });
+if (app._router && app._router.stack) {
+  app._router.stack
+    .filter(r => r.route)
+    .forEach(r => {
+      console.log('[ROUTE]', r.route.stack[0].method.toUpperCase(), r.route.path);
+    });
+}
 
-// Connect to MongoDB with retry logic
+// Connect to MongoDB with retry logic (does not block HTTP listen — required for Render deploy)
 function connectWithRetry() {
-  if (mongoose.connection.readyState === 0) { // Only connect if not already connected
+  if (mongoose.connection.readyState === 0) {
     mongoose.connect(config.connectionString || process.env.MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 10000,
       socketTimeoutMS: 45000
     })
     .then(() => {
       console.log(green('\n\n*** Mongoose connected ***'));
-      startServer();
     })
     .catch(err => {
-      console.error('MongoDB connection error:', err);
+      console.error('MongoDB connection error:', err.message || err);
+      console.error('Retrying in 5s. Check MONGODB_URI and Atlas Network Access (allow 0.0.0.0/0 for Render).');
       setTimeout(connectWithRetry, 5000);
     });
   }
@@ -254,7 +266,12 @@ function startServer() {
   });
 }
 
-// Initial connection
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled rejection:', err);
+});
+
+// Listen immediately so Render sees an open PORT; Mongo connects in background
+startServer();
 connectWithRetry();
 
 app.set('trust proxy', true); // Trust proxy for correct client IP
