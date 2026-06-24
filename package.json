@@ -4,10 +4,12 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve --port 5000 --proxy-config proxy.conf.json",
+    "prestart": "node scripts/generate-build-version.js",
     "start:server": "cd server && npm start",
     "start:server:prod": "cd server && npm run start:prod",
     "start:all": "concurrently -n \"FRONTEND,BACKEND\" -c \"green,blue\" \"npm run start\" \"npm run start:server\"",
     "build": "ng build",
+    "prebuild": "node scripts/generate-build-version.js",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "clean": "rimraf node_modules && rimraf dist && rimraf .angular/cache",

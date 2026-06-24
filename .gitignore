@@ -55,6 +55,7 @@ Thumbs.db
 /src/environments/environment.custom.ts
 /src/environments/environment.local.ts
 /src/environments/environment.dev.ts
+/src/environments/build-version.ts
 
 # Only track example files
 !/src/environments/environment.example.ts

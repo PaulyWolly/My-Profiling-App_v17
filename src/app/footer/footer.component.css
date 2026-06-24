@@ -85,6 +85,8 @@ footer {
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    padding: 0 88px 0 12px;
     overflow: hidden !important;
 }
 
@@ -120,11 +122,29 @@ footer {
     white-space: nowrap;
 }
 
+.build-version {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 10px;
+    color: #444;
+    white-space: nowrap;
+    font-family: Consolas, 'Courier New', monospace;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
+    .footer {
+        padding-right: 72px;
+    }
     .text-muted {
         width: 95%;
         font-size: 10px; /* Reduced from 11px */
         white-space: normal;
+    }
+    .build-version {
+        font-size: 9px;
+        right: 6px;
     }
 }
