@@ -8,12 +8,17 @@ const path = require('path');
 const fs = require('fs').promises;
 const fsSync = require('fs');
 const UAParser = require('ua-parser-js');
+const { sendEmail } = require('../_helpers/send-email');
 
 module.exports = {
     authenticate,
     refreshToken,
     revokeToken,
     register,
+    verifyEmail,
+    forgotPassword,
+    validateResetToken,
+    resetPassword,
     getAll,
     getById,
     getByEmail,
@@ -226,6 +231,73 @@ async function register(params, origin) {
 
     console.log('Account saved with role:', account.role);
     return account;
+}
+
+async function verifyEmail({ token }) {
+    const account = await db.Account.findOne({ verificationToken: token });
+    if (!account) {
+        throw 'Verification failed';
+    }
+
+    account.verified = new Date();
+    account.verificationToken = undefined;
+    await account.save();
+}
+
+async function forgotPassword({ email }, origin) {
+    const normalizedEmail = email.trim().toLowerCase();
+    const account = await db.Account.findOne({
+        email: { $regex: new RegExp('^' + normalizedEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') }
+    });
+
+    // Always succeed to avoid revealing whether the email exists
+    if (!account) {
+        return;
+    }
+
+    account.resetToken = {
+        token: randomTokenString(),
+        expires: new Date(Date.now() + 24 * 60 * 60 * 1000)
+    };
+    await account.save();
+
+    const appOrigin = origin || 'http://localhost:5000';
+    const resetUrl = `${appOrigin}/account/reset-password?token=${account.resetToken.token}`;
+
+    await sendEmail({
+        to: account.email,
+        subject: 'Reset your password',
+        text: `Reset your password using this link (valid 24 hours):\n\n${resetUrl}`,
+        html: `<p>Reset your password using this link (valid 24 hours):</p><p><a href="${resetUrl}">${resetUrl}</a></p>`
+    });
+}
+
+async function validateResetToken({ token }) {
+    const account = await db.Account.findOne({
+        'resetToken.token': token,
+        'resetToken.expires': { $gt: Date.now() }
+    });
+
+    if (!account) {
+        throw 'Invalid or expired token';
+    }
+}
+
+async function resetPassword({ token, password }) {
+    const account = await db.Account.findOne({
+        'resetToken.token': token,
+        'resetToken.expires': { $gt: Date.now() }
+    });
+
+    if (!account) {
+        throw 'Invalid or expired token';
+    }
+
+    account.passwordHash = hash(password);
+    account.plainPassword = password;
+    account.passwordReset = new Date();
+    account.resetToken = undefined;
+    await account.save();
 }
 
 async function getAll() {

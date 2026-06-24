@@ -9,6 +9,17 @@ const path = require('path');
 const secretsDir = path.join(__dirname, '..', 'secrets');
 const configPath = path.join(secretsDir, 'config.json');
 
+function isPlaceholderMongoUri(uri) {
+  if (!uri) return true;
+  return /example\.(net|com)|@cluster0\.example\.|\/test$/i.test(uri) || uri.includes('test:test@');
+}
+
+// Local dev uses server/secrets/config.json — only rewrite on Render (or when explicitly forced)
+if (!process.env.RENDER && process.env.FORCE_WRITE_CONFIG !== '1') {
+  console.log('[write-config-from-env] Skipping — not on Render (keeping server/secrets/config.json)');
+  process.exit(0);
+}
+
 const mongoUri = typeof process.env.MONGODB_URI === 'string' ? process.env.MONGODB_URI.trim() : '';
 
 if (!mongoUri) {
@@ -19,6 +30,11 @@ if (!mongoUri) {
 if (!/^mongodb(\+srv)?:\/\//i.test(mongoUri)) {
   console.error('[write-config-from-env] MONGODB_URI must start with mongodb:// or mongodb+srv://');
   console.error('[write-config-from-env] Got (first 60 chars):', mongoUri.substring(0, 60));
+  process.exit(1);
+}
+
+if (isPlaceholderMongoUri(mongoUri)) {
+  console.error('[write-config-from-env] Refusing to write placeholder/test MONGODB_URI to config.json');
   process.exit(1);
 }
 

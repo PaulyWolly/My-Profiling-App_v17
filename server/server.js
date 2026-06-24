@@ -11,6 +11,8 @@ const cors = require('cors');
 const errorHandler = require('./_middleware/error-handler');
 const fs = require('fs');
 const mongoose = require('mongoose');
+// Fail fast instead of buffering queries for 10s when MongoDB is not connected
+mongoose.set('bufferCommands', false);
 const http = require('http');
 const websocketService = require('./services/websocket.service');
 const chatApi = require('./services/chat.service.js').router;
@@ -36,33 +38,80 @@ let heartIndex = 0;
     const now = new Date().toISOString();
     const emoji = heartEmojis[heartIndex];
     heartIndex = (heartIndex + 1) % heartEmojis.length;
-    spinner.text = `${emoji}  \n---------------------------------------------------------------------\nActive sessions: ${sessionCount} | Active users: ${userCount} | Time: ${now}`;
+    const dbStates = ['disconnected', 'connected', 'connecting', 'disconnecting'];
+    const dbState = dbStates[mongoose.connection.readyState] || 'unknown';
+    spinner.text = `${emoji}  \n---------------------------------------------------------------------\nDB: ${dbState} | Active sessions: ${sessionCount} | Active users: ${userCount} | Time: ${now}`;
   }, 700);
 })();
 
-// Config: use env vars on Render/production, else secrets/config.json
-// If MONGODB_URI is set but invalid (e.g. placeholder "MONGODB_URI"), fall back to file so local dev still works
+// Config: production uses MONGODB_URI env; local dev prefers server/secrets/config.json
+function isPlaceholderMongoUri(uri) {
+  if (!uri || typeof uri !== 'string') return true;
+  return /example\.(net|com)|@cluster0\.example\.|test:test@/i.test(uri);
+}
+
 function loadConfig() {
-  const envUri = typeof process.env.MONGODB_URI === 'string' ? process.env.MONGODB_URI.trim() : process.env.MONGODB_URI;
-  const isValidMongoUri = envUri && typeof envUri === 'string' && /^mongodb(\+srv)?:\/\//i.test(envUri);
-  if (isValidMongoUri) {
+  const envUri = typeof process.env.MONGODB_URI === 'string' ? process.env.MONGODB_URI.trim() : '';
+  const envUriValid = envUri && /^mongodb(\+srv)?:\/\//i.test(envUri);
+  let fileConfig = null;
+
+  try {
+    fileConfig = require('./secrets/config.json');
+  } catch (e) {
+    fileConfig = null;
+  }
+
+  const fileUri = fileConfig?.connectionString?.trim?.() || fileConfig?.connectionString || '';
+  const fileUriValid = fileUri && /^mongodb(\+srv)?:\/\//i.test(fileUri);
+
+  const useEnvFirst = process.env.NODE_ENV === 'production' && envUriValid && !isPlaceholderMongoUri(envUri);
+
+  if (useEnvFirst) {
     return {
       connectionString: envUri,
-      DBName: process.env.DB_NAME || 'profiling-app'
+      DBName: process.env.DB_NAME || fileConfig?.DBName || 'profiling-app',
+      source: 'MONGODB_URI env'
     };
   }
-  const fileConfig = require('./secrets/config.json');
-  return { connectionString: fileConfig.connectionString, DBName: fileConfig.DBName };
+
+  if (fileUriValid && !isPlaceholderMongoUri(fileUri)) {
+    return {
+      connectionString: fileUri,
+      DBName: fileConfig.DBName || process.env.DB_NAME || 'profiling-app',
+      source: 'server/secrets/config.json'
+    };
+  }
+
+  if (envUriValid && !isPlaceholderMongoUri(envUri)) {
+    return {
+      connectionString: envUri,
+      DBName: process.env.DB_NAME || 'profiling-app',
+      source: 'MONGODB_URI env'
+    };
+  }
+
+  return {
+    connectionString: fileUri || envUri,
+    DBName: fileConfig?.DBName || process.env.DB_NAME || 'profiling-app',
+    source: 'fallback'
+  };
 }
 const config = loadConfig();
 const DBName = config.DBName;
+const mongoHost = (config.connectionString || '').replace(/^mongodb(\+srv)?:\/\/[^@]*@/, '').split('/')[0].split('?')[0];
+console.log(`MongoDB config: ${config.source} | host: ${mongoHost || '(not set)'}`);
 
 // Validate MongoDB connection string so we don't spam "Invalid scheme" retries
 const connectionString = config.connectionString || process.env.MONGODB_URI;
 if (!connectionString || typeof connectionString !== 'string') {
   console.error('\n*** MongoDB connection string is missing. ***');
-  console.error('Local dev: set "connectionString" in server/secrets/config.json to your URI (e.g. mongodb+srv://user:pass@cluster.mongodb.net/dbname).');
-  console.error('Or set the MONGODB_URI environment variable.');
+  console.error('Local dev: set "connectionString" in server/secrets/config.json to your Atlas URI.');
+  console.error('Render: set the MONGODB_URI environment variable.');
+  process.exit(1);
+}
+if (isPlaceholderMongoUri(connectionString)) {
+  console.error('\n*** MongoDB connection string is a placeholder (example.net / test credentials). ***');
+  console.error('Fix server/secrets/config.json with your real Atlas connection string from cloud.mongodb.com');
   process.exit(1);
 }
 if (!/^mongodb(\+srv)?:\/\//i.test(connectionString)) {
@@ -123,6 +172,18 @@ app.get('/health', (req, res) => {
   const dbReady = mongoose.connection.readyState === 1;
   res.status(200).json({ ok: true, db: dbReady ? 'connected' : 'connecting' });
 });
+
+// Block API calls until MongoDB is connected (avoids 10s buffering timeouts on login)
+function requireDatabase(req, res, next) {
+  if (mongoose.connection.readyState === 1) {
+    return next();
+  }
+  return res.status(503).json({
+    message: 'Database is not connected. Check server logs, MongoDB Atlas cluster status, IP allowlist, and server/secrets/config.json connectionString.'
+  });
+}
+
+app.use(['/accounts', '/api', '/admin', '/upload'], requireDatabase);
 
 // Create uploads directories if they don't exist
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -226,10 +287,12 @@ function connectWithRetry() {
     })
     .then(() => {
       console.log(green('\n\n*** Mongoose connected ***'));
+      console.log('Database:', DBName);
     })
     .catch(err => {
-      console.error('MongoDB connection error:', err.message || err);
-      console.error('Retrying in 5s. Check MONGODB_URI and Atlas Network Access (allow 0.0.0.0/0 for Render).');
+      console.error('\n*** MongoDB connection error ***');
+      console.error(err.message || err);
+      console.error('Retrying in 5s. Local: check server/secrets/config.json. Atlas: cluster running, IP allowlist (0.0.0.0/0), URL-encode special chars in password ($ → %24).');
       setTimeout(connectWithRetry, 5000);
     });
   }
@@ -253,7 +316,7 @@ function startServer() {
 
   server.listen(port, () => {
       console.log(blue(`Server listening on port ${port}`));
-      console.log('Connected to DB:', DBName);
+      console.log('Target database:', DBName, '(waiting for MongoDB connection...)');
       console.log('Environment:', process.env.NODE_ENV || 'development');
       try {
           websocketService.initialize(server);
