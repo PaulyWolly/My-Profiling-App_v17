@@ -15,14 +15,31 @@
     padding: 0.5rem 0.75rem;
 }
 
-/* Make main content area fill space but NOT scroll */
+/* Make main content area fill space but NOT scroll (other routes use inner panes) */
 .main-content-wrapper {
-    flex: 1; /* Allow it to take up remaining vertical space */
-    /* padding-top: 10px; */
-    padding-bottom: 70px; /* Space for footer */
-    min-height: calc(100vh - 120px); /* Still define min-height for structure */
-    overflow: hidden; /* CHANGED: Prevent this wrapper from scrolling */
-    position: relative; /* Added for potential absolute positioning of children if needed */
+    flex: 1 1 auto;
+    min-height: 0;
+    padding-bottom: 70px; /* Space for fixed footer */
+    overflow: hidden;
+    position: relative;
+}
+
+/* AI Tools: scroll inside the main pane (fixed footer stays visible) */
+body.ai-tools-page .app-container {
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    min-height: 100dvh !important;
+    overflow: hidden !important;
+}
+
+body.ai-tools-page .main-content-wrapper,
+.main-content-wrapper.ai-tools-route {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: scroll !important;
+    padding-bottom: 3.5rem !important;
+    -webkit-overflow-scrolling: touch;
 }
 
 /* User status styling */

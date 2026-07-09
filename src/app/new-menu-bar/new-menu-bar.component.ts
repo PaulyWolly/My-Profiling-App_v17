@@ -40,7 +40,7 @@ export class NewMenuBarComponent implements AfterViewInit {
   }
 
   isActiveRoute(route: string): boolean {
-    return this.currentUrl === route;
+    return this.currentUrl === route || this.currentUrl.startsWith(route + '/');
   }
 
   isAccountSectionActive(): boolean {

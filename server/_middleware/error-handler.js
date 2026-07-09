@@ -25,7 +25,14 @@ function errorHandler(err, req, res, next) {
         case err.name === 'UnauthorizedError':
             // jwt authentication error
             return res.status(401).json({ message: 'Unauthorized' });
+        case err.name === 'MulterError':
+            if (err.code === 'LIMIT_FILE_SIZE') {
+                return res.status(413).json({ message: 'File too large.' });
+            }
+            return res.status(400).json({ message: err.message || 'Upload failed' });
+        case typeof err?.status === 'number' && err.status >= 400 && err.status < 600:
+            return res.status(err.status).json({ message: err.message || 'Request failed' });
         default:
-            return res.status(500).json({ message: err.message });
+            return res.status(500).json({ message: err.message || 'Internal Server Error' });
     }
 } 

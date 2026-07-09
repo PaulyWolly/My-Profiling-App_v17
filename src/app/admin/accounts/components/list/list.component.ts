@@ -7,10 +7,10 @@ import { NgIf } from '@angular/common';
 import { of } from 'rxjs';
 
 import { AccountService } from '@app/_services';
+import { ImageService, DEFAULT_AVATAR } from '@app/_services/image.service';
 import { Router } from '@angular/router';
 import { UserInterface } from '@app/types/user.interface';
 import { Account } from '@app/_models';
-import { environment } from '@environments/environment';
 
 @Component({
   templateUrl: 'list.component.html',
@@ -28,6 +28,7 @@ export class ListComponent implements OnInit, AfterViewInit {
 
     constructor(
       private accountService: AccountService,
+      private imageService: ImageService,
       private route: Router
     ) {
       this.accounts = new MatTableDataSource<Account>();
@@ -65,9 +66,7 @@ export class ListComponent implements OnInit, AfterViewInit {
         )
         .subscribe(accounts => {
           accounts.forEach(account => {
-            if (account.profileImage) {
-              account.profileImage = this.getCompleteImageUrl(account.profileImage);
-            }
+            account.profileImage = this.imageService.resolveDisplayUrl(account.profileImage);
           });
           this.accounts.data = accounts;
           if (this.paginator) {
@@ -79,14 +78,8 @@ export class ListComponent implements OnInit, AfterViewInit {
         });
     }
 
-    private getCompleteImageUrl(imageUrl: string): string {
-        if (!imageUrl) return '';
-        if (imageUrl.startsWith('http') || imageUrl.startsWith('data:')) {
-          return imageUrl;
-        }
-        const apiUrl = environment.apiUrl.endsWith('/') ? environment.apiUrl.slice(0, -1) : environment.apiUrl;
-        const imagePath = imageUrl.startsWith('/') ? imageUrl.slice(1) : imageUrl;
-        return `${apiUrl}/${imagePath}`;
+    onProfileImageError(event: Event): void {
+        this.imageService.onImageError(event, DEFAULT_AVATAR);
     }
 
     onDelete(id: any, firstName: string, lastName: string) {

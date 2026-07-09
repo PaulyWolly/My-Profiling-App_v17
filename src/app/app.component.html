@@ -1,4 +1,4 @@
-﻿<!-- Main application container -->
+<!-- Main application container -->
 <div class="app-container" [ngClass]="{ 'bg-light': account && account.role === Role.Admin }">
     <!-- Header with navigation -->
     <app-new-menu-bar [account]="account"></app-new-menu-bar>
@@ -7,6 +7,7 @@
     <ng-container [ngSwitch]="getSubnavType()">
       <app-admin-subnav *ngSwitchCase="'admin'"></app-admin-subnav>
       <app-super-admin-subnav *ngSwitchCase="'super-admin'"></app-super-admin-subnav>
+      <app-ai-tools-subnav *ngSwitchCase="'ai-tools'"></app-ai-tools-subnav>
     </ng-container>
 
     <!-- Main content area -->

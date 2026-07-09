@@ -63,12 +63,31 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         this.router.events.pipe(
             filter((event): event is NavigationEnd => event instanceof NavigationEnd)
         ).subscribe(event => {
-            this.currentUrl = event.url;
+            this.currentUrl = event.urlAfterRedirects || event.url;
             console.log('[AppComponent] Navigation to:', this.currentUrl);
 
             // Handle account pages scrolling and classes
             this.handleAccountPagesScrolling(this.currentUrl);
+            this.updateAiToolsScrollLayout(this.currentUrl);
         });
+    }
+
+    // Enable page scroll on AI Tools (image/chat/RAG content can extend below the fixed footer)
+    private updateAiToolsScrollLayout(url: string) {
+        const wrapper = document.querySelector('.main-content-wrapper');
+        const isAiTools = url.startsWith('/ai-tools');
+
+        if (isAiTools) {
+            this.renderer.addClass(document.body, 'ai-tools-page');
+            if (wrapper) {
+                this.renderer.addClass(wrapper, 'ai-tools-route');
+            }
+        } else {
+            this.renderer.removeClass(document.body, 'ai-tools-page');
+            if (wrapper) {
+                this.renderer.removeClass(wrapper, 'ai-tools-route');
+            }
+        }
     }
 
     // Handle specific pages that need special scroll handling
@@ -99,10 +118,18 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     // Global wheel event listener to prevent body scrolling except in specific places
     @HostListener('wheel', ['$event'])
     onWheel(event: WheelEvent) {
+        if (this.currentUrl.startsWith('/ai-tools')) {
+            return;
+        }
+
         let el = event.target as HTMLElement | null;
 
         // Traverse up the DOM tree to find a scrollable ancestor
         while (el) {
+            if (el.classList?.contains('chat-log') || el.classList?.contains('chat-log-messages')) {
+                return;
+            }
+
             const style = window.getComputedStyle(el);
             const overflowY = style.overflowY;
             const isScrollable = (overflowY === 'auto' || overflowY === 'scroll');
@@ -121,6 +148,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     ngOnInit() {
+        this.currentUrl = this.router.url || window.location.pathname;
+        this.updateAiToolsScrollLayout(this.currentUrl);
+
         // Initialize Auth0 service
         this.auth0Service.isAuthenticatedWithAuth0().subscribe(isAuthenticated => {
             if (isAuthenticated) {
@@ -138,6 +168,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         this.renderer.removeClass(document.documentElement, 'no-scroll');
         this.renderer.removeClass(document.body, 'no-scroll');
         this.renderer.removeClass(document.body, 'account-page');
+        this.renderer.removeClass(document.body, 'ai-tools-page');
     }
 
     logout() {
@@ -201,6 +232,8 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     ngAfterViewInit() {
+        this.updateAiToolsScrollLayout(this.router.url);
+
         // Initialize all dropdowns
         this.initializeDropdowns();
 
@@ -210,6 +243,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         ).subscribe(() => {
             setTimeout(() => {
                 this.initializeDropdowns();
+                this.updateAiToolsScrollLayout(this.router.url);
             }, 100);
         });
     }
@@ -262,12 +296,15 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         return this.router.url.startsWith('/admin') || this.router.url.startsWith('/super-admin');
     }
 
-    getSubnavType(): 'admin' | 'super-admin' | null {
+    getSubnavType(): 'admin' | 'super-admin' | 'ai-tools' | null {
         if (this.router.url.startsWith('/admin')) {
             return 'admin';
         }
         if (this.router.url.startsWith('/super-admin')) {
             return 'super-admin';
+        }
+        if (this.router.url.startsWith('/ai-tools')) {
+            return 'ai-tools';
         }
         return null;
     }

@@ -1,77 +1,133 @@
 import { Injectable } from '@angular/core';
 import { environment } from '@environments/environment';
 
+export const DEFAULT_AVATAR = '/assets/images/default-avatar.svg';
+
 @Injectable({
   providedIn: 'root'
 })
 export class ImageService {
-  private apiUrl = environment.apiUrl || 'http://localhost:5001';
+  /**
+   * Base URL for uploaded media. Uses the current page origin on Render so a stale
+   * environment.apiUrl (e.g. -v17 vs -v17-1) does not break profile images.
+   */
+  getMediaBaseUrl(): string {
+    const envBase = (environment.apiUrl || 'http://localhost:5001').replace(/\/+$/, '');
+
+    if (typeof window !== 'undefined' && window.location?.origin) {
+      const origin = window.location.origin.replace(/\/+$/, '');
+
+      if (!environment.production) {
+        return envBase;
+      }
+
+      if (origin === envBase) {
+        return origin;
+      }
+
+      // Single-service Render deploys: SPA and /uploads share the same host.
+      if (window.location.hostname.endsWith('.onrender.com') && envBase.includes('onrender.com')) {
+        return origin;
+      }
+    }
+
+    return envBase;
+  }
 
   /**
-   * Formats an image URL to be relative to the API URL
-   * @param url The image URL to format
-   * @returns The formatted URL
+   * Resolves a stored profile/follower path to a browser-ready URL for <img src>.
+   */
+  resolveDisplayUrl(url: string | null | undefined): string {
+    if (!url || !url.trim()) {
+      return DEFAULT_AVATAR;
+    }
+
+    const trimmed = url.trim();
+
+    if (trimmed.startsWith('data:')) {
+      return trimmed;
+    }
+
+    if (trimmed.startsWith('https://') && !trimmed.includes('localhost')) {
+      return trimmed;
+    }
+
+    if (trimmed.startsWith('http://') && !trimmed.includes('localhost')) {
+      return trimmed;
+    }
+
+    if (trimmed.includes('localhost')) {
+      const pathOnly = trimmed.replace(/^https?:\/\/[^/]+/, '');
+      return this.resolveDisplayUrl(pathOnly || DEFAULT_AVATAR);
+    }
+
+    if (trimmed.startsWith('/assets/')) {
+      return trimmed;
+    }
+
+    const base = this.getMediaBaseUrl();
+    const path = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+    return `${base}${path}`;
+  }
+
+  /**
+   * @deprecated Prefer resolveDisplayUrl for img src. Kept for callers that store relative paths.
    */
   formatImageUrl(url: string): string {
     if (!url) return '';
-    
-    // If it's already a relative path, return as is
-    if (!url.startsWith('http')) return url;
-    
-    // If it's a full URL, convert to relative path
-    if (url.startsWith(this.apiUrl)) {
-      return url.replace(this.apiUrl + '/', '');
+
+    if (url.startsWith('https://') && !url.includes('localhost')) {
+      return url;
     }
-    
-    return url;
+
+    if (url.startsWith('http://') && !url.includes('localhost')) {
+      return url;
+    }
+
+    if (url.includes('localhost')) {
+      return url.replace(/^https?:\/\/[^/]+/, '').replace(/^\/+/, '');
+    }
+
+    const envBase = this.getMediaBaseUrl();
+    if (url.startsWith(envBase)) {
+      return url.replace(envBase + '/', '').replace(envBase, '');
+    }
+
+    return url.replace(/^\/+/, '');
   }
 
-  /**
-   * Gets the full URL for an image path
-   * @param path The relative image path
-   * @returns The full URL
-   */
   getFullImageUrl(path: string): string {
-    if (!path) return '';
-    
-    // If it's already a full URL, return as is
-    if (path.startsWith('http')) return path;
-    
-    // If it's a relative path, prepend the API URL
-    const normalizedPath = path.replace(/^\/+/, '').replace(/^\/+/, '');
-    const fullUrlFixed = `${this.apiUrl}/${normalizedPath}`;
-    console.log('[ImageService] getFullImageUrl:', { path, fullUrl: fullUrlFixed });
-    return fullUrlFixed;
+    return this.resolveDisplayUrl(path);
   }
 
-  /**
-   * Formats all image URLs in an account object
-   * @param account The account object to format
-   * @returns The formatted account object
-   */
   formatAccountImages(account: any): any {
     if (!account) return account;
 
     const formatted = { ...account };
 
-    // Format profile image
     if (formatted.profileImage) {
-      formatted.profileImage = this.formatImageUrl(formatted.profileImage);
+      formatted.profileImage = this.resolveDisplayUrl(formatted.profileImage);
     }
 
-    // Format company logo
     if (formatted.companyLogo) {
-      formatted.companyLogo = this.formatImageUrl(formatted.companyLogo);
+      formatted.companyLogo = this.resolveDisplayUrl(formatted.companyLogo);
     }
 
-    // Format follower images
     if (formatted.followerImages) {
       formatted.followerImages = formatted.followerImages.map((follower: any) => ({
         ...follower,
-        imageUrl: follower.imageUrl ? this.formatImageUrl(follower.imageUrl) : undefined
+        imageUrl: follower.imageUrl ? this.resolveDisplayUrl(follower.imageUrl) : undefined
       }));
     }
 
     return formatted;
   }
-} 
+
+  onImageError(event: Event, fallback: string = DEFAULT_AVATAR): void {
+    const img = event.target as HTMLImageElement | null;
+    if (!img || img.src.endsWith(fallback)) {
+      return;
+    }
+    img.src = fallback;
+  }
+}

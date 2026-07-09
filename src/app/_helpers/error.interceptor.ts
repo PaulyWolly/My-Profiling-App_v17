@@ -43,9 +43,13 @@ export class ErrorInterceptor implements HttpInterceptor {
             else if (err.status === 404) {
                 errorMessage = 'The requested resource was not found.';
             }
-            // Handle 500 Server Error
+            // Handle 413 Payload Too Large
+            else if (err.status === 413) {
+                errorMessage = err.error?.message || 'File too large for upload.';
+            }
+            // Handle 500 Server Error — show API message when available (e.g. OpenAI errors)
             else if (err.status >= 500) {
-                errorMessage = 'A server error occurred. Please try again later.';
+                errorMessage = err.error?.message || 'A server error occurred. Please try again later.';
             }
             // Handle other errors
             else {

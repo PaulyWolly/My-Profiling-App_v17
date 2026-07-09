@@ -17,6 +17,15 @@
             </ul>
         </li>
 
+        <!-- AI Tools Link -->
+        <li class="nav-item">
+            <a class="nav-link"
+               routerLink="/ai-tools"
+               [class.active]="!dropdownOpen && currentUrl.startsWith('/ai-tools')">
+                AI Tools
+            </a>
+        </li>
+
         <!-- Admin Link -->
         <li class="nav-item" *ngIf="account?.role === Role.Admin || account?.role === Role.SuperAdmin">
             <a class="nav-link"

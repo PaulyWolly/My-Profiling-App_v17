@@ -243,6 +243,7 @@ app.use('/api/admin/scripts', adminScriptsRouter);
 app.use('/admin', require('./controllers/admin.controller'));
 app.use('/api/posts', require('./controllers/posts.controller'));
 app.use('/api/gallery', require('./gallery/gallery.controller'));
+app.use('/api/ai', require('./routes/ai.routes'));
 app.use('/api/chat', chatApi);
 
 // Add config route - use the specific function as middleware

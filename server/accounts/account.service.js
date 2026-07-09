@@ -9,6 +9,7 @@ const fs = require('fs').promises;
 const fsSync = require('fs');
 const UAParser = require('ua-parser-js');
 const { sendEmail } = require('../_helpers/send-email');
+const { resolveProfileImageUrl, resolveFollowerImageUrl } = require('../_helpers/image-url');
 
 module.exports = {
     authenticate,
@@ -537,13 +538,19 @@ async function uploadImage(userId, imagePath) {
     // Handle both S3 URLs and local paths
     let normalizedPath = imagePath;
 
-    // If it's an S3 URL, use it as-is
-    if (imagePath.startsWith('https://') && imagePath.includes('amazonaws.com')) {
-        console.log('[AccountService] Using S3 URL:', imagePath);
-        normalizedPath = imagePath;
-    }
-    // If it's a local path, ensure it starts with /uploads/profiles/
-    else if (!normalizedPath.startsWith('/uploads/profiles/')) {
+    if (imagePath.startsWith('https://') || imagePath.startsWith('http://')) {
+        if (imagePath.includes('amazonaws.com') || imagePath.includes('googleusercontent.com')) {
+            normalizedPath = imagePath;
+        } else if (imagePath.includes('/uploads/profiles/')) {
+            try {
+                normalizedPath = new URL(imagePath).pathname;
+            } catch (e) {
+                normalizedPath = imagePath;
+            }
+        } else {
+            normalizedPath = imagePath;
+        }
+    } else if (!normalizedPath.startsWith('/uploads/profiles/')) {
         const filename = path.basename(imagePath);
         normalizedPath = `/uploads/profiles/${filename}`;
         console.log('[AccountService] Normalized local image path:', {
@@ -880,12 +887,20 @@ function basicDetails(account) {
         passwordStatus = 'No Password';
     }
 
+    const resolvedFollowerImages = Array.isArray(followerImages)
+        ? followerImages.map(follower => ({
+            ...follower,
+            imageUrl: follower?.imageUrl ? resolveFollowerImageUrl(follower.imageUrl) : follower?.imageUrl
+        }))
+        : followerImages;
+
     return {
         id: id || undefined,
         firstName, lastName, email, role, created, updated, isVerified,
-        profileImage: profileImage,
+        profileImage: resolveProfileImageUrl(profileImage) || profileImage,
         profileTemplateType, position, company, address, city, state, zipCode, phone, mobile, bio,
         website, github, twitter, instagram, facebook, linkedin,
-        followersCount, followingCount, skills, followerImages, auth0Id, authProvider, passwordStatus, plainPassword
+        followersCount, followingCount, skills, followerImages: resolvedFollowerImages,
+        auth0Id, authProvider, passwordStatus, plainPassword
     };
 }

@@ -2,7 +2,7 @@
 <div mat-dialog-content>
   <mat-form-field appearance="outline" class="w-100">
     <mat-label>Recipient</mat-label>
-    <mat-select [(ngModel)]="recipientId" required>
+    <mat-select [(ngModel)]="recipientId" required panelClass="create-post-recipient-panel">
       <mat-option *ngFor="let user of data.users" [value]="user.id">
         {{ user.name }}
       </mat-option>

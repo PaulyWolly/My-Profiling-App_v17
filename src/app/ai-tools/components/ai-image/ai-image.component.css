@@ -1,0 +1,103 @@
+.ai-image-page {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding-bottom: 0.5rem;
+}
+
+.ai-image-page h2 {
+  margin: 0 0 0.75rem;
+  color: #1a4d6d;
+  flex-shrink: 0;
+}
+
+.hint {
+  color: #a94442;
+  background: #f8d7da;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 0.75rem;
+  flex-shrink: 0;
+}
+
+.image-workspace {
+  border: 1px solid #d0e3ef;
+  border-radius: 8px;
+  background: #f8fbfd;
+  padding: 1rem;
+}
+
+.upload-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.file-choose-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.file-choose-visual {
+  pointer-events: none;
+}
+
+.file-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 0;
+}
+
+.file-overlay:disabled {
+  cursor: not-allowed;
+}
+
+.file-name {
+  color: #555;
+  font-size: 0.9rem;
+  word-break: break-all;
+}
+
+.preview {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.preview img {
+  max-width: 100%;
+  max-height: min(44vh, 384px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  display: inline-block;
+}
+
+.full-width {
+  width: 100%;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.prompt-field textarea.prompt-textarea {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.45;
+  resize: vertical;
+  min-height: 4.5rem;
+}
+
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}

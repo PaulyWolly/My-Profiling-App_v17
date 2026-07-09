@@ -903,7 +903,7 @@ async function handleAuth0Authenticate(req, res, next) {
                 console.log('[Auth0] No local profile image found, using Auth0 image:', profileImageUrl);
             } else if (!existingAccount.profileImage) {
                 // If no existing profile image and none provided by Auth0, use default
-                updateData.profileImage = '/assets/images/default-avatar.png';
+                updateData.profileImage = '/assets/images/default-avatar.svg';
                 console.log('[Auth0] No profile image provided by Auth0 and none existing, using default avatar');
             } else {
                 console.log('[Auth0] No profile image provided by Auth0, keeping existing:', existingAccount.profileImage);
@@ -966,7 +966,7 @@ async function handleAuth0Authenticate(req, res, next) {
                 console.log('[Auth0] Creating new account with profileImage:', profileImageUrl);
             } else {
                 // Use a default avatar when no profile image is provided
-                newAccountData.profileImage = '/assets/images/default-avatar.png';
+                newAccountData.profileImage = '/assets/images/default-avatar.svg';
                 console.log('[Auth0] Creating new account with default avatar (none provided by Auth0)');
             }
 

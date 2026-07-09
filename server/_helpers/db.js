@@ -23,5 +23,6 @@ module.exports = {
     Chat,
     RefreshToken,
     isValidId,
-    CleanupHistory: require('../admin/cleanup-history.model')
+    CleanupHistory: require('../admin/cleanup-history.model'),
+    AiDocument: require('../models/ai-document.model')
 };

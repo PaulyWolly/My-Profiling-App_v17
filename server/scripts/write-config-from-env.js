@@ -50,7 +50,8 @@ const config = {
   awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
   awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
   s3Region: process.env.AWS_REGION || process.env.S3_REGION || 'us-east-1',
-  s3BucketName: process.env.S3_BUCKET_NAME || ''
+  s3BucketName: process.env.S3_BUCKET_NAME || '',
+  openAiApiKey: process.env.OPENAI_API_KEY || ''
 };
 
 fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf8');

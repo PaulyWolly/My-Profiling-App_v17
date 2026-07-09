@@ -57,4 +57,40 @@
 // Full height variant (useful for layout panels)
 .app-scrollable-full {
   max-height: calc(100vh - 120px) !important;
+}
+
+// Create Post dialog — recipient mat-select dropdown
+.mat-mdc-select-panel.create-post-recipient-panel {
+  max-height: min(260px, 40vh) !important;
+  overflow-y: scroll !important;
+  overflow-x: hidden !important;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #888 #eee;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    width: 10px !important;
+    display: block !important;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #eee !important;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #888 !important;
+    border-radius: 4px;
+    min-height: 48px;
+    border: 2px solid #eee;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #555 !important;
+  }
+}
+
+.cdk-overlay-pane:has(.create-post-recipient-panel) {
+  overflow: visible !important;
 } 

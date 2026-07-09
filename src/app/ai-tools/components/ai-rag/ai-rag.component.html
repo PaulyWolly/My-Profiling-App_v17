@@ -1,0 +1,42 @@
+<div class="ai-panel">
+  <h2>Document Q&amp;A (RAG)</h2>
+  <p class="sub">Upload a .txt, .md, .csv, .json, or .pdf file (up to {{ ragMaxUploadMb }} MB). The AI indexes it and answers questions from your document.</p>
+  <p class="hint" *ngIf="!configured">OpenAI API key is not configured on the server.</p>
+
+  <div class="upload-row">
+    <input type="file" accept=".txt,.md,.csv,.json,.pdf,text/*,application/pdf" (change)="onUpload($event)" [disabled]="uploading" />
+    <span *ngIf="uploading" class="status">Indexing document…</span>
+  </div>
+
+  <div class="doc-list" *ngIf="documents.length">
+    <h3>Your documents</h3>
+    <div class="doc-item" *ngFor="let doc of documents" [class.selected]="doc.id === selectedId">
+      <label>
+        <input type="radio" name="doc" [value]="doc.id" [(ngModel)]="selectedId" />
+        <span class="name">{{ doc.originalName }}</span>
+        <span class="meta">{{ doc.chunkCount }} chunks · {{ doc.charCount | number }} chars</span>
+      </label>
+      <button mat-button color="warn" type="button" (click)="deleteDoc(doc.id)">Delete</button>
+    </div>
+  </div>
+
+  <p *ngIf="!loadingDocs && !documents.length" class="empty">No documents yet. Upload one to get started.</p>
+
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Question about the selected document</mat-label>
+    <textarea matInput rows="3" [(ngModel)]="question"></textarea>
+  </mat-form-field>
+
+  <button mat-raised-button color="primary" (click)="ask()" [disabled]="!selectedId || !question.trim() || asking">
+    {{ asking ? 'Searching…' : 'Ask' }}
+  </button>
+
+  <div class="result" *ngIf="answer">
+    <h3>Answer</h3>
+    <div class="result-body">{{ answer }}</div>
+    <div class="sources" *ngIf="sources.length">
+      <h4>Sources</h4>
+      <div class="source" *ngFor="let s of sources">{{ s.excerpt }}</div>
+    </div>
+  </div>
+</div>

@@ -235,6 +235,12 @@ body {
     background: transparent !important; /* Light background for the whole app */
 }
 
+body.ai-tools-page .app-container {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+}
+
 .navbar {
     flex: 0 0 auto;
     z-index: 1000;
@@ -244,6 +250,11 @@ body {
     flex: 1;
     overflow: auto;
     position: relative;
+    min-height: 0;
+}
+
+body.ai-tools-page .main-content-wrapper {
+    overflow-y: scroll;
 }
 
 /* Fix for the admin layout */
@@ -633,3 +644,33 @@ a:hover {
 html, body, app-root, body.mat-typography, .mat-typography, .mat-body, .mat-body-2 {
     background: #e9ecef !important;
   }
+
+/* Create Post dialog — recipient mat-select (also in scrollable.scss; duplicated here for safety) */
+.cdk-overlay-container .mat-mdc-select-panel.create-post-recipient-panel {
+  max-height: min(260px, 40vh) !important;
+  overflow-y: scroll !important;
+  overflow-x: hidden !important;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #888 #eee;
+}
+
+.cdk-overlay-container .mat-mdc-select-panel.create-post-recipient-panel::-webkit-scrollbar {
+  width: 10px;
+  display: block;
+}
+
+.cdk-overlay-container .mat-mdc-select-panel.create-post-recipient-panel::-webkit-scrollbar-track {
+  background: #eee;
+  border-radius: 4px;
+}
+
+.cdk-overlay-container .mat-mdc-select-panel.create-post-recipient-panel::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+  min-height: 48px;
+}
+
+.cdk-overlay-pane:has(.create-post-recipient-panel) {
+  overflow: visible !important;
+}

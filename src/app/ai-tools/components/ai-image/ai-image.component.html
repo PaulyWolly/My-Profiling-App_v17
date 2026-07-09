@@ -1,0 +1,57 @@
+<div class="ai-image-page">
+  <h2>Image Describe</h2>
+  <p class="hint" *ngIf="!configured">OpenAI API key is not configured on the server.</p>
+
+  <div class="image-workspace">
+    <div class="upload-row">
+      <div class="file-choose-wrapper">
+        <button mat-stroked-button type="button" class="file-choose-visual" [disabled]="loading">
+          {{ file ? 'Choose Another Image' : 'Choose Image' }}
+        </button>
+        <input
+          #fileInput
+          type="file"
+          class="file-overlay"
+          accept="image/*,.jpg,.jpeg,.png,.gif,.webp,.bmp,.tif,.tiff,.jfif"
+          [disabled]="loading"
+          (change)="onFileSelected($event)" />
+      </div>
+      <button
+        mat-stroked-button
+        type="button"
+        *ngIf="file"
+        (click)="resetImage()"
+        [disabled]="loading">
+        Clear
+      </button>
+      <span class="file-name" *ngIf="file">{{ file.name }}</span>
+    </div>
+
+    <div class="preview" *ngIf="previewUrl">
+      <img [src]="previewUrl" [attr.alt]="file?.name || 'Preview'" />
+    </div>
+
+    <mat-form-field appearance="outline" class="full-width prompt-field">
+      <mat-label>Prompt (optional)</mat-label>
+      <textarea
+        matInput
+        [(ngModel)]="prompt"
+        rows="3"
+        class="prompt-textarea"></textarea>
+    </mat-form-field>
+
+    <div class="action-row">
+      <button mat-raised-button color="primary" (click)="analyze()" [disabled]="!file || loading">
+        {{ loading ? 'Analyzing…' : 'Identify Image' }}
+      </button>
+      <button
+        mat-stroked-button
+        type="button"
+        *ngIf="description"
+        (click)="viewDescription()"
+        [disabled]="loading">
+        View Description
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,71 @@
+<div class="ai-gen-page">
+  <h2>Image Generator</h2>
+  <p class="sub">Create images from a text prompt using OpenAI image models.</p>
+  <p class="hint" *ngIf="!configured">OpenAI API key is not configured on the server.</p>
+
+  <div class="gen-workspace">
+    <mat-form-field appearance="outline" class="full-width prompt-field">
+      <mat-label>Describe the image you want</mat-label>
+      <textarea
+        matInput
+        [(ngModel)]="prompt"
+        rows="4"
+        class="prompt-textarea"
+        placeholder="A watercolor portrait of a fox reading a book in a cozy library…"></textarea>
+    </mat-form-field>
+
+    <div class="options-row">
+      <mat-form-field appearance="outline" class="option-field">
+        <mat-label>Size</mat-label>
+        <mat-select [(ngModel)]="size">
+          <mat-option *ngFor="let s of sizes" [value]="s">{{ s }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="option-field">
+        <mat-label>Quality</mat-label>
+        <mat-select [(ngModel)]="quality">
+          <mat-option value="standard">Standard</mat-option>
+          <mat-option value="hd">HD</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="option-field" *ngIf="supportsStyleParam">
+        <mat-label>Style</mat-label>
+        <mat-select [(ngModel)]="style">
+          <mat-option value="vivid">Vivid</mat-option>
+          <mat-option value="natural">Natural</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <p class="style-hint" *ngIf="!supportsStyleParam">
+        Style is applied through your prompt (vivid / natural wording).
+      </p>
+    </div>
+
+    <div class="action-row">
+      <button mat-raised-button color="primary" (click)="generate()" [disabled]="!prompt.trim() || loading">
+        {{ loading ? 'Generating…' : 'Generate Image' }}
+      </button>
+      <button mat-stroked-button type="button" (click)="clear()" [disabled]="loading">
+        Clear
+      </button>
+    </div>
+
+    <div class="result-panel" *ngIf="loading || imageDataUrl">
+      <p class="status-loading" *ngIf="loading">Creating your image — this may take 15–30 seconds…</p>
+
+      <div class="preview" *ngIf="imageDataUrl">
+        <img [src]="imageDataUrl" alt="Generated image" />
+      </div>
+
+      <p class="revised-prompt" *ngIf="revisedPrompt">
+        <strong>DALL·E refined prompt:</strong> {{ revisedPrompt }}
+      </p>
+
+      <div class="action-row" *ngIf="imageDataUrl">
+        <button mat-stroked-button type="button" (click)="downloadImage()">Download PNG</button>
+        <span class="model-tag" *ngIf="modelUsed">Model: {{ modelUsed }}</span>
+      </div>
+    </div>
+  </div>
+</div>

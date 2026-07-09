@@ -1,4 +1,4 @@
-﻿import { NgModule, APP_INITIALIZER } from '@angular/core';
+import { NgModule, APP_INITIALIZER } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -30,6 +30,7 @@ import { SuperAdminModule } from './super-admin/super-admin.module';
 import { NewMenuBarComponent } from './new-menu-bar/new-menu-bar.component';
 import { SubNavComponent as AdminSubNavComponent } from './admin/components/subnav/subnav.component';
 import { SuperAdminSubnavComponent } from './super-admin/components/super-admin-subnav/super-admin-subnav.component';
+import { AiToolsSubnavComponent } from './ai-tools/components/ai-tools-subnav/ai-tools-subnav.component';
 
 // Add factory function to initialize ConfigService
 export function configInitializer(configService: ConfigService) {
@@ -61,6 +62,7 @@ export function configInitializer(configService: ConfigService) {
         CommonModule,
         AdminSubNavComponent,
         SuperAdminSubnavComponent,
+        AiToolsSubnavComponent,
         // Auth0 Module
         AuthModule.forRoot({
             domain: environment.auth0.domain,

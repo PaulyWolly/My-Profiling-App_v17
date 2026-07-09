@@ -1,4 +1,4 @@
-import { Component, Inject, Input } from '@angular/core';
+import { Component, Inject, ViewEncapsulation } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
@@ -27,7 +27,8 @@ export interface CreatePostData {
     FormsModule
   ],
   templateUrl: './create-post-dialog.component.html',
-  styleUrls: ['./create-post-dialog.component.scss']
+  styleUrls: ['./create-post-dialog.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class CreatePostDialogComponent {
   recipientId: string = '';

@@ -1,0 +1,19 @@
+.ai-tools-nav {
+  background: #e8f4fc;
+  border-bottom: 1px solid #b8d9ee;
+  min-height: 42px;
+  position: relative;
+  z-index: 1000;
+}
+
+.ai-tools-nav .nav-link {
+  color: #1a4d6d;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+}
+
+.ai-tools-nav .nav-link.active {
+  color: #0d3a56;
+  background: #cfe8f8;
+  border-radius: 4px 4px 0 0;
+}

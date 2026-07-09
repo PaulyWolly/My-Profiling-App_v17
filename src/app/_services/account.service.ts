@@ -8,6 +8,7 @@ import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
 
 import { environment } from '@environments/environment';
 import { Account, AccountUpdate, Role } from '@app/_models';
+import { ImageService } from './image.service';
 
 const baseUrl = `${environment.apiUrl}/accounts`;
 const TAB_ID_KEY = 'current_tab_id';
@@ -89,6 +90,7 @@ export class AccountService {
     constructor(
         private router: Router,
         private http: HttpClient,
+        private imageService: ImageService,
         @Inject(JwtHelperService) private jwtHelper: JwtHelperService
     ) {
         // Generate a unique ID for this tab
@@ -167,23 +169,7 @@ export class AccountService {
         if (!imagePath) {
             return undefined;
         }
-
-        // If it's already a full URL, return as-is (including Google URLs)
-        if (imagePath.startsWith('http')) {
-            console.log('[AccountService] Using full URL as-is:', imagePath);
-            return imagePath;
-        }
-
-        // Remove any trailing slashes from the base URL
-        const baseUrl = environment.apiUrl.replace(/\/+$/, '');
-
-        // Ensure the path starts with a slash for proper URL construction
-        const cleanPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
-
-        // Construct the full URL
-        const fullUrl = `${baseUrl}${cleanPath}`;
-
-        return fullUrl;
+        return this.imageService.resolveDisplayUrl(imagePath);
     }
 
     // Authentication endpoints

@@ -43,7 +43,8 @@ body.mat-typography {
   color: #fff !important;
 }
 
-.cdk-overlay-pane {
+/* mat-select panels: leave top/left to CDK inline positioning (global top: 60px broke dropdown scroll). */
+.cdk-overlay-pane:not(:has(.mat-mdc-select-panel)) {
   position: absolute !important;
   top: 60px !important;
 }

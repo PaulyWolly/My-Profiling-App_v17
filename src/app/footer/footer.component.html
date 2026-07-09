@@ -4,6 +4,6 @@
     <div class="footer-text-container">
       <span class="text-muted">Angular17 - JWT/Auth0 with MongoDB, (MEAN), Profiles, Templates, Signals</span>
     </div>
-    <span class="build-version" [title]="'Build: ' + buildVersion">{{ buildVersion }}</span>
+    <span class="build-version" [title]="'Built: ' + buildVersion + (buildVersion.includes('*') ? ' — local uncommitted changes' : '')">{{ buildVersion }}</span>
   </footer>
 </div>

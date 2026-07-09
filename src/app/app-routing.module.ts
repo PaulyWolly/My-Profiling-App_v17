@@ -10,12 +10,14 @@ const accountModule = () => import('./account/account.module').then(x => x.Accou
 const adminModule = () => import('./admin/admin.module').then(x => x.AdminModule);
 const profileModule = () => import('./profile/profile.module').then(x => x.ProfileModule);
 const profileTemplatesModule = () => import('./profile-templates/profile-templates.module').then(x => x.ProfileTemplatesModule);
+const aiToolsRoutes = () => import('./ai-tools/ai-tools.routes').then(m => m.AI_TOOLS_ROUTES);
 
 const routes: Routes = [
     { path: '', redirectTo: 'profile', pathMatch: 'full' },
     { path: 'account', loadChildren: accountModule },
     { path: 'profile', loadChildren: profileModule, canActivate: [AuthGuard] },
     { path: 'profile-templates', loadChildren: profileTemplatesModule, canActivate: [AuthGuard] },
+    { path: 'ai-tools', loadChildren: aiToolsRoutes, canActivate: [AuthGuard] },
     { path:
       'admin',
       loadChildren: adminModule,

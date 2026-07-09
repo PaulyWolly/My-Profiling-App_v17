@@ -1,0 +1,47 @@
+<div class="ai-chat-page">
+  <div class="ai-chat-header">
+    <h2>AI Chat</h2>
+    <p class="disclaimer">{{ disclaimer }}</p>
+  </div>
+  <p class="hint" *ngIf="!configured">OpenAI API key is not configured on the server.</p>
+
+  <div class="chat-log" #chatLog>
+    <div class="chat-log-messages">
+      <p class="chat-empty" *ngIf="!messages.length && !loading">
+        Ask a question below. Your messages appear on the left; AI replies on the right.
+      </p>
+
+      <div
+        *ngFor="let msg of messages"
+        class="chat-row"
+        [class.user]="msg.role === 'user'"
+        [class.assistant]="msg.role === 'assistant'">
+        <div class="chat-bubble">
+          <strong>{{ msg.role === 'user' ? 'You' : 'AI' }}</strong>
+          <p *ngIf="msg.role === 'user'">{{ msg.content }}</p>
+          <p *ngIf="msg.role === 'assistant'" class="chat-body-html" [innerHTML]="msg.content | chatMessageHtml"></p>
+        </div>
+      </div>
+
+      <div *ngIf="loading" class="chat-row assistant">
+        <div class="chat-bubble typing">Thinking…</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chat-input-row">
+    <textarea
+      [(ngModel)]="input"
+      rows="2"
+      placeholder="Type your message…"
+      (keydown.enter)="onEnter($event)"></textarea>
+    <div class="chat-actions">
+      <button mat-stroked-button type="button" (click)="clearChat()" [disabled]="loading || !messages.length">
+        Clear
+      </button>
+      <button mat-raised-button color="primary" (click)="send()" [disabled]="loading || !input.trim()">
+        Send
+      </button>
+    </div>
+  </div>
+</div>

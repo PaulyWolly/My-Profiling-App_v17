@@ -14,20 +14,8 @@ class WebSocketService {
     }
 
     formatImageUrl(imagePath) {
-        if (!imagePath) return null;
-
-        // If it's already a full URL (starts with http), return it as-is
-        if (imagePath.startsWith('http')) {
-            return imagePath;
-        }
-
-        // Remove any leading slash
-        const cleanPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
-        // Ensure the path starts with uploads/profiles/ for local images only
-        if (!cleanPath.startsWith('uploads/profiles/')) {
-            return `uploads/profiles/${cleanPath}`;
-        }
-        return cleanPath;
+        const { resolveProfileImageUrl } = require('../_helpers/image-url');
+        return resolveProfileImageUrl(imagePath);
     }
 
     initialize(server) {
