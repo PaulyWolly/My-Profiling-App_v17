@@ -8,30 +8,11 @@ export const DEFAULT_AVATAR = '/assets/images/default-avatar.svg';
 })
 export class ImageService {
   /**
-   * Base URL for uploaded media. Uses the current page origin on Render so a stale
-   * environment.apiUrl (e.g. -v17 vs -v17-1) does not break profile images.
+   * Base URL for uploaded media (/uploads/...). Always use the API host — on Render
+   * the frontend Static Site (e.g. ...-v17-1) is separate from the backend Web Service.
    */
   getMediaBaseUrl(): string {
-    const envBase = (environment.apiUrl || 'http://localhost:5001').replace(/\/+$/, '');
-
-    if (typeof window !== 'undefined' && window.location?.origin) {
-      const origin = window.location.origin.replace(/\/+$/, '');
-
-      if (!environment.production) {
-        return envBase;
-      }
-
-      if (origin === envBase) {
-        return origin;
-      }
-
-      // Single-service Render deploys: SPA and /uploads share the same host.
-      if (window.location.hostname.endsWith('.onrender.com') && envBase.includes('onrender.com')) {
-        return origin;
-      }
-    }
-
-    return envBase;
+    return (environment.apiUrl || 'http://localhost:5001').replace(/\/+$/, '');
   }
 
   /**

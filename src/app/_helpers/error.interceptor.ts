@@ -30,10 +30,15 @@ export class ErrorInterceptor implements HttpInterceptor {
             }
             // Handle 401/403 auth errors
             else if ([401, 403].includes(err.status)) {
-                if (this.accountService.accountValue && !request.url?.includes('revoke-token')) {
+                const isAuthEndpoint = request.url?.includes('/accounts/authenticate')
+                    || request.url?.includes('/accounts/register')
+                    || request.url?.includes('/accounts/auth0/authenticate');
+                if (this.accountService.accountValue && !request.url?.includes('revoke-token') && !isAuthEndpoint) {
                     this.accountService.logout();
                 }
-                errorMessage = 'Your session has expired. Please log in again.';
+                errorMessage = isAuthEndpoint
+                    ? (err.error?.message || 'Email or password is incorrect.')
+                    : 'Your session has expired. Please log in again.';
             }
             // Handle 400 Bad Request
             else if (err.status === 400) {

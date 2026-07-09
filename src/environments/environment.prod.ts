@@ -1,7 +1,8 @@
 export const environment = {
     production: true,
-    apiUrl: 'https://my-profiling-app-v17-1.onrender.com',
-    wsUrl: 'wss://my-profiling-app-v17-1.onrender.com',
+    // Backend Web Service URL (NOT the frontend Static Site URL).
+    apiUrl: 'https://my-profiling-app-v17.onrender.com',
+    wsUrl: 'wss://my-profiling-app-v17.onrender.com',
     // Sensitive information should not be stored in source code
     // This should be loaded from environment variables on the server
     googleMapsApiKey: '', // Load from secure source at runtime
