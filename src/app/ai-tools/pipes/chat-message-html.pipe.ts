@@ -19,7 +19,9 @@ export class ChatMessageHtmlPipe implements PipeTransform {
       return '';
     }
 
-    let html = this.escapeHtml(value);
+    // Model sometimes invents "avocados/olives" — rewrite known list items as CSV first
+    const normalized = this.rewriteSlashJoinedMemoryItems(value, factValues);
+    let html = this.escapeHtml(normalized);
 
     // Bold known memory details (full values + meaningful fragments)
     html = this.boldFactValues(html, factValues);
@@ -40,6 +42,54 @@ export class ChatMessageHtmlPipe implements PipeTransform {
     html = html.replace(/\n/g, '<br>');
 
     return this.sanitizer.bypassSecurityTrustHtml(html);
+  }
+
+  /**
+   * Rewrite slash-joined list items as CSV English.
+   * **avocados/olives** → **avocados**, **olives**
+   * avocados/olives → avocados, olives
+   * Leaves URLs, dates, and non-list slashes alone.
+   */
+  private rewriteSlashJoinedMemoryItems(text: string, factValues?: string[] | null): string {
+    const known = new Set(
+      (factValues?.length ? this.expandFactPhrases(factValues) : []).map((p) => p.toLowerCase())
+    );
+
+    const isListPart = (p: string): boolean =>
+      /^[A-Za-z][A-Za-z0-9\s'-]{1,40}$/.test(p) && !/\d{2,}/.test(p);
+
+    const toCsv = (parts: string[]): string | null => {
+      if (parts.length < 2 || !parts.every(isListPart)) {
+        return null;
+      }
+      // Prefer rewriting when parts are remembered likes, or always for short alphabetic lists
+      const allKnown = parts.every((p) => known.has(p.toLowerCase()));
+      const looksLikeFoodList = parts.every((p) => p.length >= 3 && !/\d/.test(p));
+      if (!allKnown && !looksLikeFoodList) {
+        return null;
+      }
+      return parts.join(', ');
+    };
+
+    // **avocados/olives** → **avocados**, **olives**
+    let out = text.replace(/\*\*([^*]+)\*\*/g, (full, inner: string) => {
+      if (!inner.includes('/') || inner.includes(',')) {
+        return full;
+      }
+      const parts = inner.split('/').map((p) => p.trim()).filter(Boolean);
+      return toCsv(parts) ? parts.map((p) => `**${p}**`).join(', ') : full;
+    });
+
+    // Plain avocados/olives → avocados, olives
+    out = out.replace(
+      /\b[A-Za-z][\w'-]*(?:\s+[A-Za-z][\w'-]*)*(?:\/[A-Za-z][\w'-]*(?:\s+[A-Za-z][\w'-]*)*)+\b/g,
+      (match) => {
+        const parts = match.split('/').map((p) => p.trim()).filter(Boolean);
+        return toCsv(parts) ?? match;
+      }
+    );
+
+    return out;
   }
 
   private boldFactValues(html: string, factValues?: string[] | null): string {
@@ -70,7 +120,7 @@ export class ChatMessageHtmlPipe implements PipeTransform {
     return out;
   }
 
-  /** Full fact values plus useful fragments (e.g. avocados/olives → both words). */
+  /** Full fact values plus useful CSV / phrase fragments (never slash compounds). */
   private expandFactPhrases(factValues: string[]): string[] {
     const phrases = new Set<string>();
 
@@ -80,7 +130,7 @@ export class ChatMessageHtmlPipe implements PipeTransform {
         phrases.add(trimmed);
       }
 
-      // Split compound values: "avocados/olives", "pickled things (especially …)"
+      // Split list values: "avocados, olives, pickled things"
       const parts = trimmed
         .split(/[/|,;()]+/)
         .map((p) => p.trim())
@@ -88,7 +138,6 @@ export class ChatMessageHtmlPipe implements PipeTransform {
 
       for (const part of parts) {
         phrases.add(part);
-        // Also keep multi-word parts intact; add significant words (length >= 5)
         for (const word of part.split(/\s+/)) {
           const w = word.replace(/^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$/g, '');
           if (w.length >= 5 && !STOPWORDS.has(w.toLowerCase())) {

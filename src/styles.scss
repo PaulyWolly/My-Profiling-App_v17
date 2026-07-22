@@ -116,4 +116,12 @@ body.mat-typography {
 }
 
 
+/* Confirm dialog: edge-to-edge header/footer (component owns padding) */
+.cdk-overlay-pane:has(.confirm-dialog) .mat-mdc-dialog-surface,
+.cdk-overlay-pane:has(.confirm-dialog) .mdc-dialog__surface {
+  padding: 0 !important;
+  overflow: hidden;
+  border-radius: 12px !important;
+}
+
 /* NOTE: no global .mdc-dialog__container tweaks — keep this scoped to gallery modal panel */

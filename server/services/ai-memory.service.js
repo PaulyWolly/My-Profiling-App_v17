@@ -29,6 +29,8 @@ function formatFactsForPrompt(facts) {
         'When they ask who they are, their name, what they like, hobbies, or similar, answer directly from this memory.',
         'Do not say you do not know them if a matching fact is listed.',
         'When you mention a remembered personal detail (name, hobby, like, etc.), wrap that exact value in double asterisks for bold, e.g. Your name is **Paul**.',
+        'When listing multiple likes or foods, write natural English with commas and "and" — never a slash. Example: **lacto-fermented pickles**, **olives** and **avocados**.',
+        'Wrong: avocados/olives or pickled things/avocados. Right: pickled things, olives and avocados.',
         'Treat "secret" items as private — do not volunteer them unprompted; only use them if helpful and appropriate.',
         'Do not invent facts that are not listed.',
         'If the user corrects a fact, acknowledge and follow the correction.',

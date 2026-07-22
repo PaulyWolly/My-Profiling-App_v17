@@ -440,6 +440,7 @@ async function extractUserMemoryFacts(userMessage, assistantReply) {
                         'Extract durable personal facts about the USER from this chat turn.',
                         'Return JSON only: { "facts": [ { "key": "snake_case", "value": "short string", "category": "identity|preference|hobby|like|dislike|secret|other" } ] }',
                         'Include name, job, location, hobbies, likes, dislikes, pets, family, secrets they volunteer, preferences.',
+                        'For lists of likes or items, store natural comma-separated text (e.g. "lacto-fermented pickles, olives and avocados"). Never join items with /.',
                         'Skip greetings, one-off questions, news, and anything not about the user.',
                         'If nothing durable was shared, return { "facts": [] }.',
                         'Max 8 facts. Keep values under 200 characters.'
