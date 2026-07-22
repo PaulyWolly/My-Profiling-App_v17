@@ -3,12 +3,41 @@
     <h2>AI Chat</h2>
     <p class="disclaimer">{{ disclaimer }}</p>
   </div>
+
   <p class="hint" *ngIf="!configured">OpenAI API key is not configured on the server.</p>
+
+  <div class="memory-bar" *ngIf="configured">
+    <span class="memory-summary" *ngIf="memoryFactCount > 0">
+      Remembering <strong>{{ memoryFactCount }}</strong> detail{{ memoryFactCount === 1 ? '' : 's' }} about you
+    </span>
+    <span class="memory-summary muted" *ngIf="memoryFactCount === 0">
+      No saved details yet — tell me your name, hobbies, likes…
+    </span>
+    <div class="memory-actions">
+      <button mat-stroked-button type="button" (click)="toggleMemory()" [disabled]="!memoryFactCount">
+        {{ showMemory ? 'Hide memory' : 'View memory' }}
+      </button>
+      <button mat-stroked-button type="button" color="warn" (click)="forgetMe()" [disabled]="loading || !memoryFactCount">
+        Forget me
+      </button>
+    </div>
+  </div>
+
+  <div class="memory-panel" *ngIf="showMemory && memoryFacts.length">
+    <div class="memory-fact" *ngFor="let fact of memoryFacts">
+      <div class="memory-fact-text">
+        <span class="memory-cat">{{ fact.category }}</span>
+        <strong>{{ factLabel(fact.key) }}</strong>: {{ fact.value }}
+      </div>
+      <button mat-button type="button" color="warn" (click)="removeFact(fact.key)">Remove</button>
+    </div>
+  </div>
 
   <div class="chat-log" #chatLog>
     <div class="chat-log-messages">
-      <p class="chat-empty" *ngIf="!messages.length && !loading">
-        Ask a question below. Your messages appear on the left; AI replies on the right.
+      <p class="chat-empty" *ngIf="loadingHistory">Loading your chat history…</p>
+      <p class="chat-empty" *ngIf="!loadingHistory && !messages.length && !loading">
+        Ask a question below. Details you share are saved to your account so I can remember them next time you log in.
       </p>
 
       <div
@@ -37,7 +66,7 @@
       (keydown.enter)="onEnter($event)"></textarea>
     <div class="chat-actions">
       <button mat-stroked-button type="button" (click)="clearChat()" [disabled]="loading || !messages.length">
-        Clear
+        Clear chat
       </button>
       <button mat-raised-button color="primary" (click)="send()" [disabled]="loading || !input.trim()">
         Send

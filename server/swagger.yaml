@@ -1,73 +1,290 @@
-openapi: 3.0.0
+openapi: 3.0.3
 info:
-  title: Angular 15 Signup Verification API
-  description: Node.js + MongoDB API for Angular signup verification
+  title: My Profiling App v17 API
+  description: |
+    MEAN stack REST API for My Profiling App v17 (MongoDB, Express, Angular, Node.js).
+
+    **Architecture:** See `docs/APPLICATION_OVERVIEW.md` in the repository.
+
+    **Authentication:** Most routes require a JWT from `POST /accounts/authenticate`.
+    Send `Authorization: Bearer <jwtToken>` on protected requests. Refresh tokens use an
+    httpOnly cookie on `POST /accounts/refresh-token`.
+
+    **Roles:** `User`, `Admin`, `Super-Admin`. Admin routes accept Admin or Super-Admin unless noted.
+
+    **WebSocket (not REST):** Real-time chat uses native WebSocket on the same host as the API:
+    `ws://localhost:5001?token=<JWT>&sessionId=<tab-id>` (local) or `wss://...` in production.
+    Events include `chat_message`, `chat_request`, `online_users`, `new_post`.
+
+    **Swagger UI:** Authorize with `Bearer <jwtToken>` after logging in via Try it out on authenticate.
   version: 1.0.0
+  contact:
+    name: My Profiling App
+
 servers:
-  - url: http://localhost:4000
-    description: Development server
+  - url: http://localhost:5001
+    description: Local backend (Express)
+  - url: https://my-profiling-app-v17.onrender.com
+    description: Production backend (Render Web Service)
+
+tags:
+  - name: System
+    description: Health and client configuration
+  - name: Accounts - Auth
+    description: Login, registration, password reset, tokens
+  - name: Accounts
+    description: Profile CRUD, uploads, sessions
+  - name: Accounts - Admin
+    description: Admin/Super-Admin account and session management
+  - name: Posts
+    description: Profile timeline posts
+  - name: Gallery
+    description: User gallery media and sharing
+  - name: Chat
+    description: REST support for peer chat (real-time via WebSocket)
+  - name: AI Tools
+    description: OpenAI chat, vision, image generation, RAG documents
+  - name: Uploads
+    description: Hybrid S3 + local file uploads
+  - name: Admin
+    description: Session cleanup and system settings
+  - name: Admin Scripts
+    description: Run and audit maintenance scripts
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Application JWT from POST /accounts/authenticate
+
+  schemas:
+    ErrorMessage:
+      type: object
+      properties:
+        message:
+          type: string
+
+    AuthenticateRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        rememberMe:
+          type: boolean
+
+    RegisterRequest:
+      type: object
+      required: [firstName, lastName, email, password, confirmPassword, acceptTerms]
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        confirmPassword:
+          type: string
+        acceptTerms:
+          type: boolean
+
+    Account:
+      type: object
+      properties:
+        id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum: [User, Admin, Super-Admin]
+        profileImage:
+          type: string
+        profileTemplateType:
+          type: string
+        jwtToken:
+          type: string
+        refreshToken:
+          type: string
+
+    ChatMessage:
+      type: object
+      properties:
+        senderId:
+          type: string
+        recipientId:
+          type: string
+        content:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        read:
+          type: boolean
+
+    Post:
+      type: object
+      properties:
+        sender:
+          type: string
+        recipient:
+          type: string
+        content:
+          type: string
+        likes:
+          type: integer
+        shares:
+          type: integer
+
+    GalleryItem:
+      type: object
+      properties:
+        id:
+          type: string
+        accountId:
+          type: string
+        type:
+          type: string
+          enum: [image, video]
+        url:
+          type: string
+        caption:
+          type: string
+        shareMode:
+          type: string
+          enum: [owner-only, all-shared, specific]
+
+    AiChatRequest:
+      type: object
+      required: [messages]
+      properties:
+        messages:
+          type: array
+          items:
+            type: object
+            properties:
+              role:
+                type: string
+                enum: [user, assistant, system]
+              content:
+                type: string
+
+  parameters:
+    AccountId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: MongoDB account ID
+
+    ResourceId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+
+security:
+  - bearerAuth: []
+
 paths:
+  /health:
+    get:
+      tags: [System]
+      summary: Health check (Render / load balancer)
+      security: []
+      responses:
+        '200':
+          description: Server is up; db field indicates MongoDB connection state
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  db:
+                    type: string
+                    enum: [connected, connecting]
+
+  /config:
+    get:
+      tags: [System]
+      summary: Public client config (Google Maps key)
+      description: Requires valid JWT in Authorization header (manual verify in controller).
+      responses:
+        '200':
+          description: Client-safe configuration
+        '401':
+          description: Missing or invalid token
+
   /accounts/authenticate:
     post:
-      summary: Authenticate user
+      tags: [Accounts - Auth]
+      summary: Login with email and password
+      security: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                password:
-                  type: string
+              $ref: '#/components/schemas/AuthenticateRequest'
       responses:
         '200':
-          description: Authentication successful
-  /accounts/refresh-token:
+          description: Returns account object with jwtToken and refreshToken cookie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '400':
+          description: Invalid credentials or unverified account
+
+  /accounts/auth0/authenticate:
     post:
-      summary: Refresh JWT token
+      tags: [Accounts - Auth]
+      summary: Exchange Auth0 access token for application JWT
+      security: []
+      description: Send Auth0 Bearer token in Authorization header.
       responses:
         '200':
-          description: Token refresh successful
-  /accounts/revoke-token:
-    post:
-      summary: Revoke refresh token
-      responses:
-        '200':
-          description: Token revoked successfully
+          description: Application JWT and account
+        '401':
+          description: Invalid Auth0 token
+
   /accounts/register:
     post:
-      summary: Register new account
+      tags: [Accounts - Auth]
+      summary: Self-register new account
+      security: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                title:
-                  type: string
-                firstName:
-                  type: string
-                lastName:
-                  type: string
-                email:
-                  type: string
-                password:
-                  type: string
-                confirmPassword:
-                  type: string
-                acceptTerms:
-                  type: boolean
+              $ref: '#/components/schemas/RegisterRequest'
       responses:
         '200':
-          description: Registration successful
+          description: Registration successful; verify email before login
+
   /accounts/verify-email:
     post:
-      summary: Verify email address
+      tags: [Accounts - Auth]
+      summary: Verify email with token from registration email
+      security: []
       requestBody:
-        required: true
         content:
           application/json:
             schema:
@@ -77,18 +294,262 @@ paths:
                   type: string
       responses:
         '200':
-          description: Email verification successful
-  /accounts/{id}/upload-image:
-    put:
-      summary: Upload profile image
+          description: Email verified
+
+  /accounts/forgot-password:
+    post:
+      tags: [Accounts - Auth]
+      summary: Request password reset email
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+      responses:
+        '200':
+          description: Reset email sent if account exists
+
+  /accounts/validate-reset-token:
+    post:
+      tags: [Accounts - Auth]
+      summary: Validate password reset token
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+      responses:
+        '200':
+          description: Token valid
+
+  /accounts/reset-password:
+    post:
+      tags: [Accounts - Auth]
+      summary: Set new password using reset token
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                password:
+                  type: string
+                confirmPassword:
+                  type: string
+      responses:
+        '200':
+          description: Password updated
+
+  /accounts/refresh-token:
+    post:
+      tags: [Accounts - Auth]
+      summary: Refresh JWT using httpOnly refreshToken cookie
+      security: []
+      description: Requires `withCredentials` / cookie `refreshToken`.
+      responses:
+        '200':
+          description: New jwtToken
+        '401':
+          description: Invalid or expired refresh token
+
+  /accounts/revoke-token:
+    post:
+      tags: [Accounts - Auth]
+      summary: Revoke refresh token (logout server-side)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+      responses:
+        '200':
+          description: Token revoked
+
+  /accounts/logout:
+    post:
+      tags: [Accounts - Auth]
+      summary: Logout using refreshToken cookie
+      responses:
+        '200':
+          description: Session revoked and cookie cleared
+
+  /accounts:
+    get:
+      tags: [Accounts]
+      summary: List all accounts
+      description: Authenticated users; typically Admin UI.
+      responses:
+        '200':
+          description: Array of accounts
+    post:
+      tags: [Accounts]
+      summary: Create account (admin)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                role:
+                  type: string
+      responses:
+        '200':
+          description: Account created
+
+  /accounts/my-sessions:
+    get:
+      tags: [Accounts]
+      summary: List current user's active refresh-token sessions
+      responses:
+        '200':
+          description: Session list with IP, browser, expiry
+
+  /accounts/my-sessions/{sessionId}/revoke:
+    post:
+      tags: [Accounts]
+      summary: Revoke one of the current user's sessions
       parameters:
-        - in: path
-          name: id
+        - name: sessionId
+          in: path
           required: true
           schema:
             type: string
+      responses:
+        '200':
+          description: Session revoked
+
+  /accounts/active-sessions:
+    get:
+      tags: [Accounts - Admin]
+      summary: List active sessions (paginated)
+      security: []
+      description: No JWT middleware on route; used by admin monitor (verify in deployment).
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Sessions and pagination
+
+  /accounts/{id}:
+    get:
+      tags: [Accounts]
+      summary: Get account by ID
+      parameters:
+        - $ref: '#/components/parameters/AccountId'
+      responses:
+        '200':
+          description: Account details
+    put:
+      tags: [Accounts]
+      summary: Update account (profile fields, role if permitted)
+      parameters:
+        - $ref: '#/components/parameters/AccountId'
       requestBody:
-        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                email:
+                  type: string
+                role:
+                  type: string
+                profileTemplateType:
+                  type: string
+                bio:
+                  type: string
+                skills:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Updated account
+    delete:
+      tags: [Accounts]
+      summary: Delete account
+      parameters:
+        - $ref: '#/components/parameters/AccountId'
+      responses:
+        '200':
+          description: Account deleted
+
+  /accounts/{id}/reset-password:
+    post:
+      tags: [Accounts - Admin]
+      summary: Super-Admin reset user password
+      parameters:
+        - $ref: '#/components/parameters/AccountId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                newPassword:
+                  type: string
+      responses:
+        '200':
+          description: Password reset
+
+  /accounts/{id}/password:
+    get:
+      tags: [Accounts - Admin]
+      summary: Super-Admin view stored password
+      parameters:
+        - $ref: '#/components/parameters/AccountId'
+      responses:
+        '200':
+          description: Password string (if stored)
+
+  /accounts/{id}/fix-profile-image:
+    post:
+      tags: [Accounts]
+      summary: Re-normalize profile image path for account
+      parameters:
+        - $ref: '#/components/parameters/AccountId'
+      responses:
+        '200':
+          description: Image path updated
+
+  /accounts/upload-profile-image:
+    post:
+      tags: [Accounts]
+      summary: Upload profile image (legacy local route)
+      requestBody:
         content:
           multipart/form-data:
             schema:
@@ -97,89 +558,777 @@ paths:
                 profileImage:
                   type: string
                   format: binary
+                userEmail:
+                  type: string
       responses:
         '200':
-          description: Image upload successful
-  /accounts:
-    get:
-      summary: Get all accounts (admin only)
-      responses:
-        '200':
-          description: List of all accounts
+          description: Upload successful
+
+  /accounts/upload-follower-image:
     post:
-      summary: Create new account (admin only)
+      tags: [Accounts]
+      summary: Upload follower image (legacy local route)
       requestBody:
-        required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
               type: object
               properties:
-                title:
+                file:
                   type: string
-                firstName:
-                  type: string
-                lastName:
-                  type: string
-                email:
-                  type: string
-                password:
-                  type: string
-                role:
+                  format: binary
+                followerName:
                   type: string
       responses:
         '200':
-          description: Account created successfully
-  /accounts/{id}:
-    get:
-      summary: Get account by id
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Account details
-    put:
-      summary: Update account
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                title:
-                  type: string
-                firstName:
-                  type: string
-                lastName:
-                  type: string
-                email:
-                  type: string
-                password:
-                  type: string
-                role:
-                  type: string
-      responses:
-        '200':
-          description: Account updated successfully
+          description: Upload successful
+
+  /accounts/refresh-tokens/cleanup:
     delete:
-      summary: Delete account
+      tags: [Accounts - Admin]
+      summary: Clean up expired/revoked refresh tokens
+      description: Requires Admin or Super-Admin.
+      responses:
+        '200':
+          description: Cleanup result
+
+  /accounts/force-logout/{id}:
+    post:
+      tags: [Accounts - Admin]
+      summary: Force logout a session by refresh-token ID
       parameters:
-        - in: path
-          name: id
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: RefreshToken session ID
+      responses:
+        '200':
+          description: Session revoked
+
+  /accounts/force-logout-bulk:
+    post:
+      tags: [Accounts - Admin]
+      summary: Force logout multiple sessions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sessionIds:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Bulk logout result
+
+  /accounts/cleanup-all-sessions:
+    post:
+      tags: [Accounts - Admin]
+      summary: Revoke all active refresh tokens
+      responses:
+        '200':
+          description: All sessions cleaned
+
+  /accounts/sessions/{sessionId}/force-logout:
+    post:
+      tags: [Accounts - Admin]
+      summary: Force logout (alias for force-logout)
+      parameters:
+        - name: sessionId
+          in: path
           required: true
           schema:
             type: string
       responses:
         '200':
-          description: Account deleted successfully 
+          description: Session revoked
+
+  /accounts/migrate-images:
+    post:
+      tags: [Accounts - Admin]
+      summary: Migrate legacy profile/follower image filenames
+      responses:
+        '200':
+          description: Migration results per account
+
+  /accounts/check-image-paths:
+    get:
+      tags: [Accounts - Admin]
+      summary: Log all account profile image paths (server console)
+      responses:
+        '200':
+          description: Paths logged
+
+  /api/posts:
+    post:
+      tags: [Posts]
+      summary: Create timeline post
+      security: []
+      description: No JWT middleware on route; pass sender/recipient IDs in body.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [sender, recipient, content]
+              properties:
+                sender:
+                  type: string
+                recipient:
+                  type: string
+                content:
+                  type: string
+      responses:
+        '201':
+          description: Post created; WebSocket new_post sent to recipient
+    get:
+      tags: [Posts]
+      summary: Get posts for a user
+      security: []
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Posts list
+
+  /api/posts/{id}/reply:
+    post:
+      tags: [Posts]
+      summary: Add reply to post
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sender:
+                  type: string
+                content:
+                  type: string
+      responses:
+        '200':
+          description: Updated post with replies
+
+  /api/posts/{id}/like:
+    post:
+      tags: [Posts]
+      summary: Increment post likes
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: New like count
+
+  /api/posts/{id}/share:
+    post:
+      tags: [Posts]
+      summary: Increment post shares
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: New share count
+
+  /api/posts/{id}:
+    delete:
+      tags: [Posts]
+      summary: Delete post
+      description: Super-Admin only (isSuperAdmin middleware).
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: Post deleted
+
+  /api/gallery/me:
+    get:
+      tags: [Gallery]
+      summary: List current user's gallery items
+      responses:
+        '200':
+          description: Gallery items
+
+  /api/gallery/settings/me:
+    get:
+      tags: [Gallery]
+      summary: Get gallery sharing settings
+      responses:
+        '200':
+          description: galleryVisibility and gallerySharedWith
+    patch:
+      tags: [Gallery]
+      summary: Update gallery sharing settings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                galleryVisibility:
+                  type: string
+                  enum: [private]
+                gallerySharedWith:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Updated settings
+
+  /api/gallery/shared-with-me:
+    get:
+      tags: [Gallery]
+      summary: Accounts that shared gallery with current user
+      responses:
+        '200':
+          description: Account list
+
+  /api/gallery/shared-with-me/total-items:
+    get:
+      tags: [Gallery]
+      summary: Total shared gallery item count for current user
+      responses:
+        '200':
+          description: totalItems count
+
+  /api/gallery/{accountId}:
+    get:
+      tags: [Gallery]
+      summary: View gallery for account (respects sharing rules)
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Visible gallery items
+        '403':
+          description: Not permitted
+
+  /api/gallery:
+    post:
+      tags: [Gallery]
+      summary: Create gallery item metadata (after file upload)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url, type]
+              properties:
+                url:
+                  type: string
+                type:
+                  type: string
+                  enum: [image, video]
+                caption:
+                  type: string
+                thumbnailUrl:
+                  type: string
+      responses:
+        '201':
+          description: Gallery item created
+
+  /api/gallery/{id}:
+    patch:
+      tags: [Gallery]
+      summary: Update gallery item sharing
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                shareMode:
+                  type: string
+                  enum: [owner-only, all-shared, specific]
+                sharedWith:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Updated item
+    delete:
+      tags: [Gallery]
+      summary: Delete gallery item (owner only)
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: Item deleted
+
+  /api/chat/messages/{chatId}:
+    get:
+      tags: [Chat]
+      summary: Chat history between two users
+      security: []
+      description: chatId is sorted user IDs joined with `-`, e.g. `id1-id2`.
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Message array
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChatMessage'
+
+  /api/chat/unread/{userId}:
+    get:
+      tags: [Chat]
+      summary: Unread messages for user
+      security: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Unread messages
+
+  /api/chat/markAsRead:
+    post:
+      tags: [Chat]
+      summary: Mark messages from sender as read
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                senderId:
+                  type: string
+                recipientId:
+                  type: string
+      responses:
+        '200':
+          description: success true
+
+  /api/ai/status:
+    get:
+      tags: [AI Tools]
+      summary: OpenAI configuration status (includes memoryFactCount)
+      responses:
+        '200':
+          description: Models, web search, upload limits, remembered fact count
+
+  /api/ai/conversation:
+    get:
+      tags: [AI Tools]
+      summary: Load saved AI chat transcript for the logged-in user
+      responses:
+        '200':
+          description: messages array (user/assistant)
+    delete:
+      tags: [AI Tools]
+      summary: Clear AI chat transcript (keeps long-term memory)
+      responses:
+        '200':
+          description: Conversation history cleared
+
+  /api/ai/memory:
+    get:
+      tags: [AI Tools]
+      summary: List long-term memory facts for the logged-in user
+      responses:
+        '200':
+          description: facts (key, value, category)
+    delete:
+      tags: [AI Tools]
+      summary: Clear all long-term memory facts for this user
+      responses:
+        '200':
+          description: Long-term memory cleared
+
+  /api/ai/memory/{key}:
+    delete:
+      tags: [AI Tools]
+      summary: Remove one memory fact by key
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Remaining facts
+
+  /api/ai/chat:
+    post:
+      tags: [AI Tools]
+      summary: OpenAI chat with per-user history + memory
+      description: |
+        Injects stored MongoDB memory facts into the system prompt, returns a reply,
+        appends the turn to AiConversation, and extracts durable personal facts into AiMemory.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiChatRequest'
+      responses:
+        '200':
+          description: reply and memoryFactCount
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reply:
+                    type: string
+                  memoryFactCount:
+                    type: integer
+
+  /api/ai/describe-image:
+    post:
+      tags: [AI Tools]
+      summary: Describe / identify image (vision)
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image]
+              properties:
+                image:
+                  type: string
+                  format: binary
+                prompt:
+                  type: string
+      responses:
+        '200':
+          description: description text
+        '413':
+          description: Image over 15 MB
+
+  /api/ai/generate-image:
+    post:
+      tags: [AI Tools]
+      summary: Generate image (GPT Image / DALL-E)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [prompt]
+              properties:
+                prompt:
+                  type: string
+                size:
+                  type: string
+                quality:
+                  type: string
+                style:
+                  type: string
+      responses:
+        '200':
+          description: image URL or base64 result
+
+  /api/ai/documents:
+    get:
+      tags: [AI Tools]
+      summary: List RAG documents for current user
+      responses:
+        '200':
+          description: Documents (chunks excluded)
+    post:
+      tags: [AI Tools]
+      summary: Upload and ingest RAG document
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [document]
+              properties:
+                document:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Created document metadata
+        '413':
+          description: Document over upload limit (default 50 MB)
+
+  /api/ai/documents/{id}:
+    delete:
+      tags: [AI Tools]
+      summary: Delete RAG document
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: Document deleted
+
+  /api/ai/documents/{id}/ask:
+    post:
+      tags: [AI Tools]
+      summary: Ask question against uploaded document (RAG)
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [question]
+              properties:
+                question:
+                  type: string
+      responses:
+        '200':
+          description: answer, sources, documentName
+
+  /api/hybrid-upload/profile-image:
+    post:
+      tags: [Uploads]
+      summary: Upload profile image (S3 + local)
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                profileImage:
+                  type: string
+                  format: binary
+                userId:
+                  type: string
+      responses:
+        '200':
+          description: profileImage URL and hybrid storage info
+
+  /api/hybrid-upload/follower-image:
+    post:
+      tags: [Uploads]
+      summary: Upload follower image (S3 + local)
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                followerImage:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Image URL
+
+  /api/hybrid-upload/company-logo:
+    post:
+      tags: [Uploads]
+      summary: Upload company logo (S3 + local)
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                companyLogo:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Logo URL
+
+  /api/hybrid-upload/gallery-media:
+    post:
+      tags: [Uploads]
+      summary: Upload gallery image or video (up to 1 GB)
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Media URL
+        '413':
+          description: File too large
+
+  /api/hybrid-upload/image:
+    delete:
+      tags: [Uploads]
+      summary: Delete file from S3 and local storage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                s3Url:
+                  type: string
+                localPath:
+                  type: string
+      responses:
+        '200':
+          description: Deleted
+
+  /admin/settings:
+    get:
+      tags: [Admin]
+      summary: Admin system settings (sessions, cleanup schedule)
+      description: Admin or Super-Admin.
+      responses:
+        '200':
+          description: activeSessionCount, lastSessionCleanup, etc.
+
+  /admin/cleanup-sessions:
+    post:
+      tags: [Admin]
+      summary: Run refresh-token cleanup now
+      responses:
+        '200':
+          description: Cleanup result and history record
+
+  /admin/update-cleanup-schedule:
+    post:
+      tags: [Admin]
+      summary: Update next scheduled cleanup time
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                schedule:
+                  type: string
+      responses:
+        '200':
+          description: Schedule updated
+
+  /admin/cleanup-history:
+    get:
+      tags: [Admin]
+      summary: Paginated cleanup history
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: skip
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: history array and pagination
+
+  /admin/cleanup-history/{id}:
+    delete:
+      tags: [Admin]
+      summary: Delete cleanup history record
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: Record deleted
+
+  /api/admin/scripts:
+    get:
+      tags: [Admin Scripts]
+      summary: List available admin scripts
+      responses:
+        '200':
+          description: Script metadata from scripts-metadata.json
+
+  /api/admin/scripts/run:
+    post:
+      tags: [Admin Scripts]
+      summary: Run a script by name
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                scriptName:
+                  type: string
+                  example: create-admin.js
+      responses:
+        '200':
+          description: exit code, stdout, stderr
+
+  /api/admin/scripts/history:
+    get:
+      tags: [Admin Scripts]
+      summary: Recent script run history
+      responses:
+        '200':
+          description: ScriptRun records
+
+  /api/admin/scripts/history/{id}:
+    delete:
+      tags: [Admin Scripts]
+      summary: Delete script history entry
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: Deleted
+
+  /api/admin/scripts/interactive-run/start:
+    post:
+      tags: [Admin Scripts]
+      summary: Start interactive script (demo hello-user.js)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                scriptName:
+                  type: string
+      responses:
+        '200':
+          description: Process ID for interactive session
+
+  /api/admin/scripts/interactive-run/input:
+    post:
+      tags: [Admin Scripts]
+      summary: Send input to interactive script
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                processId:
+                  type: string
+                input:
+                  type: string
+      responses:
+        '200':
+          description: Script output

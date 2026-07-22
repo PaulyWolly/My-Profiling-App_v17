@@ -273,14 +273,23 @@ function todayLabel() {
     });
 }
 
-function buildGeneralChatMessages(messages) {
-    const dateHint = {
+function buildGeneralChatMessages(messages, memorySystemContent) {
+    const parts = [];
+
+    parts.push({
         role: 'system',
         content: `Today is ${todayLabel()} (US Eastern). You have web search. For current events, politics, officeholders, weather, sports, prices, or anything time-sensitive, you MUST use web search and answer from those results — never from training-data cutoffs alone.`
-    };
+    });
+
+    if (memorySystemContent?.trim()) {
+        parts.push({
+            role: 'system',
+            content: memorySystemContent.trim()
+        });
+    }
 
     const hasSystem = messages.some((m) => m.role === 'system');
-    return hasSystem ? messages : [dateHint, ...messages];
+    return hasSystem ? [...parts, ...messages] : [...parts, ...messages];
 }
 
 function buildResponsesRequestBody(prepared) {
@@ -301,15 +310,15 @@ function buildResponsesRequestBody(prepared) {
     };
 }
 
-function createStaticChatCompletion(client, messages) {
+function createStaticChatCompletion(client, messages, memorySystemContent) {
     return client.chat.completions.create({
         model: CHAT_MODEL,
-        messages: buildGeneralChatMessages(messages)
+        messages: buildGeneralChatMessages(messages, memorySystemContent)
     });
 }
 
-async function chatWithResponsesWebSearch(client, messages) {
-    const prepared = buildGeneralChatMessages(messages);
+async function chatWithResponsesWebSearch(client, messages, memorySystemContent) {
+    const prepared = buildGeneralChatMessages(messages, memorySystemContent);
     const response = await client.responses.create(buildResponsesRequestBody(prepared));
     const text = response.output_text || '';
     if (!text.trim()) {
@@ -319,14 +328,14 @@ async function chatWithResponsesWebSearch(client, messages) {
     return text;
 }
 
-async function chatWithSearchPreviewModels(client, messages) {
+async function chatWithSearchPreviewModels(client, messages, memorySystemContent) {
     let lastErr;
 
     for (const model of CHAT_SEARCH_MODELS) {
         try {
             const response = await client.chat.completions.create({
                 model,
-                messages: buildGeneralChatMessages(messages),
+                messages: buildGeneralChatMessages(messages, memorySystemContent),
                 web_search_options: {
                     search_context_size: process.env.OPENAI_SEARCH_CONTEXT_SIZE || 'medium',
                     user_location: {
@@ -353,17 +362,18 @@ function isWebSearchConfigError(err) {
     return /tool_choice|web_search|does not support|not supported/.test(msg);
 }
 
-async function chat(messages) {
+async function chat(messages, options = {}) {
+    const memorySystemContent = options.memorySystemContent || '';
     return withOpenAiError('chat', async () => {
         const client = getClient();
 
         if (CHAT_WEB_SEARCH) {
             try {
-                return await chatWithResponsesWebSearch(client, messages);
+                return await chatWithResponsesWebSearch(client, messages, memorySystemContent);
             } catch (err) {
                 if (isWebSearchConfigError(err)) {
                     console.warn('[OpenAI] web_search tool_choice issue, retrying without required tool');
-                    const prepared = buildGeneralChatMessages(messages);
+                    const prepared = buildGeneralChatMessages(messages, memorySystemContent);
                     const response = await client.responses.create({
                         ...buildResponsesRequestBody(prepared),
                         tool_choice: 'auto'
@@ -381,7 +391,7 @@ async function chat(messages) {
                 console.warn('[OpenAI] Responses web_search unavailable, trying search API models');
 
                 try {
-                    const reply = await chatWithSearchPreviewModels(client, messages);
+                    const reply = await chatWithSearchPreviewModels(client, messages, memorySystemContent);
                     console.log('[OpenAI] chat via search-api model');
                     return reply;
                 } catch (err2) {
@@ -393,9 +403,59 @@ async function chat(messages) {
             }
         }
 
-        const response = await createStaticChatCompletion(client, messages);
+        const response = await createStaticChatCompletion(client, messages, memorySystemContent);
         console.log(`[OpenAI] chat via static model (${CHAT_MODEL})`);
         return response.choices[0]?.message?.content || '';
+    });
+}
+
+/**
+ * Extract durable personal facts from the latest user/assistant turn.
+ * Returns [] when nothing durable was shared.
+ */
+async function extractUserMemoryFacts(userMessage, assistantReply) {
+    return withOpenAiError('extractUserMemoryFacts', async () => {
+        const client = getClient();
+        const response = await client.chat.completions.create({
+            model: VISION_MODEL,
+            temperature: 0,
+            response_format: { type: 'json_object' },
+            messages: [
+                {
+                    role: 'system',
+                    content: [
+                        'Extract durable personal facts about the USER from this chat turn.',
+                        'Return JSON only: { "facts": [ { "key": "snake_case", "value": "short string", "category": "identity|preference|hobby|like|dislike|secret|other" } ] }',
+                        'Include name, job, location, hobbies, likes, dislikes, pets, family, secrets they volunteer, preferences.',
+                        'Skip greetings, one-off questions, news, and anything not about the user.',
+                        'If nothing durable was shared, return { "facts": [] }.',
+                        'Max 8 facts. Keep values under 200 characters.'
+                    ].join(' ')
+                },
+                {
+                    role: 'user',
+                    content: `USER SAID:\n${String(userMessage || '').slice(0, 4000)}\n\nASSISTANT SAID:\n${String(assistantReply || '').slice(0, 4000)}`
+                }
+            ]
+        });
+
+        const raw = response.choices[0]?.message?.content || '{}';
+        let parsed;
+        try {
+            parsed = JSON.parse(raw);
+        } catch {
+            return [];
+        }
+
+        const facts = Array.isArray(parsed.facts) ? parsed.facts : [];
+        return facts
+            .filter((f) => f && f.key && f.value)
+            .slice(0, 8)
+            .map((f) => ({
+                key: String(f.key),
+                value: String(f.value),
+                category: String(f.category || 'other')
+            }));
     });
 }
 
@@ -699,6 +759,7 @@ module.exports = {
     generateImage,
     ingestDocument,
     askDocument,
+    extractUserMemoryFacts,
     getApiKey,
     getChatConfig: () => ({
         model: CHAT_WEB_SEARCH ? RESPONSES_MODEL : CHAT_MODEL,

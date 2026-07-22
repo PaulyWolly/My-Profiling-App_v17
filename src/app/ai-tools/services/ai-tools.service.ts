@@ -8,6 +8,14 @@ const baseUrl = `${environment.apiUrl}/api/ai`;
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
+  createdAt?: string | Date;
+}
+
+export interface MemoryFact {
+  key: string;
+  value: string;
+  category: 'identity' | 'preference' | 'hobby' | 'like' | 'dislike' | 'secret' | 'other';
+  updatedAt?: string | Date;
 }
 
 export interface AiDocumentSummary {
@@ -37,6 +45,7 @@ export class AiToolsService {
     imageGenModel?: string;
     imageGenSizes?: string[];
     imageGenSupportsStyle?: boolean;
+    memoryFactCount?: number;
   }> {
     return this.http.get<{
       configured: boolean;
@@ -46,11 +55,32 @@ export class AiToolsService {
       imageGenModel?: string;
       imageGenSizes?: string[];
       imageGenSupportsStyle?: boolean;
+      memoryFactCount?: number;
     }>(`${baseUrl}/status`);
   }
 
-  chat(messages: ChatMessage[]): Observable<{ reply: string }> {
-    return this.http.post<{ reply: string }>(`${baseUrl}/chat`, { messages });
+  getConversation(): Observable<{ messages: ChatMessage[] }> {
+    return this.http.get<{ messages: ChatMessage[] }>(`${baseUrl}/conversation`);
+  }
+
+  clearConversation(): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${baseUrl}/conversation`);
+  }
+
+  getMemory(): Observable<{ facts: MemoryFact[] }> {
+    return this.http.get<{ facts: MemoryFact[] }>(`${baseUrl}/memory`);
+  }
+
+  clearMemory(): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${baseUrl}/memory`);
+  }
+
+  deleteMemoryFact(key: string): Observable<{ facts: MemoryFact[] }> {
+    return this.http.delete<{ facts: MemoryFact[] }>(`${baseUrl}/memory/${encodeURIComponent(key)}`);
+  }
+
+  chat(messages: ChatMessage[]): Observable<{ reply: string; memoryFactCount?: number }> {
+    return this.http.post<{ reply: string; memoryFactCount?: number }>(`${baseUrl}/chat`, { messages });
   }
 
   describeImage(file: File, prompt?: string): Observable<{ description: string }> {

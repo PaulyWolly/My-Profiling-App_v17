@@ -3,6 +3,7 @@ const multer = require('multer');
 const authorize = require('../_middleware/authenticate');
 const db = require('../_helpers/db');
 const openaiService = require('../services/openai.service');
+const aiMemoryService = require('../services/ai-memory.service');
 
 const router = express.Router();
 
@@ -59,19 +60,76 @@ function resolveImageMime(mimetype, originalname) {
 
 router.use(authorize());
 
-router.get('/status', (req, res) => {
-    const chat = openaiService.getChatConfig();
-    const imageGen = openaiService.getImageGenConfig();
-    res.json({
-        configured: !!openaiService.getApiKey(),
-        transport: 'node-fetch',
-        chatModel: chat.model,
-        webSearch: chat.webSearch,
-        ragMaxUploadMb: DOCUMENT_MAX_MB,
-        imageGenModel: imageGen.model,
-        imageGenSizes: imageGen.sizes,
-        imageGenSupportsStyle: imageGen.supportsStyleParam
-    });
+router.get('/status', async (req, res, next) => {
+    try {
+        const chat = openaiService.getChatConfig();
+        const imageGen = openaiService.getImageGenConfig();
+        const facts = await aiMemoryService.getMemory(req.user.id);
+        res.json({
+            configured: !!openaiService.getApiKey(),
+            transport: 'node-fetch',
+            chatModel: chat.model,
+            webSearch: chat.webSearch,
+            ragMaxUploadMb: DOCUMENT_MAX_MB,
+            imageGenModel: imageGen.model,
+            imageGenSizes: imageGen.sizes,
+            imageGenSupportsStyle: imageGen.supportsStyleParam,
+            memoryFactCount: facts.length
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/conversation', async (req, res, next) => {
+    try {
+        const messages = await aiMemoryService.getConversation(req.user.id);
+        res.json({
+            messages: messages.map((m) => ({
+                role: m.role,
+                content: m.content,
+                createdAt: m.createdAt
+            }))
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.delete('/conversation', async (req, res, next) => {
+    try {
+        await aiMemoryService.clearConversation(req.user.id);
+        res.json({ message: 'Conversation history cleared' });
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/memory', async (req, res, next) => {
+    try {
+        const facts = await aiMemoryService.getMemory(req.user.id);
+        res.json({ facts });
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.delete('/memory', async (req, res, next) => {
+    try {
+        await aiMemoryService.clearMemory(req.user.id);
+        res.json({ message: 'Long-term memory cleared' });
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.delete('/memory/:key', async (req, res, next) => {
+    try {
+        const facts = await aiMemoryService.deleteMemoryFact(req.user.id, req.params.key);
+        res.json({ facts });
+    } catch (err) {
+        next(err);
+    }
 });
 
 router.post('/chat', async (req, res, next) => {
@@ -89,8 +147,31 @@ router.post('/chat', async (req, res, next) => {
             return res.status(400).json({ message: 'No valid messages provided' });
         }
 
-        const reply = await openaiService.chat(sanitized);
-        res.json({ reply });
+        const lastUser = [...sanitized].reverse().find((m) => m.role === 'user');
+        if (!lastUser) {
+            return res.status(400).json({ message: 'A user message is required' });
+        }
+
+        const facts = await aiMemoryService.getMemory(req.user.id);
+        const memorySystemContent = aiMemoryService.formatFactsForPrompt(facts);
+
+        const reply = await openaiService.chat(sanitized, { memorySystemContent });
+
+        await aiMemoryService.appendConversation(req.user.id, lastUser.content, reply);
+
+        let memoryFactCount = facts.length;
+        try {
+            const updated = await aiMemoryService.extractAndStoreFacts(
+                req.user.id,
+                lastUser.content,
+                reply
+            );
+            memoryFactCount = updated.length;
+        } catch (memErr) {
+            console.warn('[AI] Memory update failed:', memErr?.message || memErr);
+        }
+
+        res.json({ reply, memoryFactCount });
     } catch (err) {
         next(err);
     }

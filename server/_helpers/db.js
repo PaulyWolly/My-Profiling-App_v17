@@ -24,5 +24,7 @@ module.exports = {
     RefreshToken,
     isValidId,
     CleanupHistory: require('../admin/cleanup-history.model'),
-    AiDocument: require('../models/ai-document.model')
+    AiDocument: require('../models/ai-document.model'),
+    AiConversation: require('../models/ai-conversation.model'),
+    AiMemory: require('../models/ai-memory.model')
 };

@@ -363,6 +363,8 @@ Model registry: `server/_helpers/db.js` (exports models and `isValidId()` helper
 | **Chat** | `chat` | Peer chat messages |
 | **SessionInfo** | `session-info` | WebSocket login/logout audit |
 | **AiDocument** | `aidocuments` | RAG document uploads and embeddings |
+| **AiConversation** | `aiconversations` | Per-user AI Chat transcript |
+| **AiMemory** | `aimemories` | Per-user long-term facts (name, hobbies, likes, secrets, …) |
 | **CleanupHistory** | `cleanuphistories` | Admin session cleanup runs |
 | **ScriptRun** | `scriptruns` | Admin script execution history |
 
@@ -403,7 +405,7 @@ Express routers are mounted in `server/server.js`:
 | `/api/posts` | `posts.controller.js` | Post |
 | `/api/gallery` | `gallery.controller.js` | GalleryItem, Account |
 | `/api/chat` | `chat.service.js` (router) | Chat |
-| `/api/ai` | `ai.routes.js` | AiDocument (RAG); chat/image are stateless |
+| `/api/ai` | `ai.routes.js` | AiDocument (RAG); AiConversation + AiMemory for chat |
 | `/admin` | `admin.controller.js` | CleanupHistory, RefreshToken |
 
 Typical request path:
@@ -423,7 +425,7 @@ Typical request path:
 | `GalleryService` | `/api/gallery`, `/api/hybrid-upload` | galleryitems, accounts |
 | `PostService` | `/api/posts` | posts |
 | `ChatService` | `/api/chat` + WebSocket | chat, session-info |
-| `AiToolsService` | `/api/ai` | aidocuments |
+| `AiToolsService` | `/api/ai` | aidocuments, aiconversations, aimemories |
 
 **File uploads:** Binary files go to local disk (`server/uploads/`) or S3 via hybrid upload routes. MongoDB stores URLs and metadata on `Account` or `GalleryItem`, not the file bytes.
 
