@@ -2,16 +2,18 @@ import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { forkJoin } from 'rxjs';
 
 import { AiToolsService, ChatMessage, MemoryFact } from '../../services/ai-tools.service';
 import { AlertService } from '@app/_services';
 import { ChatMessageHtmlPipe } from '../../pipes/chat-message-html.pipe';
+import { ConfirmDialogComponent } from '@app/shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-ai-chat',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatButtonModule, ChatMessageHtmlPipe],
+  imports: [CommonModule, FormsModule, MatButtonModule, MatDialogModule, ChatMessageHtmlPipe],
   templateUrl: './ai-chat.component.html',
   styleUrls: ['./ai-chat.component.css']
 })
@@ -29,7 +31,11 @@ export class AiChatComponent implements OnInit {
   configured = false;
   showMemory = false;
 
-  constructor(private ai: AiToolsService, private alert: AlertService) {}
+  constructor(
+    private ai: AiToolsService,
+    private alert: AlertService,
+    private dialog: MatDialog
+  ) {}
 
   get memoryFactCount(): number {
     return this.memoryFacts.length;
@@ -108,15 +114,28 @@ export class AiChatComponent implements OnInit {
     if (this.loading) {
       return;
     }
-    if (!confirm('Clear this chat transcript? Your long-term memory facts will be kept.')) {
-      return;
-    }
-    this.ai.clearConversation().subscribe({
-      next: () => {
-        this.messages = [];
-        this.input = '';
-      },
-      error: (err) => this.alert.error(err)
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '420px',
+      data: {
+        title: 'Clear chat?',
+        message: 'Clear this chat transcript? Your long-term memory facts will be kept.',
+        confirmText: 'Clear chat',
+        cancelText: 'Cancel'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed) => {
+      if (!confirmed) {
+        return;
+      }
+      this.ai.clearConversation().subscribe({
+        next: () => {
+          this.messages = [];
+          this.input = '';
+        },
+        error: (err) => this.alert.error(err)
+      });
     });
   }
 
@@ -124,15 +143,28 @@ export class AiChatComponent implements OnInit {
     if (this.loading) {
       return;
     }
-    if (!confirm('Forget all remembered details about you (name, hobbies, secrets, etc.)? Chat history will stay unless you Clear.')) {
-      return;
-    }
-    this.ai.clearMemory().subscribe({
-      next: () => {
-        this.memoryFacts = [];
-        this.showMemory = false;
-      },
-      error: (err) => this.alert.error(err)
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '420px',
+      data: {
+        title: 'Forget me?',
+        message: 'Forget all remembered details about you (name, hobbies, secrets, etc.)? Chat history will stay unless you Clear chat.',
+        confirmText: 'Forget me',
+        cancelText: 'Cancel'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed) => {
+      if (!confirmed) {
+        return;
+      }
+      this.ai.clearMemory().subscribe({
+        next: () => {
+          this.memoryFacts = [];
+          this.showMemory = false;
+        },
+        error: (err) => this.alert.error(err)
+      });
     });
   }
 
