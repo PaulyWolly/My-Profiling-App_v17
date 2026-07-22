@@ -25,7 +25,9 @@ function formatFactsForPrompt(facts) {
 
     return [
         'You are chatting with a returning logged-in user.',
-        'Use the following long-term memory about them when relevant.',
+        'The following long-term memory is AUTHORITATIVE about this user.',
+        'When they ask who they are, their name, what they like, hobbies, or similar, answer directly from this memory.',
+        'Do not say you do not know them if a matching fact is listed.',
         'Treat "secret" items as private — do not volunteer them unprompted; only use them if helpful and appropriate.',
         'Do not invent facts that are not listed.',
         'If the user corrects a fact, acknowledge and follow the correction.',

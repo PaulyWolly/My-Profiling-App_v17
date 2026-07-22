@@ -276,9 +276,16 @@ function todayLabel() {
 function buildGeneralChatMessages(messages, memorySystemContent) {
     const parts = [];
 
+    const baseSystem = [
+        `Today is ${todayLabel()} (US Eastern).`,
+        'You have web search for current events, politics, weather, sports, prices, and other time-sensitive topics.',
+        'For personal questions about this user (who they are, their name, likes, hobbies, preferences, secrets they shared), answer from the long-term memory below — do NOT say you do not know them if memory lists those facts.',
+        'Never invent personal facts that are not in memory.'
+    ].join(' ');
+
     parts.push({
         role: 'system',
-        content: `Today is ${todayLabel()} (US Eastern). You have web search. For current events, politics, officeholders, weather, sports, prices, or anything time-sensitive, you MUST use web search and answer from those results — never from training-data cutoffs alone.`
+        content: baseSystem
     });
 
     if (memorySystemContent?.trim()) {
@@ -288,12 +295,17 @@ function buildGeneralChatMessages(messages, memorySystemContent) {
         });
     }
 
-    const hasSystem = messages.some((m) => m.role === 'system');
-    return hasSystem ? [...parts, ...messages] : [...parts, ...messages];
+    const conversation = (messages || []).filter((m) => m.role === 'user' || m.role === 'assistant');
+    return [...parts, ...conversation];
 }
 
 function buildResponsesRequestBody(prepared) {
-    const instructions = prepared.find((m) => m.role === 'system')?.content;
+    // Responses API accepts a single instructions string — merge ALL system messages
+    // (date/rules + user memory). Using only .find() previously dropped memory.
+    const systemParts = prepared
+        .filter((m) => m.role === 'system' && m.content?.trim())
+        .map((m) => m.content.trim());
+    const instructions = systemParts.join('\n\n');
     const conversation = prepared.filter((m) => m.role !== 'system');
 
     return {
@@ -305,7 +317,8 @@ function buildResponsesRequestBody(prepared) {
             type: 'web_search',
             search_context_size: process.env.OPENAI_SEARCH_CONTEXT_SIZE || 'medium'
         }],
-        tool_choice: 'required',
+        // auto: personal "who am I" questions should use memory, not forced web search
+        tool_choice: 'auto',
         input: conversation.map((m) => ({ role: m.role, content: m.content }))
     };
 }
