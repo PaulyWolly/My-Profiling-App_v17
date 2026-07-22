@@ -109,8 +109,8 @@
 /* Shorter frame so memory bar + input actions stay visible above the footer */
 .chat-log {
   flex: 0 0 auto;
-  height: min(46vh, 420px);
-  max-height: min(46vh, 420px);
+  height: 50vh;
+  max-height: 50vh;
   min-height: 200px;
   margin-bottom: 0.75rem;
   border: 1px solid #d0e3ef;
