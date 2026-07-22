@@ -238,6 +238,11 @@
   white-space: normal;
 }
 
+.chat-bubble p.chat-body-html strong {
+  font-weight: 800;
+  color: inherit;
+}
+
 .chat-bubble a {
   color: #1565c0;
   font-weight: 600;

@@ -35,6 +35,10 @@ export class AiChatComponent implements OnInit {
     return this.memoryFacts.length;
   }
 
+  get memoryFactValues(): string[] {
+    return this.memoryFacts.map((f) => f.value).filter((v) => !!v?.trim());
+  }
+
   ngOnInit(): void {
     forkJoin({
       status: this.ai.getStatus(),

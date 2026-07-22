@@ -28,6 +28,7 @@ function formatFactsForPrompt(facts) {
         'The following long-term memory is AUTHORITATIVE about this user.',
         'When they ask who they are, their name, what they like, hobbies, or similar, answer directly from this memory.',
         'Do not say you do not know them if a matching fact is listed.',
+        'When you mention a remembered personal detail (name, hobby, like, etc.), wrap that exact value in double asterisks for bold, e.g. Your name is **Paul**.',
         'Treat "secret" items as private — do not volunteer them unprompted; only use them if helpful and appropriate.',
         'Do not invent facts that are not listed.',
         'If the user corrects a fact, acknowledge and follow the correction.',

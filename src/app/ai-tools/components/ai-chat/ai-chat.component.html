@@ -48,7 +48,7 @@
         <div class="chat-bubble">
           <strong>{{ msg.role === 'user' ? 'You' : 'AI' }}</strong>
           <p *ngIf="msg.role === 'user'">{{ msg.content }}</p>
-          <p *ngIf="msg.role === 'assistant'" class="chat-body-html" [innerHTML]="msg.content | chatMessageHtml"></p>
+          <p *ngIf="msg.role === 'assistant'" class="chat-body-html" [innerHTML]="msg.content | chatMessageHtml:memoryFactValues"></p>
         </div>
       </div>
 
