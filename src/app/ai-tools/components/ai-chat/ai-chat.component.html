@@ -24,12 +24,14 @@
   </div>
 
   <div class="memory-panel" *ngIf="showMemory && memoryFacts.length">
-    <div class="memory-fact" *ngFor="let fact of memoryFacts">
-      <div class="memory-fact-text">
-        <span class="memory-cat">{{ fact.category }}</span>
-        <strong>{{ factLabel(fact.key) }}</strong>: {{ fact.value }}
+    <div class="memory-panel-scroll">
+      <div class="memory-fact" *ngFor="let fact of memoryFacts">
+        <div class="memory-fact-text">
+          <span class="memory-cat">{{ fact.category }}</span>
+          <strong>{{ factLabel(fact.key) }}</strong>: {{ fact.value }}
+        </div>
+        <button mat-button type="button" color="warn" (click)="removeFact(fact.key)">Remove</button>
       </div>
-      <button mat-button type="button" color="warn" (click)="removeFact(fact.key)">Remove</button>
     </div>
   </div>
 
