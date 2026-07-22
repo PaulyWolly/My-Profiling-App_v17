@@ -17,7 +17,7 @@ import { ChatMessageHtmlPipe } from '../../pipes/chat-message-html.pipe';
 })
 export class AiChatComponent implements OnInit {
   readonly disclaimer =
-    'Ask me anything. I remember details you share (name, hobbies, likes, and more) for your account. Chat uses gpt-5-nano with web search — your API key stays on the server.';
+    'Ask me anything. The bot stores conversation history for each login and remembers details you share (name, hobbies, likes, and more) for your account. Chat uses gpt-5-nano with web search — your API key stays on the server.';
 
   @ViewChild('chatLog') chatLog?: ElementRef<HTMLDivElement>;
 
