@@ -212,7 +212,7 @@
 .chat-row {
   display: flex;
   width: 100%;
-  margin-bottom: 0.75rem;
+  margin-bottom: 10px;
 }
 
 .chat-row:last-child {
@@ -228,7 +228,7 @@
 }
 
 .chat-bubble {
-  max-width: min(85%, 42rem);
+  max-width: min(80%, 56rem);
   padding: 0.75rem 1rem;
   border-radius: 12px;
   background: #fff;
@@ -237,16 +237,18 @@
 }
 
 .chat-bubble.has-images {
-  max-width: min(95%, 36rem);
+  max-width: 80%;
 }
 
 .chat-row.user .chat-bubble {
+  max-width: min(60%, 36rem);
   background: #e3f2fd;
   border-color: #90caf9;
   border-bottom-right-radius: 4px;
 }
 
 .chat-row.assistant .chat-bubble {
+  max-width: 80%;
   background: #f1f8e9;
   border-color: #c5e1a5;
   border-bottom-left-radius: 4px;
