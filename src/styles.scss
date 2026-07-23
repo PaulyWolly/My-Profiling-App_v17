@@ -124,4 +124,14 @@ body.mat-typography {
   border-radius: 12px !important;
 }
 
+/* AI Chat image lightbox */
+.cdk-overlay-pane:has(.ai-chat-image-lightbox-panel) .mat-mdc-dialog-surface,
+.cdk-overlay-pane:has(.ai-chat-image-lightbox-panel) .mdc-dialog__surface,
+.ai-chat-image-lightbox-panel .mat-mdc-dialog-surface,
+.ai-chat-image-lightbox-panel .mdc-dialog__surface {
+  padding: 0 !important;
+  overflow: hidden;
+  border-radius: 12px !important;
+}
+
 /* NOTE: no global .mdc-dialog__container tweaks — keep this scoped to gallery modal panel */

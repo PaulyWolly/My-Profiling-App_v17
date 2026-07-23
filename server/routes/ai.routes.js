@@ -4,6 +4,7 @@ const authorize = require('../_middleware/authenticate');
 const db = require('../_helpers/db');
 const openaiService = require('../services/openai.service');
 const aiMemoryService = require('../services/ai-memory.service');
+const imageSearchService = require('../services/image-search.service');
 
 const router = express.Router();
 
@@ -155,7 +156,20 @@ router.post('/chat', async (req, res, next) => {
         const facts = await aiMemoryService.getMemory(req.user.id);
         const memorySystemContent = aiMemoryService.formatFactsForPrompt(facts);
 
-        const reply = await openaiService.chat(sanitized, { memorySystemContent });
+        const wantsImages = imageSearchService.wantsImages(lastUser.content);
+
+        // Chat first; then image search (can also reuse Wikimedia URLs from the reply)
+        const replyText = await openaiService.chat(sanitized, { memorySystemContent });
+
+        let imageResult = { wanted: false, images: [], markdown: '' };
+        if (wantsImages) {
+            imageResult = await imageSearchService.fetchImagesForChat(lastUser.content, replyText);
+        }
+
+        let reply = replyText;
+        if (imageResult.wanted && imageResult.markdown) {
+            reply = `${replyText}${imageResult.markdown}`;
+        }
 
         await aiMemoryService.appendConversation(req.user.id, lastUser.content, reply);
 
@@ -164,14 +178,18 @@ router.post('/chat', async (req, res, next) => {
             const updated = await aiMemoryService.extractAndStoreFacts(
                 req.user.id,
                 lastUser.content,
-                reply
+                replyText
             );
             memoryFactCount = updated.length;
         } catch (memErr) {
             console.warn('[AI] Memory update failed:', memErr?.message || memErr);
         }
 
-        res.json({ reply, memoryFactCount });
+        res.json({
+            reply,
+            memoryFactCount,
+            images: imageResult.images || []
+        });
     } catch (err) {
         next(err);
     }

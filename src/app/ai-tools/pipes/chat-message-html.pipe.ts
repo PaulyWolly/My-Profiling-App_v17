@@ -29,6 +29,23 @@ export class ChatMessageHtmlPipe implements PipeTransform {
     // Markdown bold the model may emit: **Paul**
     html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
 
+    // Markdown images: ![Blue-ringed octopus](https://...)
+    // Must run before link conversion so ![alt](url) is not treated as a text link.
+    html = html.replace(
+      /!\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)/gi,
+      (_match, alt, url) => {
+        const safeAlt = alt || 'Image';
+        return (
+          `<figure class="chat-image">` +
+          `<a href="${url}" target="_blank" rel="noopener noreferrer">` +
+          `<img src="${url}" alt="${safeAlt}" loading="lazy" referrerpolicy="no-referrer" />` +
+          `</a>` +
+          (alt ? `<figcaption>${alt}</figcaption>` : '') +
+          `</figure>`
+        );
+      }
+    );
+
     html = html.replace(
       /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/gi,
       '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'

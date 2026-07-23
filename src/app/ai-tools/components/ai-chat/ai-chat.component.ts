@@ -5,10 +5,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { forkJoin } from 'rxjs';
 
-import { AiToolsService, ChatMessage, MemoryFact } from '../../services/ai-tools.service';
+import { AiToolsService, ChatImage, ChatMessage, MemoryFact } from '../../services/ai-tools.service';
 import { AlertService } from '@app/_services';
 import { ChatMessageHtmlPipe } from '../../pipes/chat-message-html.pipe';
 import { ConfirmDialogComponent } from '@app/shared/components/confirm-dialog/confirm-dialog.component';
+import { AiChatImageDialogComponent } from './ai-chat-image-dialog.component';
 
 @Component({
   selector: 'app-ai-chat',
@@ -19,7 +20,7 @@ import { ConfirmDialogComponent } from '@app/shared/components/confirm-dialog/co
 })
 export class AiChatComponent implements OnInit {
   readonly disclaimer =
-    'Ask me anything. The bot stores conversation history for each login and remembers details you share (name, hobbies, likes, and more) for your account. Chat uses gpt-5-nano with web search — your API key stays on the server.';
+    'Ask me anything. Say “image” or “images” (e.g. “tell me about the blue-ringed octopus and show me images”) and I’ll show up to 8 photo thumbnails from Wikipedia / Wikimedia Commons. Chat history and personal details are saved per login.';
 
   @ViewChild('chatLog') chatLog?: ElementRef<HTMLDivElement>;
 
@@ -53,9 +54,9 @@ export class AiChatComponent implements OnInit {
     }).subscribe({
       next: ({ status, conversation, memory }) => {
         this.configured = status.configured;
-        this.messages = (conversation.messages || []).filter(
-          (m) => m.role === 'user' || m.role === 'assistant'
-        );
+        this.messages = (conversation.messages || [])
+          .filter((m) => m.role === 'user' || m.role === 'assistant')
+          .map((m) => this.normalizeMessage(m));
         this.memoryFacts = memory.facts || [];
         this.loadingHistory = false;
         setTimeout(() => this.scrollToBottom(), 0);
@@ -87,13 +88,21 @@ export class AiChatComponent implements OnInit {
     this.loading = true;
     this.scrollToBottom();
 
-    const payload = this.messages.filter((m) => m.role === 'user' || m.role === 'assistant');
+    // Only send role/content to the API
+    const payload = this.messages
+      .filter((m) => m.role === 'user' || m.role === 'assistant')
+      .map((m) => ({ role: m.role, content: m.content }));
 
     this.ai.chat(payload).subscribe({
       next: (res) => {
-        this.messages.push({ role: 'assistant', content: res.reply });
+        const images = (res.images || []).slice(0, 8);
+        const normalized = this.normalizeMessage({
+          role: 'assistant',
+          content: res.reply,
+          images
+        });
+        this.messages.push(normalized);
         if (typeof res.memoryFactCount === 'number') {
-          // Refresh facts so UI matches server memory
           this.ai.getMemory().subscribe({
             next: (m) => { this.memoryFacts = m.facts || []; },
             error: () => { /* keep previous */ }
@@ -107,6 +116,14 @@ export class AiChatComponent implements OnInit {
         this.loading = false;
         this.scrollToBottom();
       }
+    });
+  }
+
+  openImage(image: ChatImage): void {
+    this.dialog.open(AiChatImageDialogComponent, {
+      data: image,
+      maxWidth: '94vw',
+      panelClass: 'ai-chat-image-lightbox-panel'
     });
   }
 
@@ -181,6 +198,66 @@ export class AiChatComponent implements OnInit {
 
   factLabel(key: string): string {
     return key.replace(/_/g, ' ');
+  }
+
+  assistantText(msg: ChatMessage): string {
+    return msg.displayContent ?? msg.content;
+  }
+
+  /**
+   * Split stored markdown images into a gallery + clean text body.
+   */
+  private normalizeMessage(msg: ChatMessage): ChatMessage {
+    if (msg.role !== 'assistant') {
+      return { ...msg };
+    }
+
+    const fromApi = (msg.images || []).filter((img) => !!img?.url);
+    const parsed = this.extractMarkdownImages(msg.content || '');
+    const images = this.dedupeImages([...fromApi, ...parsed.images]).slice(0, 8);
+
+    return {
+      ...msg,
+      displayContent: parsed.text,
+      images
+    };
+  }
+
+  private extractMarkdownImages(content: string): { text: string; images: ChatImage[] } {
+    const images: ChatImage[] = [];
+    let text = String(content || '');
+
+    text = text.replace(
+      /!\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)[ \t]*\n?(?:\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)|_([^_\n]+)_)?[ \t]*/g,
+      (_full, alt: string, url: string, linkLabel?: string, linkUrl?: string, emSource?: string) => {
+        images.push({
+          url,
+          title: (alt || '').trim() || undefined,
+          source: (linkLabel || emSource || '').trim() || undefined,
+          pageUrl: linkUrl || undefined
+        });
+        return '';
+      }
+    );
+
+    text = text
+      .replace(/\*\*Images\*\*[^\n]*\n*/gi, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+
+    return { text, images };
+  }
+
+  private dedupeImages(images: ChatImage[]): ChatImage[] {
+    const seen = new Set<string>();
+    const out: ChatImage[] = [];
+    for (const img of images) {
+      const key = String(img.url || '').split('?')[0].toLowerCase();
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      out.push(img);
+    }
+    return out;
   }
 
   private scrollToBottom(): void {

@@ -5,9 +5,19 @@ import { environment } from '@environments/environment';
 
 const baseUrl = `${environment.apiUrl}/api/ai`;
 
+export interface ChatImage {
+  url: string;
+  title?: string;
+  source?: string;
+  pageUrl?: string;
+}
+
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
+  /** Display text without embedded image markdown (assistant only). */
+  displayContent?: string;
+  images?: ChatImage[];
   createdAt?: string | Date;
 }
 
@@ -79,8 +89,16 @@ export class AiToolsService {
     return this.http.delete<{ facts: MemoryFact[] }>(`${baseUrl}/memory/${encodeURIComponent(key)}`);
   }
 
-  chat(messages: ChatMessage[]): Observable<{ reply: string; memoryFactCount?: number }> {
-    return this.http.post<{ reply: string; memoryFactCount?: number }>(`${baseUrl}/chat`, { messages });
+  chat(messages: ChatMessage[]): Observable<{
+    reply: string;
+    memoryFactCount?: number;
+    images?: { url: string; title?: string; source?: string; pageUrl?: string }[];
+  }> {
+    return this.http.post<{
+      reply: string;
+      memoryFactCount?: number;
+      images?: { url: string; title?: string; source?: string; pageUrl?: string }[];
+    }>(`${baseUrl}/chat`, { messages });
   }
 
   describeImage(file: File, prompt?: string): Observable<{ description: string }> {

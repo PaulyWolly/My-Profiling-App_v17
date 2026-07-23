@@ -988,6 +988,8 @@ paths:
       description: |
         Injects stored MongoDB memory facts into the system prompt, returns a reply,
         appends the turn to AiConversation, and extracts durable personal facts into AiMemory.
+        When the user message includes "image" or "images", also searches Wikipedia /
+        Wikimedia Commons (and optional Google CSE if configured) and appends markdown images to the reply.
       requestBody:
         content:
           application/json:
@@ -995,7 +997,7 @@ paths:
               $ref: '#/components/schemas/AiChatRequest'
       responses:
         '200':
-          description: reply and memoryFactCount
+          description: reply, optional images, and memoryFactCount
           content:
             application/json:
               schema:
@@ -1005,6 +1007,19 @@ paths:
                     type: string
                   memoryFactCount:
                     type: integer
+                  images:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        url:
+                          type: string
+                        title:
+                          type: string
+                        source:
+                          type: string
+                        pageUrl:
+                          type: string
 
   /api/ai/describe-image:
     post:

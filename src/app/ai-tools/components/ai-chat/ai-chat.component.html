@@ -47,10 +47,24 @@
         class="chat-row"
         [class.user]="msg.role === 'user'"
         [class.assistant]="msg.role === 'assistant'">
-        <div class="chat-bubble">
+        <div class="chat-bubble" [class.has-images]="!!msg.images?.length">
           <strong>{{ msg.role === 'user' ? 'You' : 'AI' }}</strong>
           <p *ngIf="msg.role === 'user'">{{ msg.content }}</p>
-          <p *ngIf="msg.role === 'assistant'" class="chat-body-html" [innerHTML]="msg.content | chatMessageHtml:memoryFactValues"></p>
+          <div
+            *ngIf="msg.role === 'assistant' && assistantText(msg)"
+            class="chat-body-html"
+            [innerHTML]="assistantText(msg) | chatMessageHtml:memoryFactValues"></div>
+
+          <div class="chat-image-grid" *ngIf="msg.role === 'assistant' && msg.images?.length">
+            <button
+              type="button"
+              class="chat-image-thumb"
+              *ngFor="let img of msg.images"
+              (click)="openImage(img)"
+              [attr.aria-label]="'View larger: ' + (img.title || 'image')">
+              <img [src]="img.url" [alt]="img.title || 'Image'" loading="lazy" referrerpolicy="no-referrer" />
+            </button>
+          </div>
         </div>
       </div>
 
