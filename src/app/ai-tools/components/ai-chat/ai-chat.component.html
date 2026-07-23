@@ -60,7 +60,7 @@
               type="button"
               class="chat-image-thumb"
               *ngFor="let img of msg.images"
-              (click)="openImage(img)"
+              (click)="openImage(msg.images!, img)"
               [attr.aria-label]="'View larger: ' + (img.title || 'image')">
               <img [src]="img.url" [alt]="img.title || 'Image'" loading="lazy" referrerpolicy="no-referrer" />
             </button>

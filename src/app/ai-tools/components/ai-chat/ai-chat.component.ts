@@ -119,11 +119,14 @@ export class AiChatComponent implements OnInit {
     });
   }
 
-  openImage(image: ChatImage): void {
+  openImage(images: ChatImage[], image: ChatImage): void {
+    const list = (images || []).filter((img) => !!img?.url);
+    const startIndex = Math.max(0, list.findIndex((img) => img.url === image.url));
     this.dialog.open(AiChatImageDialogComponent, {
-      data: image,
+      data: { images: list, startIndex: startIndex < 0 ? 0 : startIndex },
       maxWidth: '94vw',
-      panelClass: 'ai-chat-image-lightbox-panel'
+      panelClass: 'ai-chat-image-lightbox-panel',
+      disableClose: true
     });
   }
 
