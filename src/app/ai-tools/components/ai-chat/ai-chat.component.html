@@ -110,15 +110,29 @@
             class="chat-body-html"
             [innerHTML]="assistantText(msg) | chatMessageHtml:memoryFactValues"></div>
 
-          <div class="chat-image-grid" *ngIf="msg.role === 'assistant' && msg.images?.length">
-            <button
-              type="button"
-              class="chat-image-thumb"
-              *ngFor="let img of msg.images"
-              (click)="openImage(msg.images!, img)"
-              [attr.aria-label]="'View larger: ' + (img.title || 'image')">
-              <img [src]="img.url" [alt]="img.title || 'Image'" loading="lazy" referrerpolicy="no-referrer" />
-            </button>
+          <div class="chat-images" *ngIf="msg.role === 'assistant' && msg.images?.length">
+            <div class="chat-images-head" *ngIf="msg.imageQuery">
+              <button
+                type="button"
+                class="chat-images-more"
+                (click)="loadMoreImages(msg, $event)"
+                [disabled]="msg.imagesLoading || msg.imagesExhausted"
+                [attr.aria-label]="'Show more images of ' + msg.imageQuery">
+                <mat-icon>{{ msg.imagesLoading ? 'hourglass_empty' : 'add_photo_alternate' }}</mat-icon>
+                <span>{{ msg.imagesLoading ? 'Finding…' : (msg.imagesExhausted ? 'No more' : 'More images') }}</span>
+              </button>
+            </div>
+
+            <div class="chat-image-grid">
+              <button
+                type="button"
+                class="chat-image-thumb"
+                *ngFor="let img of msg.images; trackBy: trackImage"
+                (click)="openImage(msg.images!, img)"
+                [attr.aria-label]="'View larger: ' + (img.title || 'image')">
+                <img [src]="img.url" [alt]="img.title || 'Image'" loading="lazy" referrerpolicy="no-referrer" />
+              </button>
+            </div>
           </div>
         </div>
       </div>

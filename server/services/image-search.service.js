@@ -337,10 +337,11 @@ function openverseCredit(item) {
  * is the primary source because Commons only holds encyclopedic files — for a
  * subject like "bugs bunny" that meant the same Walk of Fame stars every time.
  */
-async function searchOpenverseImages(query, limit = MAX_IMAGES) {
+async function searchOpenverseImages(query, limit = MAX_IMAGES, page = 1) {
     const params = new URLSearchParams({
         q: query,
         page_size: String(Math.min(OPENVERSE_PAGE_SIZE, Math.max(limit * 2, 10))),
+        page: String(Math.max(1, page)),
         extension: 'jpg,jpeg,png,gif,webp',
         mature: 'false'
     });
@@ -379,7 +380,7 @@ async function searchOpenverseImages(query, limit = MAX_IMAGES) {
  * Search Wikimedia Commons file namespace for topical images.
  * Fetches extra candidates, then relevance-filters.
  */
-async function searchCommonsImages(query, limit = MAX_IMAGES) {
+async function searchCommonsImages(query, limit = MAX_IMAGES, page = 1) {
     const fetchLimit = Math.min(30, Math.max(limit * 3, 12));
     const params = new URLSearchParams({
         action: 'query',
@@ -389,6 +390,7 @@ async function searchCommonsImages(query, limit = MAX_IMAGES) {
         gsrnamespace: '6',
         gsrsearch: query,
         gsrlimit: String(fetchLimit),
+        gsroffset: String(Math.max(0, page - 1) * fetchLimit),
         prop: 'imageinfo',
         iiprop: 'url|mime|size|extmetadata',
         iiurlwidth: '800'
@@ -426,14 +428,16 @@ async function searchCommonsImages(query, limit = MAX_IMAGES) {
 /**
  * Fallback: Wikipedia article thumbnails — filtered hard for title relevance.
  */
-async function searchWikipediaPageImages(query, limit = MAX_IMAGES) {
+async function searchWikipediaPageImages(query, limit = MAX_IMAGES, page = 1) {
+    const fetchLimit = Math.min(20, Math.max(limit * 2, 8));
     const params = new URLSearchParams({
         action: 'query',
         format: 'json',
         origin: '*',
         generator: 'search',
         gsrsearch: query,
-        gsrlimit: String(Math.min(20, Math.max(limit * 2, 8))),
+        gsrlimit: String(fetchLimit),
+        gsroffset: String(Math.max(0, page - 1) * fetchLimit),
         prop: 'pageimages|info',
         piprop: 'thumbnail|name',
         pithumbsize: '800',
@@ -555,11 +559,17 @@ function diversifyImages(images, perTitle = 2) {
     return [...kept, ...overflow];
 }
 
+/** Same picture, whatever query string is hanging off it. */
+function imageKey(urlOrImage) {
+    const url = typeof urlOrImage === 'string' ? urlOrImage : urlOrImage?.url;
+    return String(url || '').split('?')[0].toLowerCase();
+}
+
 function dedupeImages(images) {
     const seen = new Set();
     const out = [];
     for (const img of images) {
-        const key = String(img.url || '').split('?')[0].toLowerCase();
+        const key = imageKey(img);
         if (!key || seen.has(key)) continue;
         seen.add(key);
         out.push(img);
@@ -597,7 +607,7 @@ function formatImagesMarkdown(images, query) {
  * there are enough to fill the grid — a good Openverse result set costs one
  * request. Ranking stays relevance-first across all of them.
  */
-async function searchAllSources(query, limit = MAX_IMAGES) {
+async function searchAllSources(query, limit = MAX_IMAGES, page = 1) {
     const sources = [
         ['Openverse', searchOpenverseImages],
         ['Commons', searchCommonsImages],
@@ -610,14 +620,16 @@ async function searchAllSources(query, limit = MAX_IMAGES) {
     for (const [name, search] of sources) {
         if (images.length >= enough) break;
         try {
-            const found = await search(query, limit);
+            const found = await search(query, limit, page);
             images = filterRelevantImages(dedupeImages([...images, ...found]), query);
         } catch (err) {
             console.warn(`[ImageSearch] ${name} failed:`, err?.message || err);
         }
     }
 
-    if (!images.length) {
+    // Google paging is a separate quota question, so the last resort only ever
+    // answers the first request.
+    if (!images.length && page === 1) {
         try {
             images = await searchGoogleImages(query, limit);
         } catch (err) {
@@ -681,10 +693,51 @@ async function fetchImagesForChat(userMessage, assistantReply = '') {
     };
 }
 
+/** How many pages deep one press of "more images" is willing to dig. */
+const MORE_PAGE_ATTEMPTS = 2;
+
+/**
+ * A second helping for a subject already on screen. Paging the sources is what
+ * makes these different pictures rather than the same ones re-ranked, and the
+ * URLs already shown are excluded in case a source repeats itself across pages.
+ */
+async function fetchMoreImages(query, options = {}) {
+    const subject = String(query || '').trim();
+    if (!subject) {
+        return { query: '', images: [] };
+    }
+
+    const exclude = new Set((options.exclude || []).map(imageKey).filter(Boolean));
+    const variants = buildSearchQueryVariants(subject);
+    const pool = MAX_IMAGES * 2;
+
+    // Roughly where the caller left off. Relevance filtering means this drifts
+    // from the true page, which is why seen URLs are excluded as well.
+    const firstPage = Math.max(2, Math.floor(exclude.size / MAX_IMAGES) + 1);
+    let images = [];
+
+    for (let attempt = 0; attempt < MORE_PAGE_ATTEMPTS && images.length < MAX_IMAGES; attempt += 1) {
+        const page = firstPage + attempt;
+
+        for (const variant of variants) {
+            const found = await searchAllSources(variant, pool, page);
+            const fresh = found.filter((img) => !exclude.has(imageKey(img.url)));
+            images = filterRelevantImages(dedupeImages([...images, ...fresh]), subject);
+            if (images.length >= MAX_IMAGES) break;
+        }
+    }
+
+    images = diversifyImages(images).slice(0, MAX_IMAGES);
+    console.log(`[ImageSearch] more: query="${subject}" page>=${firstPage} gave ${images.length}`);
+
+    return { query: subject, images };
+}
+
 module.exports = {
     wantsImages,
     extractImageSearchQuery,
     fetchImagesForChat,
+    fetchMoreImages,
     relevanceScore,
     MAX_IMAGES
 };

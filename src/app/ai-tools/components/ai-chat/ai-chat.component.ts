@@ -270,6 +270,7 @@ export class AiChatComponent implements OnInit, OnDestroy {
 
     let streamed = '';
     let images: ChatImage[] = [];
+    let imageQuery = '';
 
     // Speech is fed as the reply is written, so a long answer starts playing on
     // its first sentence instead of after the last one.
@@ -300,10 +301,11 @@ export class AiChatComponent implements OnInit, OnDestroy {
 
           case 'images':
             images = (event.value || []).slice(0, 8);
+            imageQuery = event.query || '';
             break;
 
           case 'done':
-            this.finishReply(event.reply || streamed, images, event.memoryFactCount, spoken);
+            this.finishReply(event.reply || streamed, images, event.memoryFactCount, spoken, imageQuery);
             break;
 
           case 'error':
@@ -316,7 +318,7 @@ export class AiChatComponent implements OnInit, OnDestroy {
         // A stream that ends without a done event still has to release the UI.
         if (this.loading) {
           if (streamed) {
-            this.finishReply(streamed, images, undefined, spoken);
+            this.finishReply(streamed, images, undefined, spoken, imageQuery);
           } else {
             this.failReply('The reply ended unexpectedly. Please try again.');
           }
@@ -352,11 +354,12 @@ export class AiChatComponent implements OnInit, OnDestroy {
     reply: string,
     images: ChatImage[],
     memoryFactCount: number | undefined,
-    spoken: SpokenStream | null
+    spoken: SpokenStream | null,
+    imageQuery = ''
   ): void {
     this.streamingReply = null;
     this.streamStatus = null;
-    void this.onReply({ reply, images, memoryFactCount }, spoken);
+    void this.onReply({ reply, images, memoryFactCount, imageQuery }, spoken);
   }
 
   private async onReply(res: ChatResponse, spoken: SpokenStream | null): Promise<void> {
@@ -364,7 +367,8 @@ export class AiChatComponent implements OnInit, OnDestroy {
     const normalized = this.normalizeMessage({
       role: 'assistant',
       content: res.reply,
-      images
+      images,
+      imageQuery: res.imageQuery || ''
     });
     this.messages.push(normalized);
 
@@ -400,6 +404,61 @@ export class AiChatComponent implements OnInit, OnDestroy {
     this.messages.push({ role: 'assistant', content: CONVERSATION_EXIT_REPLY });
     this.scrollToBottom();
     await this.voice.speakAndWait(CONVERSATION_EXIT_REPLY, this.selectedVoice);
+  }
+
+  /**
+   * Another page of pictures, appended below the ones already there.
+   *
+   * Deliberately does not scroll: the reader is looking at the grid, and
+   * sending them back to the top of the reply would mean scrolling down again
+   * to see what they just asked for. Nothing above the new thumbnails changes
+   * height, so leaving the scroll position alone keeps the view still.
+   */
+  loadMoreImages(msg: ChatMessage, event: Event): void {
+    if (!msg.imageQuery || msg.imagesLoading || msg.imagesExhausted) {
+      return;
+    }
+
+    msg.imagesLoading = true;
+    const shown = (msg.images || []).map((img) => img.url).filter(Boolean);
+    const grid = (event.currentTarget as HTMLElement)
+      ?.closest('.chat-images')
+      ?.querySelector('.chat-image-grid') as HTMLElement | null;
+
+    this.ai.moreImages(msg.imageQuery, shown).subscribe({
+      next: (res) => {
+        const before = (msg.images || []).length;
+        const fresh = this.dedupeImages([...(msg.images || []), ...(res.images || [])]);
+        msg.imagesExhausted = fresh.length === before;
+        msg.images = fresh;
+        msg.imagesLoading = false;
+        if (fresh.length > before) {
+          this.revealImage(grid, before);
+        }
+      },
+      error: () => {
+        msg.imagesLoading = false;
+        msg.imagesExhausted = true;
+      }
+    });
+  }
+
+  /**
+   * Brings the first of the new thumbnails into view, and only if it landed
+   * below the fold. "nearest" moves by the smallest amount that works, so a
+   * grid already in view does not move at all.
+   */
+  private revealImage(grid: HTMLElement | null, index: number): void {
+    if (!grid) return;
+    setTimeout(() => {
+      (grid.children[index] as HTMLElement | undefined)
+        ?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }, 0);
+  }
+
+  /** Keeps existing thumbnails in place when more are appended. */
+  trackImage(_index: number, image: ChatImage): string {
+    return image.url;
   }
 
   openImage(images: ChatImage[], image: ChatImage): void {
@@ -533,13 +592,18 @@ export class AiChatComponent implements OnInit, OnDestroy {
     return {
       ...msg,
       displayContent: parsed.text,
-      images
+      images,
+      // A turn reloaded from history has no query of its own, so it comes back
+      // out of the saved gallery heading — otherwise "more images" would
+      // disappear from every reply after a refresh.
+      imageQuery: msg.imageQuery || parsed.query
     };
   }
 
-  private extractMarkdownImages(content: string): { text: string; images: ChatImage[] } {
+  private extractMarkdownImages(content: string): { text: string; images: ChatImage[]; query: string } {
     const images: ChatImage[] = [];
     let text = String(content || '');
+    const heading = text.match(/\*\*Images\*\*\s*for\s*[“"']([^”"'\n]+)[”"']/i);
 
     text = text.replace(
       /!\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)[ \t]*\n?(?:\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)|_([^_\n]+)_)?[ \t]*/g,
@@ -559,7 +623,7 @@ export class AiChatComponent implements OnInit, OnDestroy {
       .replace(/\n{3,}/g, '\n\n')
       .trim();
 
-    return { text, images };
+    return { text, images, query: (heading?.[1] || '').trim() };
   }
 
   private dedupeImages(images: ChatImage[]): ChatImage[] {

@@ -197,7 +197,10 @@ router.post('/chat', async (req, res, next) => {
         res.json({
             reply,
             memoryFactCount: facts.length,
-            images: imageResult.images || []
+            images: imageResult.images || [],
+            // The subject the pictures were found under, so "more images" asks
+            // for the same thing without re-deriving it from the conversation.
+            imageQuery: imageResult.query || ''
         });
 
         // Fact extraction is a second model call that adds a few seconds to every
@@ -218,7 +221,7 @@ router.post('/chat', async (req, res, next) => {
  * The body is newline-delimited JSON, one event per line:
  *   {"type":"status","value":"searching"|"writing"}
  *   {"type":"delta","value":"next piece of text"}
- *   {"type":"images","value":[...]}
+ *   {"type":"images","value":[...],"query":"what they were found under"}
  *   {"type":"done","reply":"...","memoryFactCount":N}
  *   {"type":"error","message":"..."}
  */
@@ -295,7 +298,7 @@ router.post('/chat/stream', async (req, res) => {
         }
 
         if (imageResult.images?.length) {
-            send({ type: 'images', value: imageResult.images });
+            send({ type: 'images', value: imageResult.images, query: imageResult.query || '' });
         }
 
         // The full reply is repeated here so the client can settle on one final
@@ -333,6 +336,28 @@ router.post('/chat/stream', async (req, res) => {
         } else {
             res.status(500).json({ message });
         }
+    }
+});
+
+/**
+ * A further page of pictures for a subject already answered. No model call is
+ * involved — this only searches — so it costs nothing against the AI quotas.
+ */
+router.post('/chat/images/more', async (req, res, next) => {
+    try {
+        const query = String(req.body?.query || '').trim();
+        if (!query) {
+            return res.status(400).json({ message: 'query is required' });
+        }
+
+        const exclude = Array.isArray(req.body?.exclude)
+            ? req.body.exclude.filter((url) => typeof url === 'string').slice(0, 200)
+            : [];
+
+        const result = await imageSearchService.fetchMoreImages(query, { exclude });
+        res.json({ images: result.images || [] });
+    } catch (err) {
+        next(err);
     }
 });
 

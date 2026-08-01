@@ -19,6 +19,11 @@ export interface ChatMessage {
   /** Display text without embedded image markdown (assistant only). */
   displayContent?: string;
   images?: ChatImage[];
+  /** Subject the images were found under, so more can be asked for. */
+  imageQuery?: string;
+  imagesLoading?: boolean;
+  /** Set once a search comes back empty — there is no more to show. */
+  imagesExhausted?: boolean;
   createdAt?: string | Date;
 }
 
@@ -26,6 +31,7 @@ export interface ChatResponse {
   reply: string;
   memoryFactCount?: number;
   images?: ChatImage[];
+  imageQuery?: string;
 }
 
 /** What the reply is waiting on, so the UI can say more than "Thinking…". */
@@ -34,7 +40,7 @@ export type ChatStreamStatus = 'searching' | 'writing' | 'images';
 export type ChatStreamEvent =
   | { type: 'status'; value: ChatStreamStatus }
   | { type: 'delta'; value: string }
-  | { type: 'images'; value: ChatImage[] }
+  | { type: 'images'; value: ChatImage[]; query?: string }
   | { type: 'done'; reply: string; memoryFactCount?: number }
   | { type: 'error'; message: string };
 
@@ -145,6 +151,14 @@ export class AiToolsService {
 
   chat(messages: ChatMessage[]): Observable<ChatResponse> {
     return this.http.post<ChatResponse>(`${baseUrl}/chat`, { messages });
+  }
+
+  /**
+   * A further page of pictures for a subject already on screen. The URLs
+   * already shown go along so the server can skip anything it repeats.
+   */
+  moreImages(query: string, exclude: string[]): Observable<{ images: ChatImage[] }> {
+    return this.http.post<{ images: ChatImage[] }>(`${baseUrl}/chat/images/more`, { query, exclude });
   }
 
   /**
