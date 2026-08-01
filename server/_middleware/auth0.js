@@ -1,7 +1,62 @@
 const { auth } = require('express-openid-connect');
 const jwt = require('jsonwebtoken');
+const jwksClient = require('jwks-rsa');
 
 console.log('[Auth0 Middleware] Loading with built-in fetch:', typeof fetch);
+
+const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN || 'pwconsulting.auth0.com';
+const AUTH0_ISSUER = `https://${AUTH0_DOMAIN}/`;
+
+/**
+ * Both token kinds this app legitimately receives.
+ *
+ * An access token requested for the API carries the API identifier, while an ID
+ * token carries the client id. Auth0 signs both, so both are accepted; what must
+ * not be accepted is a token this tenant never issued.
+ */
+const AUTH0_AUDIENCES = [
+    process.env.AUTH0_AUDIENCE || 'https://my-profiling-app-api',
+    process.env.AUTH0_CLIENT_ID || 'rPt7mWcx4eKBj1b4tqz8wH5Zr7ILR7PG'
+].filter(Boolean);
+
+/** Auth0 rotates signing keys, so they are fetched by key id and cached. */
+const signingKeys = jwksClient({
+    jwksUri: `https://${AUTH0_DOMAIN}/.well-known/jwks.json`,
+    cache: true,
+    cacheMaxAge: 10 * 60 * 1000,
+    rateLimit: true,
+    jwksRequestsPerMinute: 10
+});
+
+function getSigningKey(header, callback) {
+    signingKeys.getSigningKey(header.kid, (err, key) => {
+        if (err) return callback(err);
+        callback(null, key.getPublicKey());
+    });
+}
+
+/**
+ * Checks that a token really was issued by our Auth0 tenant.
+ *
+ * Decoding a token only unpacks what it claims to be; it proves nothing, so a
+ * hand-written token would be believed. Verifying against the tenant's published
+ * signing keys is what makes the email and sub inside it trustworthy — and this
+ * endpoint mints an application session from exactly those two values.
+ */
+function verifyAuth0Token(token) {
+    return new Promise((resolve, reject) => {
+        jwt.verify(
+            token,
+            getSigningKey,
+            {
+                algorithms: ['RS256'], // Pinned so "alg": "none" cannot be offered instead.
+                issuer: AUTH0_ISSUER,
+                audience: AUTH0_AUDIENCES
+            },
+            (err, payload) => (err ? reject(err) : resolve(payload))
+        );
+    });
+}
 
 // Auth0 configuration
 const auth0Config = {
@@ -30,15 +85,18 @@ async function validateAuth0Token(req, res, next) {
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
     try {
-        // Decode the JWT token to get the payload
-        const decoded = jwt.decode(token, { complete: true });
-
-        if (!decoded || !decoded.payload) {
-            console.log('[Auth0] Invalid token structure');
-            return next(); // Invalid token, continue without Auth0 user
+        let payload;
+        try {
+            payload = await verifyAuth0Token(token);
+        } catch (verifyError) {
+            // Leaving req.auth0User unset makes the handler answer 401.
+            console.warn('[Auth0] Rejected token:', verifyError.message);
+            return next();
         }
 
-        console.log('[Auth0] Token payload:', JSON.stringify(decoded.payload, null, 2));
+        const decoded = { payload };
+
+        console.log('[Auth0] Verified token for:', payload.sub);
 
         // Extract user info from the token payload
         let email = decoded.payload.email;

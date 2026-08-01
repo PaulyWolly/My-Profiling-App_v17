@@ -41,5 +41,6 @@
   { "name": "image-resize-check.js", "input": false },
   { "name": "memory-headroom-check.js", "input": true },
   { "name": "email-config-check.js", "input": true },
-  { "name": "signup-access-check.js", "input": true }
+  { "name": "signup-access-check.js", "input": true },
+  { "name": "auth0-forgery-check.js", "input": true }
 ] 
