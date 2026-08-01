@@ -139,6 +139,10 @@ With **Root Directory** = `server`, the build runs inside `server/`, installs mo
    - **Runtime**: Node
    - **Build Command**: `npm install` only (not `npm install; npm run build`—that will fail)
    - **Start Command**: `npm run start:prod`
+
+   Node version comes from `engines` in `server/package.json`, currently `20.x`. The repo-root
+   `.nvmrc` does **not** apply here, because Root Directory is `server`. Do not drop below Node
+   20.9, which is the floor for `sharp` (used to downscale images before the vision API sees them).
 4. Add **Environment Variables** in the Web Service → **Environment** tab. Use these **keys** and **example values** (replace with your own):
 
    **Required (backend won’t start without these):**
@@ -148,6 +152,26 @@ With **Root Directory** = `server`, the build runs inside `server/`, installs mo
    | `NODE_ENV` | `production` | Literally the word `production`. |
    | `MONGODB_URI` | `mongodb+srv://myuser:mypassword@cluster0.xxxxx.mongodb.net/profiling-app?retryWrites=true&w=majority` | **MongoDB Atlas**: Cluster → Connect → “Connect your application” → copy the connection string. Replace `<password>` with your DB user password. |
    | `JWT_SECRET` | `a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456` | Generate a long random string. On your machine run: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` and paste the output. |
+
+   > **`MONGODB_URI` does more than pick a database.** `npm run start:prod` first runs
+   > `scripts/write-config-from-env.js`, which generates `server/secrets/config.json` from the
+   > environment variables above. That file is not in Git, and several modules load it at startup.
+   > If `MONGODB_URI` is unset or still a placeholder, the script skips writing the file and the
+   > server then fails with `MODULE_NOT_FOUND: ../secrets/config.json` — which does not look like
+   > a missing-database error. Check this variable first when a deploy will not boot.
+
+   **AI tools (Chat, voice, RAG, Image Generate, Image Describe):**
+
+   | Key | Example value | Where to get it |
+   |-----|----------------|-----------------|
+   | `OPENAI_API_KEY` | `sk-proj-...` | [OpenAI dashboard](https://platform.openai.com/api-keys) → API keys. Without it every AI feature fails at request time, so the deploy still shows as healthy. |
+   | `AZURE_SPEECH_KEY` | `abc123...` | Azure Portal → your Speech resource → Keys and Endpoint. |
+   | `AZURE_SPEECH_REGION` | `eastus` | Same page as the key. |
+
+   > **Spoken replies need the Azure keys.** Without them the server falls back to OpenAI
+   > text-to-speech, which returns `403 does not have access to model tts-1` unless TTS is enabled
+   > on your OpenAI project. Note also that these two values are read only from the environment —
+   > `write-config-from-env.js` does not write them into `config.json`.
 
    **Optional (only if you use the feature):**
 
@@ -159,6 +183,24 @@ With **Root Directory** = `server`, the build runs inside `server/`, installs mo
    | `AWS_SECRET_ACCESS_KEY` | `wJalrXUtnFEMI/K7MDENG/...` | Shown once when you create the access key above. |
    | `AWS_REGION` or `S3_REGION` | `us-east-1` | Your S3 bucket’s region (e.g. `us-east-1`, `eu-west-1`). |
    | `S3_BUCKET_NAME` | `my-profiling-app-uploads` | Your S3 bucket name (for profile images). |
+   | `GOOGLE_CSE_API_KEY` | `AIzaSyB...` | Google Cloud Console → Credentials. Enables image results in AI Chat. |
+   | `GOOGLE_CSE_CX` | `a1b2c3d4e5f6g7h8i` | [Programmable Search Engine](https://programmablesearchengine.google.com/) → your engine → Search engine ID. |
+   | `WIKIMEDIA_USER_AGENT` | `MyProfilingApp/1.0 (contact=you@example.com)` | Free text. The built-in default says `contact=local-dev`, which is poor etiquette to send from a production host. |
+
+   **Cost and size limits (all have defaults — set them to override):**
+
+   | Key | Default | What it controls |
+   |-----|---------|------------------|
+   | `AI_IMAGE_DAILY_LIMIT` | `5` | Generated images per user per day. `0` disables the cap. Admin and Super-Admin are always exempt. Worth setting deliberately, since image generation is the most expensive call in the app. |
+   | `AI_IMAGE_MAX_UPLOAD_MB` | `50` | Upload ceiling for Image Describe. Larger images are downscaled server-side before they reach the vision API. |
+   | `AI_RAG_MAX_UPLOAD_MB` | `100` | Upload ceiling for RAG documents. |
+   | `AI_CHAT_MAX_MESSAGES` | `100` | Conversation turns retained per user. |
+   | `AI_MEMORY_MAX_FACTS` | `80` | Remembered facts retained per user. |
+   | `AI_CHAT_MAX_IMAGES` | `8` | Image thumbnails returned per chat reply. |
+
+   The `OPENAI_*` model and tuning variables (`OPENAI_CHAT_MODEL`, `OPENAI_REASONING_EFFORT`,
+   `OPENAI_TTS_VOICE`, `AZURE_TTS_VOICE`, and similar) all have working defaults and only need to
+   be set if you are deliberately changing a model or voice.
 
    **Important:** Do not commit real values to Git. Set them only in the Render **Environment** tab.
 

@@ -7,9 +7,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { finalize } from 'rxjs/operators';
 
-import { AiToolsService } from '../../services/ai-tools.service';
+import { AiToolsService, AiToolsStatus } from '../../services/ai-tools.service';
 import { AlertService } from '@app/_services';
 import { AiImageDescriptionDialogComponent } from './ai-image-description-dialog.component';
+import { AiToolsHelpButtonComponent } from '../ai-tools-help/ai-tools-help-button.component';
 
 @Component({
   selector: 'app-ai-image',
@@ -20,7 +21,8 @@ import { AiImageDescriptionDialogComponent } from './ai-image-description-dialog
     MatButtonModule,
     MatDialogModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    AiToolsHelpButtonComponent
   ],
   templateUrl: './ai-image.component.html',
   styleUrls: ['./ai-image.component.css']
@@ -34,6 +36,8 @@ export class AiImageComponent implements OnInit {
   description = '';
   loading = false;
   configured = true;
+  status: AiToolsStatus | null = null;
+  imageUploadMaxMb = 50;
 
   constructor(
     private ai: AiToolsService,
@@ -43,7 +47,11 @@ export class AiImageComponent implements OnInit {
 
   ngOnInit(): void {
     this.ai.getStatus().subscribe({
-      next: (s) => { this.configured = s.configured; },
+      next: (s) => {
+        this.configured = s.configured;
+        this.status = s;
+        this.imageUploadMaxMb = s.imageUploadMaxMb ?? this.imageUploadMaxMb;
+      },
       error: () => { this.configured = false; }
     });
   }

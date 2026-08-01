@@ -37,7 +37,7 @@ const RUNS = Number(process.argv[2]) || 2;
     console.log(`provider = ${useAzure ? 'azure' : 'openai'}`);
     console.log(`voice    = ${voice}`);
     console.log(`runs     = ${RUNS} per phrase\n`);
-    console.log('  phrase    chars            times            bytes');
+    console.log('  phrase    chars   times                     bytes');
 
     let failed = false;
 
@@ -59,10 +59,10 @@ const RUNS = Number(process.argv[2]) || 2;
         }
 
         if (times.length) {
+            const timing = times.map((t) => `${t}ms`).join(', ');
             console.log(
-                `  ${label.padEnd(9)}${String(phrase.length).padStart(5)}` +
-                `${times.map((t) => `${t}ms`).join(', ').padStart(17)}` +
-                `${String(bytes).padStart(17)}`
+                `  ${label.padEnd(9)}${String(phrase.length).padStart(5)}   ` +
+                `${timing.padEnd(22)}${String(bytes).padStart(8)}`
             );
         }
     }

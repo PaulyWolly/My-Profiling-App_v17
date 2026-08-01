@@ -28,7 +28,7 @@ This guide covers the **split** setup: Angular frontend on **Netlify**, Node/Exp
    - `MONGODB_URI` = your MongoDB connection string (e.g. from [MongoDB Atlas](https://www.mongodb.com/cloud/atlas))
    - `JWT_SECRET` = a long random string (e.g. run `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`)
 
-   Optional: `GOOGLE_MAPS_API_KEY`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `S3_BUCKET_NAME` (see [DEPLOY-RENDER.md](DEPLOY-RENDER.md)).
+   Optional: `GOOGLE_MAPS_API_KEY`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `S3_BUCKET_NAME` (see [DEPLOY-RENDER-ALL.md](DEPLOY-RENDER-ALL.md)).
 
 5. Deploy and copy the backend URL, e.g. `https://my-profiling-app-api.onrender.com`.
 

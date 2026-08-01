@@ -888,10 +888,16 @@ function basicDetails(account) {
     }
 
     const resolvedFollowerImages = Array.isArray(followerImages)
-        ? followerImages.map(follower => ({
-            ...follower,
-            imageUrl: follower?.imageUrl ? resolveFollowerImageUrl(follower.imageUrl) : follower?.imageUrl
-        }))
+        ? followerImages.map(follower => {
+            // A Mongoose subdocument keeps its fields on _doc behind prototype
+            // getters, so spreading one yields internals instead of name/title.
+            // Callers pass hydrated documents as well as plain objects.
+            const plain = typeof follower?.toObject === 'function' ? follower.toObject() : { ...follower };
+            return {
+                ...plain,
+                imageUrl: plain?.imageUrl ? resolveFollowerImageUrl(plain.imageUrl) : plain?.imageUrl
+            };
+        })
         : followerImages;
 
     return {

@@ -1,6 +1,9 @@
 <div class="ai-gen-page">
   <div class="page-head">
-    <h2>Image Generator</h2>
+    <div class="page-head-title">
+      <h2>Image Generator</h2>
+      <app-ai-tools-help-button topic="generate" [status]="status"></app-ai-tools-help-button>
+    </div>
     <p class="sub">Create images from a text prompt using OpenAI image models.</p>
   </div>
   <p class="hint" *ngIf="!configured">OpenAI API key is not configured on the server.</p>
@@ -58,7 +61,8 @@
           {{ imagesRemaining }} of {{ imagesLimit }} images left today.
         </ng-container>
         <ng-container *ngIf="imagesRemaining === 0">
-          Daily limit of {{ imagesLimit }} images reached — more unlock tomorrow.
+          Daily limit of {{ imagesLimit }} image{{ imagesLimit === 1 ? '' : 's' }} reached — more
+          unlock tomorrow.
         </ng-container>
       </p>
 

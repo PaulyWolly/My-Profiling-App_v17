@@ -23,6 +23,7 @@ import { ConfirmDialogComponent } from '@app/shared/components/confirm-dialog/co
 import { AiChatImageDialogComponent } from './ai-chat-image-dialog.component';
 import { AiChatMemoryDialogComponent } from './ai-chat-memory-dialog.component';
 import { AiChatAskDialogComponent } from './ai-chat-ask-dialog.component';
+import { AiToolsHelpButtonComponent } from '../ai-tools-help/ai-tools-help-button.component';
 import { SpokenStream, VoiceService } from '../../services/voice.service';
 import {
   CONVERSATION_EXIT_REPLY,
@@ -30,6 +31,23 @@ import {
   ConversationService,
   isExitPhrase
 } from '../../services/conversation.service';
+
+/**
+ * Deep link to the operating system's microphone page, where the input volume
+ * lives. Windows and macOS each publish one; everywhere else the hint stays
+ * plain text because there is nothing to open.
+ */
+function resolveMicSettingsUri(): string | null {
+  const agent = typeof navigator === 'undefined' ? '' : navigator.userAgent;
+  if (/Windows/i.test(agent)) {
+    // Documented by Microsoft as "Default microphone" (Windows 10 1809+).
+    return 'ms-settings:sound-defaultinputproperties';
+  }
+  if (/Macintosh|Mac OS X/i.test(agent)) {
+    return 'x-apple.systempreferences:com.apple.preference.sound?input';
+  }
+  return null;
+}
 
 @Component({
   selector: 'app-ai-chat',
@@ -42,15 +60,13 @@ import {
     MatIconModule,
     MatMenuModule,
     MatTooltipModule,
-    ChatMessageHtmlPipe
+    ChatMessageHtmlPipe,
+    AiToolsHelpButtonComponent
   ],
   templateUrl: './ai-chat.component.html',
   styleUrls: ['./ai-chat.component.css']
 })
 export class AiChatComponent implements OnInit, OnDestroy {
-  readonly disclaimer =
-    'Ask me anything. Say image/images, picture/pictures, or photo/photos (e.g. “show me pictures of a king cobra”) and I’ll show up to 8 photo thumbnails from Wikipedia / Wikimedia Commons. Chat history and personal details are saved per login.';
-
   @ViewChild('chatLog') chatLog?: ElementRef<HTMLDivElement>;
 
   messages: ChatMessage[] = [];
@@ -69,6 +85,8 @@ export class AiChatComponent implements OnInit, OnDestroy {
   speaking = false;
   voices: TtsVoice[] = [];
   selectedVoice = '';
+  /** Null on platforms with no settings page we can open. */
+  readonly micSettingsUri = resolveMicSettingsUri();
   private voiceSubs = new Subscription();
 
   // Conversation Mode -------------------------------------------------------
@@ -453,6 +471,17 @@ export class AiChatComponent implements OnInit, OnDestroy {
         error: (err) => this.alert.error(err)
       });
     });
+  }
+
+  /**
+   * Hands the URI to the browser rather than using an href, because Angular's
+   * sanitizer rewrites schemes it does not recognize. The browser asks the user
+   * before handing off to the system, so nothing opens without consent.
+   */
+  openMicSettings(): void {
+    if (this.micSettingsUri) {
+      window.location.href = this.micSettingsUri;
+    }
   }
 
   openMemory(): void {

@@ -91,13 +91,6 @@
   background: #fdecea;
 }
 
-.disclaimer {
-  margin: 0;
-  color: #555;
-  font-size: 0.95rem;
-  line-height: 1.4;
-}
-
 .hint {
   color: #a94442;
   background: #f8d7da;
@@ -319,6 +312,29 @@
   font-style: italic;
   max-width: 47rem;
   line-height: 1.5;
+}
+
+span.center {
+  text-align: center;
+  margin: 0 auto;
+  display: block;
+  width: 475px;
+}
+
+/* A button, so the OS link survives Angular's URL sanitizer, but it reads as
+   part of the surrounding sentence. */
+.mic-settings-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: #1565c0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.mic-settings-link:hover {
+  color: #0d47a1;
 }
 
 .chat-row {

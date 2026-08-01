@@ -8,10 +8,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { AiToolsService, AiDocumentSummary } from '../../services/ai-tools.service';
+import { AiToolsService, AiDocumentSummary, AiToolsStatus } from '../../services/ai-tools.service';
 import { AlertService } from '@app/_services';
 import { ConfirmDialogComponent } from '@app/shared/components/confirm-dialog/confirm-dialog.component';
 import { AiRagAnswerDialogComponent } from './ai-rag-answer-dialog.component';
+import { AiToolsHelpButtonComponent } from '../ai-tools-help/ai-tools-help-button.component';
 
 @Component({
   selector: 'app-ai-rag',
@@ -24,7 +25,8 @@ import { AiRagAnswerDialogComponent } from './ai-rag-answer-dialog.component';
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
-    MatTooltipModule
+    MatTooltipModule,
+    AiToolsHelpButtonComponent
   ],
   templateUrl: './ai-rag.component.html',
   styleUrls: ['./ai-rag.component.css']
@@ -42,6 +44,7 @@ export class AiRagComponent implements OnInit {
   reindexingId: string | null = null;
   configured = true;
   ragMaxUploadMb = 100;
+  status: AiToolsStatus | null = null;
 
   constructor(
     private ai: AiToolsService,
@@ -53,6 +56,7 @@ export class AiRagComponent implements OnInit {
     this.ai.getStatus().subscribe({
       next: (s) => {
         this.configured = s.configured;
+        this.status = s;
         if (s.ragMaxUploadMb) {
           this.ragMaxUploadMb = s.ragMaxUploadMb;
         }

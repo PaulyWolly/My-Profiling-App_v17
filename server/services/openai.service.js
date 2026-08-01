@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const nodeFetch = require('node-fetch');
+const sharp = require('sharp');
 
 const CHAT_MODEL = process.env.OPENAI_CHAT_MODEL || 'gpt-5-nano';
 const RESPONSES_MODEL = process.env.OPENAI_RESPONSES_MODEL || 'gpt-5-nano';
@@ -136,6 +137,19 @@ const EMBEDDING_MODEL_CANDIDATES = [
     'text-embedding-ada-002'
 ].filter((value, index, all) => value && all.indexOf(value) === index);
 const EMBEDDING_BATCH_SIZE = 100;
+
+/**
+ * The vision API refuses an inline image once its base64 form passes 20MB.
+ * Base64 costs four bytes per three, and the data URL and JSON around it add a
+ * little more, so this is the largest raw file that still fits under that.
+ */
+const VISION_MAX_RAW_BYTES = Math.floor(20 * 1024 * 1024 * 0.72);
+
+/** The documented ceiling on the detail the model reads from an image. */
+const VISION_MAX_EDGE = 2048;
+
+/** Extracted text indexed per document; the rest of the file is rejected. */
+const RAG_MAX_CHARS = Math.max(50_000, parseInt(process.env.AI_RAG_MAX_CHARS || '1500000', 10));
 const KEYWORD_RAG_MODEL = 'keyword-search';
 
 /** Text-to-speech for spoken chat replies. */
@@ -735,11 +749,55 @@ async function extractUserMemoryFacts(userMessage, assistantReply) {
     });
 }
 
+/**
+ * Shrinks an image that is too large to send inline.
+ *
+ * The image travels to the API as a base64 data URL, and base64 inflates it by
+ * a third, so a file over roughly 14MB crosses the 20MB ceiling the API applies
+ * and is rejected outright. Resizing loses nothing that matters: the model caps
+ * the detail it reads at 2048px on the long edge, so a larger source is
+ * downsampled on their side anyway. Smaller images are passed through untouched.
+ */
+async function fitImageForVision(buffer, mimeType) {
+    if (buffer.length <= VISION_MAX_RAW_BYTES) {
+        return { buffer, mimeType };
+    }
+
+    try {
+        const resized = await sharp(buffer, { failOn: 'none' })
+            // Phone photos carry their orientation in EXIF, which is lost once
+            // the image is re-encoded, so it has to be baked in here.
+            .rotate()
+            .resize({
+                width: VISION_MAX_EDGE,
+                height: VISION_MAX_EDGE,
+                fit: 'inside',
+                withoutEnlargement: true
+            })
+            .jpeg({ quality: 85 })
+            .toBuffer();
+
+        if (resized.length > VISION_MAX_RAW_BYTES) {
+            throw 'This image is too detailed to analyze. Try saving it at a smaller size.';
+        }
+
+        console.log(
+            `[OpenAI] vision: resized ${Math.round(buffer.length / 1024)}KB source to ` +
+            `${Math.round(resized.length / 1024)}KB`
+        );
+        return { buffer: resized, mimeType: 'image/jpeg' };
+    } catch (err) {
+        if (typeof err === 'string') throw err;
+        throw 'Could not read this image. It may be corrupt or in an unsupported format.';
+    }
+}
+
 async function describeImage(buffer, mimeType, prompt) {
     return withOpenAiError('describeImage', async () => {
         const client = getClient();
-        const base64 = buffer.toString('base64');
-        const dataUrl = `data:${mimeType || 'image/jpeg'};base64,${base64}`;
+        const fitted = await fitImageForVision(buffer, mimeType);
+        const base64 = fitted.buffer.toString('base64');
+        const dataUrl = `data:${fitted.mimeType || 'image/jpeg'};base64,${base64}`;
         const userPrompt = prompt?.trim() || [
             'Identify what this image shows.',
             'If you recognize a specific subject — famous artwork, landmark, person, animal, plant, vehicle, nebula, galaxy, or other named thing — lead with the name and a short explanation of what it is.',
@@ -1061,7 +1119,7 @@ async function ingestDocument(buffer, mimeType, originalName) {
             throw 'No readable text found in this document';
         }
 
-        const maxChars = Math.max(50_000, parseInt(process.env.AI_RAG_MAX_CHARS || '1500000', 10));
+        const maxChars = RAG_MAX_CHARS;
         if (text.length > maxChars) {
             throw `Document is too large to index (${text.length.toLocaleString()} characters). Maximum is ${maxChars.toLocaleString()} characters of extracted text. Try a smaller file or split the document.`;
         }
@@ -1291,6 +1349,7 @@ module.exports = {
     getApiKey,
     chatStream,
     needsWebSearch,
+    RAG_MAX_CHARS,
     getChatConfig: () => ({
         model: CHAT_WEB_SEARCH ? RESPONSES_MODEL : CHAT_MODEL,
         webSearch: CHAT_WEB_SEARCH,

@@ -7,8 +7,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { finalize } from 'rxjs/operators';
 
-import { AiToolsService } from '../../services/ai-tools.service';
+import { AiToolsService, AiToolsStatus } from '../../services/ai-tools.service';
 import { AlertService } from '@app/_services';
+import { AiToolsHelpButtonComponent } from '../ai-tools-help/ai-tools-help-button.component';
 
 /** Pre-filled so a first-time visitor can hit Generate and see what the tool does. */
 const EXAMPLE_PROMPT =
@@ -27,7 +28,8 @@ const WIDE_SIZE = '1536x1024';
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule
+    MatSelectModule,
+    AiToolsHelpButtonComponent
   ],
   templateUrl: './ai-image-generator.component.html',
   styleUrls: ['./ai-image-generator.component.css']
@@ -47,6 +49,7 @@ export class AiImageGeneratorComponent implements OnInit {
   modelUsed = '';
   loading = false;
   configured = true;
+  status: AiToolsStatus | null = null;
 
   /** null means this account has no daily cap. */
   imagesRemaining: number | null = null;
@@ -58,6 +61,7 @@ export class AiImageGeneratorComponent implements OnInit {
     this.ai.getStatus().subscribe({
       next: (s) => {
         this.configured = s.configured;
+        this.status = s;
         if (s.imageGenSizes?.length) {
           this.sizes = s.imageGenSizes;
           if (!this.sizes.includes(this.size)) {
@@ -118,16 +122,25 @@ export class AiImageGeneratorComponent implements OnInit {
         if (res.imagesRemaining !== undefined) {
           this.imagesRemaining = res.imagesRemaining;
           this.imagesLimit = res.imagesLimit ?? this.imagesLimit;
+          this.syncStatusQuota();
         }
       },
       error: (err) => {
         // A refused request means the allowance is spent, whatever we last read.
         if (err?.status === 429 || /daily image limit/i.test(String(err?.message ?? err))) {
           this.imagesRemaining = 0;
+          this.syncStatusQuota();
         }
         this.alert.error(err);
       }
     });
+  }
+
+  /** Keeps the status handed to the help dialog in step with the live count. */
+  private syncStatusQuota(): void {
+    if (this.status) {
+      this.status = { ...this.status, imagesRemaining: this.imagesRemaining };
+    }
   }
 
   clear(): void {

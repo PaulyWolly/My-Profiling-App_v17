@@ -17,12 +17,12 @@ Good options for the backend:
 
 | Service   | Notes                                      |
 |----------|---------------------------------------------|
-| **Render** | Free tier, runs Node, easy deploy from Git. **Step-by-step: see [DEPLOY-RENDER.md](DEPLOY-RENDER.md).** |
+| **Render** | Free tier, runs Node, easy deploy from Git. **Step-by-step: see [DEPLOY-RENDER-ALL.md](DEPLOY-RENDER-ALL.md).** |
 | **Railway** | Free tier, supports Node + MongoDB add‑ons  |
 | **Fly.io**  | Free tier, good for WebSockets              |
 | **Cyclic**  | Free tier, Node support                     |
 
-**If you use Render**, follow **[DEPLOY-RENDER.md](DEPLOY-RENDER.md)** for the exact build/start commands and environment variables. Summary:
+**If you use Render**, follow **[DEPLOY-RENDER-ALL.md](DEPLOY-RENDER-ALL.md)** for the exact build/start commands and environment variables. Summary:
 
 1. Push your repo to GitHub.
 2. Create a **Web Service** on [render.com](https://render.com), connect the repo.

@@ -50,21 +50,41 @@
           Forget me
         </button>
 
+        <app-ai-tools-help-button topic="chat"></app-ai-tools-help-button>
+
       </div>
     </div>
-
-    <p class="disclaimer">{{ disclaimer }}</p>
   </div>
 
   <p class="hint" *ngIf="!configured">OpenAI API key is not configured on the server.</p>
 
   <div class="chat-log" #chatLog>
     <div class="chat-log-messages">
-      <p class="chat-empty" *ngIf="loadingHistory">Loading your chat history…</p>
-      <p class="chat-empty" *ngIf="!loadingHistory && !messages.length && !loading">
-        Switch on Conversation Mode to have a two-way chat, or click “Ask your Query” to type a question.
-        Details you share are saved to your account so I can remember them next time you log in.
-      </p>
+      @if (loadingHistory) {
+        <p class="chat-empty">Loading your chat history…</p>
+      }
+
+      @if (!loadingHistory && !messages.length && !loading) {
+        <p class="chat-empty">
+          Switch on Conversation Mode to have a two-way chat, or click “Ask your Query” to type a question.
+          Details you share are saved to your account so I can remember them next time you log in.
+        </p>
+        <span class="center">
+          Make sure to increase the
+          @if (micSettingsUri) {
+            <button
+              type="button"
+              class="mic-settings-link"
+              (click)="openMicSettings()"
+              matTooltip="Open your microphone settings">
+              Microphone Setting
+            </button>
+          } @else {
+            "Microphone Setting"
+          }
+          to 50% or higher for better results.
+        </span>
+      }
 
       <div
         *ngFor="let msg of messages"

@@ -142,7 +142,11 @@ body.mat-typography {
 .cdk-overlay-pane:has(.ai-chat-ask-panel) .mat-mdc-dialog-surface,
 .cdk-overlay-pane:has(.ai-chat-ask-panel) .mdc-dialog__surface,
 .ai-chat-ask-panel .mat-mdc-dialog-surface,
-.ai-chat-ask-panel .mdc-dialog__surface {
+.ai-chat-ask-panel .mdc-dialog__surface,
+.cdk-overlay-pane:has(.ai-tools-help-panel) .mat-mdc-dialog-surface,
+.cdk-overlay-pane:has(.ai-tools-help-panel) .mdc-dialog__surface,
+.ai-tools-help-panel .mat-mdc-dialog-surface,
+.ai-tools-help-panel .mdc-dialog__surface {
   padding: 0 !important;
   overflow: hidden;
   border-radius: 12px !important;

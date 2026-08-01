@@ -1,14 +1,14 @@
-const AWS = require('aws-sdk');
+const { S3Client, DeleteObjectCommand, HeadObjectCommand } = require('@aws-sdk/client-s3');
+const { Upload } = require('@aws-sdk/lib-storage');
 const config = require('../secrets/config.json');
 
-// Configure AWS SDK
-AWS.config.update({
-    accessKeyId: config.awsAccessKeyId,
-    secretAccessKey: config.awsSecretAccessKey,
-    region: config.s3Region
+const s3 = new S3Client({
+    region: config.s3Region,
+    credentials: {
+        accessKeyId: config.awsAccessKeyId,
+        secretAccessKey: config.awsSecretAccessKey
+    }
 });
-
-const s3 = new AWS.S3();
 
 class S3Service {
     constructor() {
@@ -28,14 +28,6 @@ class S3Service {
         try {
             const key = `${folder}/${fileName}`;
 
-            const uploadParams = {
-                Bucket: this.bucketName,
-                Key: key,
-                Body: fileBuffer,
-                ContentType: contentType,
-                ACL: 'public-read' // Make the file publicly readable
-            };
-
             console.log('[S3Service] Uploading file:', {
                 bucket: this.bucketName,
                 key: key,
@@ -43,14 +35,29 @@ class S3Service {
                 size: fileBuffer.length
             });
 
-            const result = await s3.upload(uploadParams).promise();
-
-            console.log('[S3Service] Upload successful:', {
-                location: result.Location,
-                key: result.Key
+            // Upload (rather than PutObjectCommand) because it reports a Location
+            // for the caller and splits large files into a multipart upload, which
+            // is what the previous SDK's s3.upload() did.
+            const upload = new Upload({
+                client: s3,
+                params: {
+                    Bucket: this.bucketName,
+                    Key: key,
+                    Body: fileBuffer,
+                    ContentType: contentType,
+                    ACL: 'public-read' // Make the file publicly readable
+                }
             });
 
-            return result.Location; // Returns the public URL
+            const result = await upload.done();
+            const location = result.Location || this.getPublicUrl(key);
+
+            console.log('[S3Service] Upload successful:', {
+                location: location,
+                key: key
+            });
+
+            return location; // Returns the public URL
         } catch (error) {
             console.error('[S3Service] Upload error:', error);
             throw new Error(`Failed to upload file to S3: ${error.message}`);
@@ -70,17 +77,15 @@ class S3Service {
                 throw new Error('Invalid S3 URL');
             }
 
-            const deleteParams = {
-                Bucket: this.bucketName,
-                Key: key
-            };
-
             console.log('[S3Service] Deleting file:', {
                 bucket: this.bucketName,
                 key: key
             });
 
-            await s3.deleteObject(deleteParams).promise();
+            await s3.send(new DeleteObjectCommand({
+                Bucket: this.bucketName,
+                Key: key
+            }));
 
             console.log('[S3Service] Delete successful');
             return true;
@@ -113,15 +118,15 @@ class S3Service {
      */
     async fileExists(key) {
         try {
-            const params = {
+            await s3.send(new HeadObjectCommand({
                 Bucket: this.bucketName,
                 Key: key
-            };
-
-            await s3.headObject(params).promise();
+            }));
             return true;
         } catch (error) {
-            if (error.statusCode === 404) {
+            // A missing object surfaces as NotFound here; the status lives on
+            // $metadata rather than on the error itself as it used to.
+            if (error.name === 'NotFound' || error.$metadata?.httpStatusCode === 404) {
                 return false;
             }
             throw error;

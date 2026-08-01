@@ -32,5 +32,11 @@
   { "name": "chat-stream-check.js", "input": false },
   { "name": "web-search-config-check.js", "input": false },
   { "name": "web-search-trigger-check.js", "input": false },
-  { "name": "ai-quota-check.js", "input": false }
+  { "name": "ai-quota-check.js", "input": false },
+  { "name": "ai-limits-check.js", "input": false },
+  { "name": "chat-ttft-check.js", "input": true },
+  { "name": "net-connect-check.js", "input": true },
+  { "name": "s3-smoke-test.js", "input": false },
+  { "name": "follower-images-check.js", "input": true },
+  { "name": "image-resize-check.js", "input": false }
 ] 

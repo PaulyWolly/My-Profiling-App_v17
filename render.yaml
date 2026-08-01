@@ -1,5 +1,5 @@
 # Render.com blueprint: deploy the Node/Express backend only.
-# See DEPLOY-RENDER.md for setup steps and environment variables.
+# See docs/DEPLOY-RENDER-ALL.md for setup steps and environment variables.
 
 services:
   - type: web
@@ -13,4 +13,5 @@ services:
     startCommand: npm run start:prod
 
     # Render sets PORT automatically; the server uses process.env.PORT
-    # Add all required env vars in the Render dashboard (see DEPLOY-RENDER.md)
+    # Add all required env vars in the Render dashboard (see docs/DEPLOY-RENDER-ALL.md).
+    # OPENAI_API_KEY and AZURE_SPEECH_KEY/AZURE_SPEECH_REGION are needed for the AI tools.

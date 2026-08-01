@@ -10,7 +10,10 @@ const imageSearchService = require('../services/image-search.service');
 
 const router = express.Router();
 
-const IMAGE_MAX_BYTES = 15 * 1024 * 1024;
+// Larger uploads are accepted than the vision API takes inline; oversized
+// images are resized before they are sent (see fitImageForVision).
+const IMAGE_MAX_MB = Math.max(1, parseInt(process.env.AI_IMAGE_MAX_UPLOAD_MB || '50', 10));
+const IMAGE_MAX_BYTES = IMAGE_MAX_MB * 1024 * 1024;
 const DOCUMENT_MAX_MB = Math.max(1, parseInt(process.env.AI_RAG_MAX_UPLOAD_MB || '100', 10));
 const DOCUMENT_MAX_BYTES = DOCUMENT_MAX_MB * 1024 * 1024;
 
@@ -82,6 +85,13 @@ router.get('/status', async (req, res, next) => {
             imageGenSupportsStyle: imageGen.supportsStyleParam,
             imageDailyLimit: imageUsage.limit,
             imagesRemaining: imageUsage.unlimited ? null : imageUsage.remaining,
+            // Everything the in-app help shows, so its numbers follow the
+            // server's env config instead of being duplicated in the UI copy.
+                imageUploadMaxMb: IMAGE_MAX_MB,
+            ragMaxChars: openaiService.RAG_MAX_CHARS,
+            chatMaxMessages: aiMemoryService.MAX_MESSAGES,
+            memoryMaxFacts: aiMemoryService.MAX_FACTS,
+            chatMaxImages: imageSearchService.MAX_IMAGES,
             ttsVoices: tts.voices,
             ttsDefaultVoice: tts.defaultVoice,
             ttsProvider: azureTts ? 'azure' : 'openai',

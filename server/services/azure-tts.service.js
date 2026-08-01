@@ -1,8 +1,23 @@
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
 const nodeFetch = require('node-fetch');
 
 const openaiService = require('./openai.service');
+
+/**
+ * A spoken reply is synthesized a sentence at a time, so one turn makes several
+ * requests to this host. Opening a connection per request is expensive here: a
+ * cold handshake to the speech endpoint has measured about 11 seconds, against
+ * roughly 200ms once a connection is established, and that delay lands before
+ * the reply starts speaking. Holding the connection open lets a turn pay it at
+ * most once instead of once per sentence.
+ */
+const speechAgent = new https.Agent({
+    keepAlive: true,
+    keepAliveMsecs: 15_000,
+    timeout: 30_000
+});
 
 /**
  * Azure Neural text-to-speech.
@@ -112,7 +127,8 @@ async function synthesizeSpeech(text, voiceId) {
                     'X-Microsoft-OutputFormat': OUTPUT_FORMAT,
                     'User-Agent': 'MyProfilingApp'
                 },
-                body: ssml
+                body: ssml,
+                agent: speechAgent
             }
         );
     } catch (err) {

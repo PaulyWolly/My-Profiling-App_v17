@@ -1,7 +1,13 @@
 <div class="ai-image-page">
   <div class="page-head">
-    <h2>Image Describe</h2>
-    <p class="sub">Upload an image and the AI identifies the subject and describes what it sees.</p>
+    <div class="page-head-title">
+      <h2>Image Describe</h2>
+      <app-ai-tools-help-button topic="describe" [status]="status"></app-ai-tools-help-button>
+    </div>
+    <p class="sub">
+      Upload an image (up to {{ imageUploadMaxMb }} MB) and the AI identifies the subject and
+      describes what it sees.
+    </p>
   </div>
   <p class="hint" *ngIf="!configured">OpenAI API key is not configured on the server.</p>
 

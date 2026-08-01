@@ -15,6 +15,12 @@
   gap: 0.75rem;
 }
 
+.page-head-title {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
 .ai-gen-page h2 {
   margin: 0;
   color: #1a4d6d;

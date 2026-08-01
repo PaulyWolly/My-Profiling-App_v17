@@ -76,6 +76,11 @@ export interface AiToolsStatus {
   imageDailyLimit?: number;
   /** null when the account has no cap (admins, or the limit turned off). */
   imagesRemaining?: number | null;
+  imageUploadMaxMb?: number;
+  ragMaxChars?: number;
+  chatMaxMessages?: number;
+  memoryMaxFacts?: number;
+  chatMaxImages?: number;
   ttsVoices?: TtsVoice[];
   ttsDefaultVoice?: string;
   ttsProvider?: 'azure' | 'openai';

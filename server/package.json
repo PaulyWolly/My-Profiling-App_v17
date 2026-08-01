@@ -3,12 +3,16 @@
   "version": "1.0.0",
   "description": "Node.js + MongoDB API for Angular signup verification",
   "main": "server.js",
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "start": "nodemon server.js",
     "start:prod": "node scripts/write-config-from-env.js && node server.js"
   },
   "dependencies": {
-    "aws-sdk": "^2.1692.0",
+    "@aws-sdk/client-s3": "^3.1101.0",
+    "@aws-sdk/lib-storage": "^3.1101.0",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.2",
@@ -33,6 +37,7 @@
     "pdf-parse": "^1.1.4",
     "rootpath": "^0.1.2",
     "sequelize": "^6.37.7",
+    "sharp": "^0.35.3",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "ua-parser-js": "^2.0.3",
