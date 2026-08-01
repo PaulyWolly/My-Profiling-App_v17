@@ -87,7 +87,7 @@ router.get('/status', async (req, res, next) => {
             imagesRemaining: imageUsage.unlimited ? null : imageUsage.remaining,
             // Everything the in-app help shows, so its numbers follow the
             // server's env config instead of being duplicated in the UI copy.
-                imageUploadMaxMb: IMAGE_MAX_MB,
+            imageUploadMaxMb: IMAGE_MAX_MB,
             ragMaxChars: openaiService.RAG_MAX_CHARS,
             chatMaxMessages: aiMemoryService.MAX_MESSAGES,
             memoryMaxFacts: aiMemoryService.MAX_FACTS,
