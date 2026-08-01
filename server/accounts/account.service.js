@@ -231,7 +231,45 @@ async function register(params, origin) {
     await account.save();
 
     console.log('Account saved with role:', account.role);
+
+    // Auth0 and admin-created accounts arrive already verified and have nothing
+    // to confirm, so only a self-registration needs the link.
+    if (!account.verified) {
+        await sendVerificationEmail(account, origin);
+    }
+
     return account;
+}
+
+/**
+ * Sends the link that turns a new account into a usable one.
+ *
+ * Until this is followed, authenticate() rejects the account with "Email or
+ * password is incorrect", which gives no hint that verification is what is
+ * missing. A failure here is logged rather than thrown: the account has already
+ * been saved, so reporting an error would send the user back to a form that can
+ * only tell them the address is already registered.
+ */
+async function sendVerificationEmail(account, origin) {
+    const appOrigin = origin || process.env.APP_ORIGIN || 'http://localhost:5000';
+    const verifyUrl = `${appOrigin}/account/verify-email?token=${account.verificationToken}`;
+
+    try {
+        const result = await sendEmail({
+            to: account.email,
+            subject: 'Verify your email',
+            text: `Please verify your email address using this link:\n\n${verifyUrl}`,
+            html: `<p>Please verify your email address using this link:</p>` +
+                  `<p><a href="${verifyUrl}">${verifyUrl}</a></p>`
+        });
+        if (result.logged) {
+            console.warn(`[AccountService] No mail server configured — ${account.email} cannot ` +
+                         `sign in until the link above is opened or the account is verified manually.`);
+        }
+    } catch (err) {
+        console.error('[AccountService] Could not send verification email to',
+                      account.email, '-', err?.message || err);
+    }
 }
 
 async function verifyEmail({ token }) {

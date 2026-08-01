@@ -39,5 +39,6 @@
   { "name": "s3-smoke-test.js", "input": false },
   { "name": "follower-images-check.js", "input": true },
   { "name": "image-resize-check.js", "input": false },
-  { "name": "memory-headroom-check.js", "input": true }
+  { "name": "memory-headroom-check.js", "input": true },
+  { "name": "email-config-check.js", "input": true }
 ] 
