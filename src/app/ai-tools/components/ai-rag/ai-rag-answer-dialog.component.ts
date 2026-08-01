@@ -1,12 +1,15 @@
 import { Component, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
+import { RagImage } from '../../services/ai-tools.service';
+import { AiChatImageDialogComponent } from '../ai-chat/ai-chat-image-dialog.component';
 
 export interface AiRagAnswerDialogData {
   answer: string;
   documentNames: string[];
   sources: { excerpt: string; score: number; documentName?: string }[];
+  images?: RagImage[];
 }
 
 @Component({
@@ -18,6 +21,24 @@ export interface AiRagAnswerDialogData {
     <p class="doc-names" *ngIf="data.documentNames?.length">{{ data.documentNames.join(', ') }}</p>
     <mat-dialog-content class="answer-scroll">
       <div class="answer-body">{{ data.answer }}</div>
+
+      @if (images.length) {
+        <div class="answer-images">
+          <h3>Images from these pages</h3>
+          <div class="image-grid">
+            @for (img of images; track img.url) {
+              <button
+                type="button"
+                class="image-thumb"
+                (click)="openImage($index)"
+                [attr.aria-label]="'View image from page ' + img.page">
+                <img [src]="img.url" [alt]="'Page ' + img.page" loading="lazy" />
+                <span class="image-page">p. {{ img.page }}</span>
+              </button>
+            }
+          </div>
+        </div>
+      }
 
       <div class="sources" *ngIf="data.sources?.length">
         <h3>Sources</h3>
@@ -88,6 +109,60 @@ export interface AiRagAnswerDialogData {
       color: #333;
     }
 
+    .answer-images {
+      margin-top: 1.25rem;
+      border-top: 1px solid #d0e3ef;
+      padding-top: 0.75rem;
+    }
+
+    .answer-images h3 {
+      margin: 0 0 0.5rem;
+      font-size: 1rem;
+      color: #1a4d6d;
+    }
+
+    .image-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 0.5rem;
+    }
+
+    .image-thumb {
+      position: relative;
+      padding: 0;
+      border: 1px solid #d5e6f2;
+      border-radius: 4px;
+      background: #fff;
+      cursor: pointer;
+      overflow: hidden;
+      aspect-ratio: 4 / 3;
+      transition: border-color 0.15s ease, transform 0.15s ease;
+    }
+
+    .image-thumb:hover {
+      border-color: #1565c0;
+      transform: translateY(-2px);
+    }
+
+    .image-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .image-page {
+      position: absolute;
+      right: 0.25rem;
+      bottom: 0.25rem;
+      padding: 0.1rem 0.35rem;
+      border-radius: 3px;
+      background: rgba(15, 23, 42, 0.75);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+
     .sources {
       margin-top: 1.25rem;
       border-top: 1px solid #d0e3ef;
@@ -119,10 +194,29 @@ export interface AiRagAnswerDialogData {
   `]
 })
 export class AiRagAnswerDialogComponent {
+  readonly images: RagImage[];
+
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: AiRagAnswerDialogData,
-    private dialogRef: MatDialogRef<AiRagAnswerDialogComponent>
-  ) {}
+    private dialogRef: MatDialogRef<AiRagAnswerDialogComponent>,
+    private dialog: MatDialog
+  ) {
+    this.images = data?.images || [];
+  }
+
+  /** Opens on top of this dialog, so closing it returns here rather than to the page. */
+  openImage(index: number): void {
+    this.dialog.open(AiChatImageDialogComponent, {
+      panelClass: 'chat-image-dialog',
+      data: {
+        images: this.images.map((img) => ({
+          url: img.url,
+          title: img.documentName ? `${img.documentName} — page ${img.page}` : `Page ${img.page}`
+        })),
+        startIndex: index
+      }
+    });
+  }
 
   close(): void {
     this.dialogRef.close();

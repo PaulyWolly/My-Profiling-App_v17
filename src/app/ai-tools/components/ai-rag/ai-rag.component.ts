@@ -245,7 +245,8 @@ export class AiRagComponent implements OnInit {
       data: {
         answer: this.answer,
         documentNames: this.answeredFrom,
-        sources: this.sources
+        sources: this.sources,
+        images: this.images
       }
     });
   }
