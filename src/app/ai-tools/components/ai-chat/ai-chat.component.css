@@ -432,6 +432,16 @@ span.center {
 }
 
 /* 2 rows × 4 thumbnails */
+.chat-attachment {
+  display: block;
+  max-width: 220px;
+  max-height: 220px;
+  margin-top: 0.5rem;
+  border: 1px solid #cfd8dc;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
 .chat-images {
   margin-top: 0.75rem;
 }

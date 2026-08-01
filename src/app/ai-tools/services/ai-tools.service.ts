@@ -19,6 +19,8 @@ export interface ChatMessage {
   /** Display text without embedded image markdown (assistant only). */
   displayContent?: string;
   images?: ChatImage[];
+  /** Preview of a picture the user attached, shown for this session only. */
+  attachmentUrl?: string;
   /** Subject the images were found under, so more can be asked for. */
   imageQuery?: string;
   imagesLoading?: boolean;
@@ -151,6 +153,18 @@ export class AiToolsService {
 
   chat(messages: ChatMessage[]): Observable<ChatResponse> {
     return this.http.post<ChatResponse>(`${baseUrl}/chat`, { messages });
+  }
+
+  /**
+   * A chat turn with a picture attached. Multipart rather than JSON because the
+   * image travels with it, and unstreamed because the vision model answers in
+   * one piece.
+   */
+  chatWithImage(messages: ChatMessage[], image: File): Observable<ChatResponse> {
+    const form = new FormData();
+    form.append('image', image);
+    form.append('messages', JSON.stringify(messages));
+    return this.http.post<ChatResponse>(`${baseUrl}/chat/vision`, form);
   }
 
   /**

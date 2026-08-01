@@ -340,6 +340,63 @@ router.post('/chat/stream', async (req, res) => {
 });
 
 /**
+ * A chat turn with a picture attached. Multipart rather than JSON because the
+ * image travels with it, and unstreamed because the vision model returns the
+ * whole answer at once.
+ */
+router.post('/chat/vision', multerSingle(imageUpload, 'image', IMAGE_MAX_BYTES), async (req, res, next) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'image file is required' });
+        }
+
+        const mimeType = resolveImageMime(req.file.mimetype, req.file.originalname);
+        if (!mimeType) {
+            return res.status(400).json({ message: 'File must be an image' });
+        }
+
+        // The conversation arrives as a JSON string, since multipart bodies
+        // carry text fields rather than structured data.
+        let messages;
+        try {
+            messages = JSON.parse(req.body?.messages || '[]');
+        } catch {
+            return res.status(400).json({ message: 'messages must be valid JSON' });
+        }
+
+        const sanitized = (Array.isArray(messages) ? messages : [])
+            .filter((m) => m && (m.role === 'user' || m.role === 'assistant'))
+            .map((m) => ({ role: m.role, content: String(m.content || '').slice(0, 8000) }));
+
+        if (!sanitized.some((m) => m.role === 'user')) {
+            return res.status(400).json({ message: 'A user message is required' });
+        }
+
+        const facts = await aiMemoryService.getMemory(req.user.id);
+        const memorySystemContent = aiMemoryService.formatFactsForPrompt(facts);
+
+        const reply = await openaiService.chatAboutImage(sanitized, req.file.buffer, mimeType, {
+            memorySystemContent
+        });
+
+        res.json({ reply, memoryFactCount: facts.length });
+
+        const lastUser = [...sanitized].reverse().find((m) => m.role === 'user');
+        const asked = lastUser?.content?.trim() || '[sent a picture]';
+
+        aiMemoryService
+            .appendConversation(req.user.id, asked, reply)
+            .catch((saveErr) => console.warn('[AI] Conversation save failed:', saveErr?.message || saveErr));
+
+        aiMemoryService
+            .extractAndStoreFacts(req.user.id, asked, reply)
+            .catch((memErr) => console.warn('[AI] Memory update failed:', memErr?.message || memErr));
+    } catch (err) {
+        next(err);
+    }
+});
+
+/**
  * A further page of pictures for a subject already answered. No model call is
  * involved — this only searches — so it costs nothing against the AI quotas.
  */

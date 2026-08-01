@@ -22,7 +22,7 @@ import { ChatMessageHtmlPipe } from '../../pipes/chat-message-html.pipe';
 import { ConfirmDialogComponent } from '@app/shared/components/confirm-dialog/confirm-dialog.component';
 import { AiChatImageDialogComponent } from './ai-chat-image-dialog.component';
 import { AiChatMemoryDialogComponent } from './ai-chat-memory-dialog.component';
-import { AiChatAskDialogComponent } from './ai-chat-ask-dialog.component';
+import { AiChatAskDialogComponent, AiChatAskResult } from './ai-chat-ask-dialog.component';
 import { AiToolsHelpButtonComponent } from '../ai-tools-help/ai-tools-help-button.component';
 import { SpokenStream, VoiceService } from '../../services/voice.service';
 import {
@@ -74,6 +74,10 @@ export class AiChatComponent implements OnInit, OnDestroy {
   loading = false;
   loadingHistory = true;
   configured = false;
+  /** Server's upload ceiling, so the composer can refuse before uploading. */
+  imageMaxMb = 50;
+  /** Previews of attached pictures, held so they can be released on the way out. */
+  private attachmentUrls: string[] = [];
 
   // Streaming ---------------------------------------------------------------
   /** The reply being written, held apart from `messages` until it is complete. */
@@ -128,6 +132,7 @@ export class AiChatComponent implements OnInit, OnDestroy {
       next: ({ status, conversation, memory }) => {
         this.configured = status.configured;
         this.voices = status.ttsVoices || [];
+        this.imageMaxMb = status.imageUploadMaxMb || this.imageMaxMb;
 
         // A voice saved under a different provider (e.g. OpenAI's "nova" when the
         // server now speaks through Azure) no longer exists, so it is replaced
@@ -162,14 +167,55 @@ export class AiChatComponent implements OnInit, OnDestroy {
 
     const dialogRef = this.dialog.open(AiChatAskDialogComponent, {
       maxWidth: '92vw',
-      panelClass: 'ai-chat-ask-panel'
+      panelClass: 'ai-chat-ask-panel',
+      data: { imageMaxMb: this.imageMaxMb }
     });
 
-    dialogRef.afterClosed().subscribe((question?: string) => {
-      const text = (question || '').trim();
-      if (text) {
+    dialogRef.afterClosed().subscribe((result?: AiChatAskResult) => {
+      const text = (result?.text || '').trim();
+      if (result?.file) {
+        this.sendWithImage(text, result.file);
+      } else if (text) {
         this.sendText(text, false);
       }
+    });
+  }
+
+  /**
+   * A turn carrying a picture. It cannot stream — the vision model answers in
+   * one piece — so this is a plain request rather than the usual stream, and
+   * the picture is shown in the user's own bubble the way it was sent.
+   */
+  private sendWithImage(text: string, file: File): void {
+    if (this.loading) {
+      return;
+    }
+
+    // The component owns this URL, not the composer, so it survives the dialog
+    // closing and lives as long as the transcript does.
+    const attachmentUrl = URL.createObjectURL(file);
+    this.attachmentUrls.push(attachmentUrl);
+
+    this.messages.push({
+      role: 'user',
+      // History needs words to hold onto; the bubble shows only the picture.
+      content: text || '[sent a picture]',
+      displayContent: text,
+      attachmentUrl
+    });
+    this.loading = true;
+    this.conversation.setThinking(true);
+    this.conversation.pauseForTurn();
+    this.conversation.setStatus(CONVERSATION_STATUS.THINKING);
+    this.scrollToBottom();
+
+    const payload = this.messages
+      .filter((m) => m.role === 'user' || m.role === 'assistant')
+      .map((m) => ({ role: m.role, content: m.content }));
+
+    this.ai.chatWithImage(payload, file).subscribe({
+      next: (res) => void this.onReply(res, null),
+      error: (err) => this.failReply(err)
     });
   }
 
@@ -241,6 +287,9 @@ export class AiChatComponent implements OnInit, OnDestroy {
     this.voiceSubs.unsubscribe();
     void this.conversation.setEnabled(false);
     this.voice.stopSpeaking();
+    for (const url of this.attachmentUrls) {
+      URL.revokeObjectURL(url);
+    }
   }
 
   private sendText(text: string, fromVoice: boolean): void {
@@ -570,6 +619,11 @@ export class AiChatComponent implements OnInit, OnDestroy {
   }
 
   assistantText(msg: ChatMessage): string {
+    return msg.displayContent ?? msg.content;
+  }
+
+  /** Empty when a picture was sent with no words of its own. */
+  userText(msg: ChatMessage): string {
     return msg.displayContent ?? msg.content;
   }
 

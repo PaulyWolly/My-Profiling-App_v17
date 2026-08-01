@@ -10,6 +10,7 @@
   { "name": "delete-account.js", "input": true },
   { "name": "fix-password-hash.js", "input": false },
   { "name": "hello-user.js", "input": true },
+  { "name": "chat-vision-check.js", "input": false },
   { "name": "image-more-check.js", "input": false },
   { "name": "image-query-check.js", "input": false },
   { "name": "image-relevance-check.js", "input": false },

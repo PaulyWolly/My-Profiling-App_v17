@@ -873,6 +873,67 @@ async function describeImage(buffer, mimeType, prompt) {
     });
 }
 
+/** What to ask when a picture arrives with no question attached to it. */
+const BARE_IMAGE_PROMPT =
+    'Tell me what this picture shows. Name the subject if you recognize it, then add a few brief visual details.';
+
+/**
+ * A chat turn that carries a picture.
+ *
+ * The conversation so far and the user's remembered facts come along, so the
+ * answer follows the thread rather than starting cold. Only the newest message
+ * is rebuilt as text-plus-image, and the whole turn goes to the vision model,
+ * since it is the only one that can see anything.
+ */
+async function chatAboutImage(messages, buffer, mimeType, options = {}) {
+    return withOpenAiError('chatAboutImage', async () => {
+        const client = getClient();
+        const fitted = await fitImageForVision(buffer, mimeType);
+        const dataUrl = `data:${fitted.mimeType || 'image/jpeg'};base64,${fitted.buffer.toString('base64')}`;
+
+        const prepared = buildGeneralChatMessages(messages, options.memorySystemContent || '');
+
+        // The base rules tell the model it never supplies pictures and must not
+        // describe what it cannot see. Both are true of searched images and
+        // wrong here, so this turn says otherwise.
+        prepared.push({
+            role: 'system',
+            content:
+                'The user attached a picture to their latest message and you can see it. ' +
+                'Answer about that picture directly.'
+        });
+
+        const lastUser = prepared.findLastIndex((m) => m.role === 'user');
+        if (lastUser < 0) {
+            throw 'A user message is required';
+        }
+
+        const question = typeof prepared[lastUser].content === 'string'
+            ? prepared[lastUser].content.trim()
+            : '';
+
+        prepared[lastUser] = {
+            role: 'user',
+            content: [
+                { type: 'text', text: question || BARE_IMAGE_PROMPT },
+                { type: 'image_url', image_url: { url: dataUrl } }
+            ]
+        };
+
+        const response = await client.chat.completions.create({
+            model: VISION_MODEL,
+            messages: prepared,
+            max_tokens: 900
+        });
+
+        const text = response.choices[0]?.message?.content || '';
+        if (!text.trim()) {
+            throw 'OpenAI returned an empty response';
+        }
+        return text;
+    });
+}
+
 function normalizeImageGenSize(size, model) {
     const requested = String(size || '1024x1024');
     if (isGptImageModel(model)) {
@@ -1417,6 +1478,7 @@ async function askDocument(chunks, question, embeddingModel) {
 
 module.exports = {
     chat,
+    chatAboutImage,
     describeImage,
     generateImage,
     ingestDocument,

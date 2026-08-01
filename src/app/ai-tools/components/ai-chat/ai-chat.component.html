@@ -104,7 +104,12 @@
               <mat-icon>volume_up</mat-icon>
             </button>
           </div>
-          <p *ngIf="msg.role === 'user'">{{ msg.content }}</p>
+          <p *ngIf="msg.role === 'user' && userText(msg)">{{ userText(msg) }}</p>
+          <img
+            *ngIf="msg.attachmentUrl"
+            class="chat-attachment"
+            [src]="msg.attachmentUrl"
+            alt="Picture you attached" />
           <div
             *ngIf="msg.role === 'assistant' && assistantText(msg)"
             class="chat-body-html"
