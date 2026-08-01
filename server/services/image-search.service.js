@@ -165,8 +165,9 @@ function relevanceScore(img, query) {
         if (!NAIL_EVIDENCE_PATTERN.test(hay)) {
             return -60;
         }
-        // Reject band / medical fingernail hits that still contain "nail"
-        if (/\bnine\s*inch|ingrown|finger|toe|manicure|cuticle|french\s*nail\b/i.test(hay)) {
+        // Reject band / cosmetic / medical fingernail hits that still contain "nail".
+        // Photo sites are far heavier on nail art than Commons was, hence the salon terms.
+        if (/\bnine\s*inch|ingrown|finger|toe|manicur\w*|pedicur\w*|cuticle|french\s*nail|nail\s*(art|polish|salon|design|studio)|acrylic|gel\s*nails|unhas\b/i.test(hay)) {
             return -90;
         }
         score += 12;
@@ -309,6 +310,69 @@ async function wikiFetch(url) {
 
 function isLikelyImageMime(mime) {
     return /^image\/(jpeg|jpg|png|gif|webp)$/i.test(String(mime || ''));
+}
+
+/** Anonymous Openverse requests are rejected above 20 results per page. */
+const OPENVERSE_PAGE_SIZE = 20;
+
+/** Smallest usable edge — Openverse carries thumbnails too small for the lightbox. */
+const OPENVERSE_MIN_EDGE = 200;
+
+/**
+ * Credit line for a CC-licensed result, e.g. "Flickr (CC BY-NC)". Public domain
+ * marks are their own label, so they don't come out as "CC CC0".
+ */
+function openverseCredit(item) {
+    const provider = String(item.source || item.provider || 'Openverse').replace(/[_-]+/g, ' ').trim();
+    const name = provider.charAt(0).toUpperCase() + provider.slice(1);
+    const license = String(item.license || '').toLowerCase();
+
+    if (!license) return name;
+    if (license === 'cc0' || license === 'pdm') return `${name} (${license.toUpperCase()})`;
+    return `${name} (CC ${license.toUpperCase()})`;
+}
+
+/**
+ * Search Openverse, which aggregates Flickr, museums and public archives. This
+ * is the primary source because Commons only holds encyclopedic files — for a
+ * subject like "bugs bunny" that meant the same Walk of Fame stars every time.
+ */
+async function searchOpenverseImages(query, limit = MAX_IMAGES) {
+    const params = new URLSearchParams({
+        q: query,
+        page_size: String(Math.min(OPENVERSE_PAGE_SIZE, Math.max(limit * 2, 10))),
+        extension: 'jpg,jpeg,png,gif,webp',
+        mature: 'false'
+    });
+
+    const res = await nodeFetch(`https://api.openverse.org/v1/images/?${params}`, {
+        headers: {
+            'User-Agent': USER_AGENT,
+            Accept: 'application/json'
+        },
+        timeout: 12000
+    });
+    if (!res.ok) {
+        throw new Error(`Openverse HTTP ${res.status}`);
+    }
+
+    const data = await res.json();
+    const results = Array.isArray(data.results) ? data.results : [];
+
+    const images = results
+        .filter((item) => {
+            const edge = Math.min(Number(item.width) || 0, Number(item.height) || 0);
+            return !edge || edge >= OPENVERSE_MIN_EDGE;
+        })
+        .map((item) => ({
+            url: item.url,
+            title: String(item.title || '').trim() || query,
+            source: openverseCredit(item),
+            pageUrl: item.foreign_landing_url || item.url
+        }))
+        .filter((img) => /^https?:\/\//i.test(String(img.url || '')));
+
+    return filterRelevantImages(images, query).slice(0, limit);
 }
 
 /**
@@ -461,6 +525,36 @@ function extractImagesFromText(text, query) {
     return filterRelevantImages(found, query);
 }
 
+/**
+ * Photo sites publish long same-titled series — five near-identical snake farm
+ * shots in a row — which is what "the same images over and over" looks like
+ * inside a single result set. Keep the best few per title, and hold the rest
+ * back rather than dropping them, so a thin subject still fills the grid.
+ */
+function diversifyImages(images, perTitle = 2) {
+    const counts = new Map();
+    const kept = [];
+    const overflow = [];
+
+    for (const img of images || []) {
+        const key = String(img.title || '')
+            .toLowerCase()
+            .replace(/[^a-z\s]/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+        const seen = counts.get(key) || 0;
+        if (!key || seen < perTitle) {
+            counts.set(key, seen + 1);
+            kept.push(img);
+        } else {
+            overflow.push(img);
+        }
+    }
+
+    return [...kept, ...overflow];
+}
+
 function dedupeImages(images) {
     const seen = new Set();
     const out = [];
@@ -497,21 +591,29 @@ function formatImagesMarkdown(images, query) {
     return lines.join('\n');
 }
 
+/**
+ * Openverse first, then Wikimedia to top up whatever it missed. `limit` is how
+ * many candidates to collect, but the later sources are skipped as soon as
+ * there are enough to fill the grid — a good Openverse result set costs one
+ * request. Ranking stays relevance-first across all of them.
+ */
 async function searchAllSources(query, limit = MAX_IMAGES) {
+    const sources = [
+        ['Openverse', searchOpenverseImages],
+        ['Commons', searchCommonsImages],
+        ['Wikipedia', searchWikipediaPageImages]
+    ];
+
+    const enough = Math.min(limit, MAX_IMAGES);
     let images = [];
 
-    try {
-        images = await searchCommonsImages(query, limit);
-    } catch (err) {
-        console.warn('[ImageSearch] Commons failed:', err?.message || err);
-    }
-
-    if (images.length < limit) {
+    for (const [name, search] of sources) {
+        if (images.length >= enough) break;
         try {
-            const wiki = await searchWikipediaPageImages(query, limit);
-            images = filterRelevantImages(dedupeImages([...images, ...wiki]), query);
+            const found = await search(query, limit);
+            images = filterRelevantImages(dedupeImages([...images, ...found]), query);
         } catch (err) {
-            console.warn('[ImageSearch] Wikipedia failed:', err?.message || err);
+            console.warn(`[ImageSearch] ${name} failed:`, err?.message || err);
         }
     }
 
@@ -527,7 +629,8 @@ async function searchAllSources(query, limit = MAX_IMAGES) {
 }
 
 /**
- * When the user asks for images, fetch topical photos (Commons → Wikipedia → optional Google).
+ * When the user asks for images, fetch topical photos
+ * (Openverse → Commons → Wikipedia → optional Google).
  */
 async function fetchImagesForChat(userMessage, assistantReply = '') {
     if (!wantsImages(userMessage)) {
@@ -541,9 +644,13 @@ async function fetchImagesForChat(userMessage, assistantReply = '') {
 
     console.log(`[ImageSearch] query="${query}" from "${String(userMessage).slice(0, 80)}"`);
 
+    // Collect more candidates than get shown, so near-duplicate series can be
+    // thinned out below without leaving gaps in the grid.
+    const pool = MAX_IMAGES * 2;
+
     let images = [];
     for (const variant of buildSearchQueryVariants(query)) {
-        const found = await searchAllSources(variant, MAX_IMAGES);
+        const found = await searchAllSources(variant, pool);
         images = filterRelevantImages(dedupeImages([...images, ...found]), query);
         if (images.length >= MAX_IMAGES) {
             console.log(`[ImageSearch] ${images.length} relevant hit(s) after variant="${variant}"`);
@@ -564,7 +671,7 @@ async function fetchImagesForChat(userMessage, assistantReply = '') {
         }
     }
 
-    images = images.slice(0, MAX_IMAGES);
+    images = diversifyImages(images).slice(0, MAX_IMAGES);
 
     return {
         wanted: true,

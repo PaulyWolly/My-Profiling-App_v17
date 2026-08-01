@@ -1,6 +1,7 @@
 /**
- * Runs a real image lookup end to end against Wikimedia for a handful of
- * subjects, reporting how many images survive the relevance filter.
+ * Runs a real image lookup end to end against the live sources for a handful of
+ * subjects, reporting how many images survive the relevance filter and which
+ * source each one came from.
  *
  *   node scripts/image-search-live.js ["custom subject"]
  */
@@ -11,7 +12,9 @@ const QUESTIONS = process.argv[2]
     : [
         'tell me about the box jellyfish and provide images',
         'show me pictures of a king cobra',
-        'provide images of a blue-ringed octopus'
+        'provide images of a blue-ringed octopus',
+        'show me pictures of bugs bunny',
+        'show me images of a ten penny nail'
     ];
 
 (async () => {
@@ -26,8 +29,9 @@ const QUESTIONS = process.argv[2]
             console.log(`\n"${question}"`);
             console.log(`  query  = "${result.query}"`);
             console.log(`  images = ${count}`);
-            for (const img of (result.images || []).slice(0, 4)) {
-                console.log(`    - ${img.title || '(untitled)'}`);
+            for (const img of (result.images || []).slice(0, 6)) {
+                const title = String(img.title || '(untitled)').slice(0, 52);
+                console.log(`    - ${title.padEnd(52)}  [${img.source || 'unknown'}]`);
             }
         } catch (err) {
             empty += 1;
