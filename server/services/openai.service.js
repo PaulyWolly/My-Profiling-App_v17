@@ -1078,8 +1078,19 @@ async function synthesizeSpeech(text, voiceId) {
         }
 
         // Every candidate was refused, so the raw 403 is replaced with the fix.
+        //
+        // Azure is used whenever it has credentials, so reaching OpenAI at all
+        // means Azure has none here. Naming only OpenAI's model access page
+        // would send the reader to change an account they did not intend to use,
+        // so the missing credentials are named first.
         if (allDeniedByProject) {
-            throw `Text to speech is not enabled for this OpenAI project. Tried: ${candidates.join(', ')}. In platform.openai.com → your project → Model access, enable gpt-4o-mini-tts or tts-1.`;
+            throw 'Voice replies are unavailable. This server has no Azure Speech credentials, ' +
+                  'and the OpenAI project it fell back to has no text-to-speech access. ' +
+                  'Set SPEECH_API_KEY and SPEECH_REGION (or AZURE_SPEECH_KEY and ' +
+                  'AZURE_SPEECH_REGION) in the server environment — on Render these must be set ' +
+                  'as environment variables, since they are not written into config.json. ' +
+                  `To use OpenAI instead, enable one of ${candidates.join(', ')} under Model ` +
+                  'access for your project at platform.openai.com.';
         }
 
         throw lastErr || new Error(
