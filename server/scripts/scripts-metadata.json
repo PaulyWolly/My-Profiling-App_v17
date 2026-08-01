@@ -40,5 +40,6 @@
   { "name": "follower-images-check.js", "input": true },
   { "name": "image-resize-check.js", "input": false },
   { "name": "memory-headroom-check.js", "input": true },
-  { "name": "email-config-check.js", "input": true }
+  { "name": "email-config-check.js", "input": true },
+  { "name": "signup-access-check.js", "input": true }
 ] 

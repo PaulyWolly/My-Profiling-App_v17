@@ -8,7 +8,7 @@ const path = require('path');
 const fs = require('fs').promises;
 const fsSync = require('fs');
 const UAParser = require('ua-parser-js');
-const { sendEmail } = require('../_helpers/send-email');
+const { sendEmail, isSmtpConfigured } = require('../_helpers/send-email');
 const { resolveProfileImageUrl, resolveFollowerImageUrl } = require('../_helpers/image-url');
 
 module.exports = {
@@ -227,13 +227,28 @@ async function register(params, origin) {
         account.plainPassword = randomPassword; // Store the random password
     }
 
+    // Auth0 and admin-created accounts arrive already verified; a self
+    // registration is activated on the spot unless verification is switched on.
+    // It is off by default because authenticate() refuses an unverified account
+    // with "Email or password is incorrect", so a link that fails to arrive does
+    // not read as a pending confirmation — it reads as a broken password, and
+    // the account can never be used. Requiring it is a deliberate choice that
+    // depends on a working mail server.
+    const requireVerification = process.env.REQUIRE_EMAIL_VERIFICATION === 'true';
+
+    if (!account.verified && !requireVerification) {
+        account.verified = new Date();
+        account.verificationToken = undefined;
+    } else if (!account.verified && !isSmtpConfigured()) {
+        console.warn('[AccountService] REQUIRE_EMAIL_VERIFICATION is on but no mail server is ' +
+                     'configured — new accounts will not be able to sign in.');
+    }
+
     // save account
     await account.save();
 
     console.log('Account saved with role:', account.role);
 
-    // Auth0 and admin-created accounts arrive already verified and have nothing
-    // to confirm, so only a self-registration needs the link.
     if (!account.verified) {
         await sendVerificationEmail(account, origin);
     }

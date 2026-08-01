@@ -402,7 +402,13 @@ function registerSchema(req, res, next) {
 function register(req, res, next) {
     const registrationData = { ...req.body, role: Role.User };
     accountService.register(registrationData, req.get('origin'))
-        .then(() => res.json({ message: 'Registration successful, please check your email for verification instructions' }))
+        .then(account => res.json({
+            // An account that needed no confirmation is ready to use, and saying
+            // otherwise would send the user off to wait for mail that is not coming.
+            message: account.verified
+                ? 'Registration successful, you can now sign in'
+                : 'Registration successful, please check your email for verification instructions'
+        }))
         .catch(next);
 }
 
