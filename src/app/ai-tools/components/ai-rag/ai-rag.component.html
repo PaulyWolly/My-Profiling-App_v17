@@ -4,7 +4,7 @@
       <h2>Document Q&amp;A (RAG)</h2>
       <app-ai-tools-help-button topic="rag" [status]="status"></app-ai-tools-help-button>
     </div>
-    <p class="sub">Upload a .txt, .md, .csv, .json, or .pdf file (up to {{ ragMaxUploadMb }} MB). The AI indexes it and answers questions from your documents.</p>
+    <p class="sub">Upload a .txt, .md, .csv, .json, .pdf, or .docx file (up to {{ ragMaxUploadMb }} MB). The AI indexes it and answers questions from your documents.</p>
   </div>
   <p class="hint" *ngIf="!configured">OpenAI API key is not configured on the server.</p>
 
@@ -12,7 +12,7 @@
     <section class="rag-controls">
       <div class="controls-scroll">
         <div class="upload-row">
-          <input type="file" accept=".txt,.md,.csv,.json,.pdf,text/*,application/pdf" (change)="onUpload($event)" [disabled]="uploading" />
+          <input type="file" accept=".txt,.md,.csv,.json,.pdf,.docx,text/*,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" (change)="onUpload($event)" [disabled]="uploading" />
           <span *ngIf="uploading" class="status">Indexing document…</span>
         </div>
 
@@ -135,9 +135,9 @@
                     type="button"
                     class="image-thumb"
                     (click)="openImage($index)"
-                    [attr.aria-label]="'View image from page ' + img.page">
-                    <img [src]="img.url" [alt]="'Page ' + img.page" loading="lazy" />
-                    <span class="image-page">p. {{ img.page }}</span>
+                    [attr.aria-label]="'View image from ' + imageLocation(img)">
+                    <img [src]="img.url" [alt]="imageLocation(img)" loading="lazy" />
+                    <span class="image-page">{{ img.pageLabel || 'p. ' + img.page }}</span>
                   </button>
                 }
               </div>

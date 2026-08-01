@@ -297,21 +297,34 @@ function isPdf(mimeType, originalName) {
     return mimeType === 'application/pdf' || (originalName || '').toLowerCase().endsWith('.pdf');
 }
 
+const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+
+function isDocx(mimeType, originalName) {
+    return mimeType === DOCX_MIME || (originalName || '').toLowerCase().endsWith('.docx');
+}
+
 /**
  * Text split by page, plus any pictures found.
  *
- * Non-PDFs have no pages, so they come back as a single page: the rest of the
- * pipeline then treats every document the same way.
+ * Formats with no pages of their own come back as numbered sections instead, so
+ * the rest of the pipeline can treat every document the same way. `paginated`
+ * says which it is, so nothing shows a page number a document does not have.
  */
 async function extractContentFromFile(buffer, mimeType, originalName) {
     if (isPdf(mimeType, originalName)) {
         const { extractPdfContent } = require('./pdf-content.service');
         const { pages, images } = await extractPdfContent(buffer);
-        return { pages, images };
+        return { pages, images, paginated: true };
+    }
+
+    if (isDocx(mimeType, originalName)) {
+        const { extractDocxContent } = require('./docx-content.service');
+        const { pages, images } = await extractDocxContent(buffer);
+        return { pages, images, paginated: false };
     }
 
     const text = await extractTextFromFile(buffer, mimeType, originalName);
-    return { pages: [{ page: 1, text }], images: [] };
+    return { pages: [{ page: 1, text }], images: [], paginated: false };
 }
 
 async function extractTextFromFile(buffer, mimeType, originalName) {
@@ -333,7 +346,12 @@ async function extractTextFromFile(buffer, mimeType, originalName) {
         return buffer.toString('utf8');
     }
 
-    throw 'Unsupported file type. Upload .txt, .md, .csv, .json, or .pdf';
+    if (lower.endsWith('.doc')) {
+        throw 'This is the older Word format (.doc). Open it in Word and use Save As to ' +
+              'store it as .docx, then upload that.';
+    }
+
+    throw 'Unsupported file type. Upload .txt, .md, .csv, .json, .pdf, or .docx';
 }
 
 function isModelAccessError(err) {
@@ -1146,7 +1164,7 @@ function assertChunksFitInMongoDocument(chunkData, charCount) {
 async function ingestDocument(buffer, mimeType, originalName) {
     return withOpenAiError('ingestDocument', async () => {
         const client = getClient();
-        const { pages, images } = await extractContentFromFile(buffer, mimeType, originalName);
+        const { pages, images, paginated } = await extractContentFromFile(buffer, mimeType, originalName);
         const text = pages.map((p) => p.text).join('\n\n');
 
         if (!text.trim()) {
@@ -1199,7 +1217,8 @@ async function ingestDocument(buffer, mimeType, originalName) {
             text,
             embeddingModel,
             chunks: chunkData,
-            images
+            images,
+            paginated
         };
     });
 }

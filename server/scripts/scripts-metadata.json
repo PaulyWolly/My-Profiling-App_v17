@@ -45,5 +45,6 @@
   { "name": "auth0-forgery-check.js", "input": true },
   { "name": "rag-images-check.js", "input": true },
   { "name": "password-hash-compat-check.js", "input": false },
-  { "name": "dependency-check.js", "input": false }
+  { "name": "dependency-check.js", "input": false },
+  { "name": "rag-docx-check.js", "input": true }
 ] 

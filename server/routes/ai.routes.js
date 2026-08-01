@@ -486,6 +486,9 @@ function collectAnswerImages(docs, citedPages) {
                 chosen.push({
                     url: image.url,
                     page: image.page,
+                    // A Word file is cut into sections rather than paginated, so
+                    // its numbering is labelled for what it is.
+                    pageLabel: doc.paginated === false ? `part ${image.page}` : `p. ${image.page}`,
                     width: image.width,
                     height: image.height,
                     documentName: doc.originalName
@@ -523,7 +526,8 @@ router.post('/documents', multerSingle(documentUpload, 'document', DOCUMENT_MAX_
             chunkCount: ingested.chunks.length,
             embeddingModel: ingested.embeddingModel,
             chunks: ingested.chunks,
-            images
+            images,
+            paginated: ingested.paginated !== false
         });
 
         res.json(doc);

@@ -101,6 +101,8 @@ export interface GeneratedImage {
 export interface RagImage {
   url: string;
   page: number;
+  /** Reads "p. 3" or "part 3"; a Word file has sections rather than pages. */
+  pageLabel?: string;
   width?: number;
   height?: number;
   documentName?: string;

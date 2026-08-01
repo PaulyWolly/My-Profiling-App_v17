@@ -31,9 +31,9 @@ export interface AiRagAnswerDialogData {
                 type="button"
                 class="image-thumb"
                 (click)="openImage($index)"
-                [attr.aria-label]="'View image from page ' + img.page">
-                <img [src]="img.url" [alt]="'Page ' + img.page" loading="lazy" />
-                <span class="image-page">p. {{ img.page }}</span>
+                [attr.aria-label]="'View image from ' + imageLocation(img)">
+                <img [src]="img.url" [alt]="imageLocation(img)" loading="lazy" />
+                <span class="image-page">{{ img.pageLabel || 'p. ' + img.page }}</span>
               </button>
             }
           </div>
@@ -204,6 +204,11 @@ export class AiRagAnswerDialogComponent {
     this.images = data?.images || [];
   }
 
+  /** Reads "page 3" or "part 3"; a Word file has sections rather than pages. */
+  imageLocation(img: RagImage): string {
+    return img.pageLabel ? img.pageLabel.replace('p.', 'page') : `page ${img.page}`;
+  }
+
   /** Opens on top of this dialog, so closing it returns here rather than to the page. */
   openImage(index: number): void {
     this.dialog.open(AiChatImageDialogComponent, {
@@ -211,7 +216,9 @@ export class AiRagAnswerDialogComponent {
       data: {
         images: this.images.map((img) => ({
           url: img.url,
-          title: img.documentName ? `${img.documentName} — page ${img.page}` : `Page ${img.page}`
+          title: img.documentName
+            ? `${img.documentName} — ${this.imageLocation(img)}`
+            : this.imageLocation(img)
         })),
         startIndex: index
       }

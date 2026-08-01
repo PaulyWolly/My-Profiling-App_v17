@@ -29,6 +29,11 @@ const schema = new Schema({
     embeddingModel: { type: String, default: 'text-embedding-ada-002' },
     chunks: [chunkSchema],
     images: [imageSchema],
+    /**
+     * Whether `page` is a real page or a section number. A Word file has no
+     * pages of its own, so its numbering must not be shown as one.
+     */
+    paginated: { type: Boolean, default: true },
     uploaded: { type: Date, default: Date.now }
 });
 

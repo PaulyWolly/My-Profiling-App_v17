@@ -224,6 +224,11 @@ export class AiRagComponent implements OnInit {
     this.ask();
   }
 
+  /** Reads "page 3" or "part 3"; a Word file has sections rather than pages. */
+  imageLocation(img: RagImage): string {
+    return img.pageLabel ? img.pageLabel.replace('p.', 'page') : `page ${img.page}`;
+  }
+
   /** Reuses the chat lightbox, which already handles paging and closing. */
   openImage(index: number): void {
     this.dialog.open(AiChatImageDialogComponent, {
@@ -231,7 +236,9 @@ export class AiRagComponent implements OnInit {
       data: {
         images: this.images.map((img) => ({
           url: img.url,
-          title: img.documentName ? `${img.documentName} — page ${img.page}` : `Page ${img.page}`
+          title: img.documentName
+            ? `${img.documentName} — ${this.imageLocation(img)}`
+            : this.imageLocation(img)
         })),
         startIndex: index
       }
