@@ -66,6 +66,9 @@ Thumbs.db
 reference_repo/
 reference_repo_5-11-25/
 reference_repo_WORKING/
+MERN-MultiChat-REFERENCE/
+# Contains its own server/.env with live Azure/OpenAI/Anthropic/Mongo secrets
+Node-AI-Project/
 
 clone_of_working_profiling_app2/
 

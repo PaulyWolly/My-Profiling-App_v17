@@ -74,6 +74,16 @@ export class AiImageComponent implements OnInit {
     }
   }
 
+  /** Enter starts analysis; Shift+Enter inserts a newline. */
+  onEnter(event: Event): void {
+    const keyEvent = event as KeyboardEvent;
+    if (keyEvent.shiftKey) {
+      return;
+    }
+    keyEvent.preventDefault();
+    this.analyze();
+  }
+
   analyze(): void {
     if (!this.file || this.loading) return;
     this.loading = true;

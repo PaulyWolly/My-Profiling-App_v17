@@ -34,6 +34,12 @@ export class AlertComponent implements OnInit, OnDestroy {
                     return;
                 }
 
+                // Errors stay until dismissed, so a repeated failure would
+                // otherwise stack identical boxes down the screen.
+                const alreadyShowing = this.alerts.some(x =>
+                    !x.fade && x.type === alert.type && x.message === alert.message);
+                if (alreadyShowing) return;
+
                 // add alert to array
                 this.alerts.push(alert);
 

@@ -38,7 +38,9 @@ body.ai-tools-page .main-content-wrapper,
     min-height: 0 !important;
     overflow-x: hidden !important;
     overflow-y: scroll !important;
-    padding-bottom: 3.5rem !important;
+    /* Clears the 30px fixed footer with a little breathing room; more than this
+       just leaves dead space under every AI Tools page. */
+    padding-bottom: 2.25rem !important;
     -webkit-overflow-scrolling: touch;
 }
 

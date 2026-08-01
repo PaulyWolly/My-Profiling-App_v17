@@ -1,42 +1,137 @@
 <div class="ai-panel">
-  <h2>Document Q&amp;A (RAG)</h2>
-  <p class="sub">Upload a .txt, .md, .csv, .json, or .pdf file (up to {{ ragMaxUploadMb }} MB). The AI indexes it and answers questions from your document.</p>
+  <div class="page-head">
+    <h2>Document Q&amp;A (RAG)</h2>
+    <p class="sub">Upload a .txt, .md, .csv, .json, or .pdf file (up to {{ ragMaxUploadMb }} MB). The AI indexes it and answers questions from your documents.</p>
+  </div>
   <p class="hint" *ngIf="!configured">OpenAI API key is not configured on the server.</p>
 
-  <div class="upload-row">
-    <input type="file" accept=".txt,.md,.csv,.json,.pdf,text/*,application/pdf" (change)="onUpload($event)" [disabled]="uploading" />
-    <span *ngIf="uploading" class="status">Indexing document…</span>
-  </div>
+  <div class="rag-workspace">
+    <section class="rag-controls">
+      <div class="controls-scroll">
+        <div class="upload-row">
+          <input type="file" accept=".txt,.md,.csv,.json,.pdf,text/*,application/pdf" (change)="onUpload($event)" [disabled]="uploading" />
+          <span *ngIf="uploading" class="status">Indexing document…</span>
+        </div>
 
-  <div class="doc-list" *ngIf="documents.length">
-    <h3>Your documents</h3>
-    <div class="doc-item" *ngFor="let doc of documents" [class.selected]="doc.id === selectedId">
-      <label>
-        <input type="radio" name="doc" [value]="doc.id" [(ngModel)]="selectedId" />
-        <span class="name">{{ doc.originalName }}</span>
-        <span class="meta">{{ doc.chunkCount }} chunks · {{ doc.charCount | number }} chars</span>
-      </label>
-      <button mat-button color="warn" type="button" (click)="deleteDoc(doc.id)">Delete</button>
-    </div>
-  </div>
+        <div class="doc-list" *ngIf="documents.length">
+          <div class="doc-list-head">
+            <h3>Your documents</h3>
+            <button
+              mat-stroked-button
+              type="button"
+              class="select-all-button"
+              (click)="toggleAllDocuments()">
+              {{ allSelected ? 'Clear all' : 'All documents' }}
+            </button>
+          </div>
 
-  <p *ngIf="!loadingDocs && !documents.length" class="empty">No documents yet. Upload one to get started.</p>
+          <p class="selection-summary">
+            {{ selectedCount }} of {{ documents.length }} selected
+          </p>
 
-  <mat-form-field appearance="outline" class="full-width">
-    <mat-label>Question about the selected document</mat-label>
-    <textarea matInput rows="3" [(ngModel)]="question"></textarea>
-  </mat-form-field>
+          <p class="reindex-note" *ngIf="keywordDocCount">
+            {{ keywordDocCount }} document(s) were indexed with keyword search because embeddings
+            were unavailable at upload time. Re-index them for semantic search.
+          </p>
 
-  <button mat-raised-button color="primary" (click)="ask()" [disabled]="!selectedId || !question.trim() || asking">
-    {{ asking ? 'Searching…' : 'Ask' }}
-  </button>
+          <div class="doc-item" *ngFor="let doc of documents" [class.selected]="isSelected(doc.id)">
+            <label>
+              <input
+                type="checkbox"
+                class="doc-checkbox"
+                [checked]="isSelected(doc.id)"
+                (change)="toggleDoc(doc.id)" />
+              <span class="doc-text">
+                <span class="name">{{ doc.originalName }}</span>
+                <span class="meta">
+                  {{ doc.chunkCount }} chunks · {{ doc.charCount | number }} chars
+                  <span class="index-badge" [class.keyword]="isKeywordIndexed(doc)">
+                    {{ isKeywordIndexed(doc) ? 'keyword search' : doc.embeddingModel }}
+                  </span>
+                </span>
+              </span>
+            </label>
+            <span class="doc-actions">
+              <button
+                mat-button
+                color="primary"
+                type="button"
+                *ngIf="isKeywordIndexed(doc)"
+                [disabled]="reindexingId === doc.id"
+                (click)="reindex(doc.id)">
+                {{ reindexingId === doc.id ? 'Re-indexing…' : 'Re-index' }}
+              </button>
+              <button
+                mat-icon-button
+                type="button"
+                class="delete-button"
+                (click)="deleteDoc(doc.id)"
+                [matTooltip]="'Delete ' + doc.originalName"
+                [attr.aria-label]="'Delete ' + doc.originalName">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </span>
+          </div>
+        </div>
 
-  <div class="result" *ngIf="answer">
-    <h3>Answer</h3>
-    <div class="result-body">{{ answer }}</div>
-    <div class="sources" *ngIf="sources.length">
-      <h4>Sources</h4>
-      <div class="source" *ngFor="let s of sources">{{ s.excerpt }}</div>
-    </div>
+        <p *ngIf="!loadingDocs && !documents.length" class="empty">No documents yet. Upload one to get started.</p>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Question about the selected documents</mat-label>
+          <textarea
+            matInput
+            rows="4"
+            [(ngModel)]="question"
+            placeholder="Ask a question, then press Enter (Shift+Enter for a new line)"
+            (keydown.enter)="onEnter($event)"></textarea>
+        </mat-form-field>
+      </div>
+
+      <div class="action-row">
+        <button mat-raised-button color="primary" (click)="ask()" [disabled]="!canAsk">
+          {{ asking ? 'Searching…' : 'Ask' }}
+        </button>
+        <span class="ask-hint" *ngIf="!selectedCount">Select at least one document</span>
+      </div>
+    </section>
+
+    <section class="rag-result">
+      <div class="result-bar">
+        <span class="result-title">Answer</span>
+        <span class="result-tools">
+          <span class="result-doc" *ngIf="answer && answeredFrom.length">
+            {{ answeredFrom.length === 1 ? answeredFrom[0] : answeredFrom.length + ' documents' }}
+          </span>
+          <button
+            mat-stroked-button
+            type="button"
+            *ngIf="answer"
+            (click)="viewAnswer()"
+            [disabled]="asking">
+            Expand
+          </button>
+        </span>
+      </div>
+
+      <div class="result-scroll">
+        <p class="status-loading" *ngIf="asking">Searching your documents…</p>
+
+        <p class="result-empty" *ngIf="!asking && !answer">
+          Select one or more documents, ask a question, and the answer will appear here.
+        </p>
+
+        <ng-container *ngIf="!asking && answer">
+          <div class="result-body">{{ answer }}</div>
+
+          <div class="sources" *ngIf="sources.length">
+            <h4>Sources</h4>
+            <div class="source" *ngFor="let s of sources">
+              <span class="source-doc" *ngIf="s.documentName">{{ s.documentName }}</span>
+              {{ s.excerpt }}
+            </div>
+          </div>
+        </ng-container>
+      </div>
+    </section>
   </div>
 </div>

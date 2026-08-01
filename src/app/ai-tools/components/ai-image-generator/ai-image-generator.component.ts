@@ -10,6 +10,14 @@ import { finalize } from 'rxjs/operators';
 import { AiToolsService } from '../../services/ai-tools.service';
 import { AlertService } from '@app/_services';
 
+/** Pre-filled so a first-time visitor can hit Generate and see what the tool does. */
+const EXAMPLE_PROMPT =
+  'A watercolor image of a man and a woman holding hands and walking away from the ' +
+  'Eiffel Tower in France in the background. The sun is just going down and the ' +
+  'street lights are starting to come on.';
+
+const WIDE_SIZE = '1536x1024';
+
 @Component({
   selector: 'app-ai-image-generator',
   standalone: true,
@@ -25,9 +33,11 @@ import { AlertService } from '@app/_services';
   styleUrls: ['./ai-image-generator.component.css']
 })
 export class AiImageGeneratorComponent implements OnInit {
-  prompt = '';
-  size = '1024x1024';
-  quality: 'standard' | 'hd' = 'standard';
+  readonly examplePrompt = EXAMPLE_PROMPT;
+
+  prompt = EXAMPLE_PROMPT;
+  size = WIDE_SIZE;
+  quality: 'standard' | 'hd' = 'hd';
   style: 'vivid' | 'natural' = 'vivid';
   sizes = ['1024x1024', '1536x1024', '1024x1536'];
   supportsStyleParam = false;
@@ -38,6 +48,10 @@ export class AiImageGeneratorComponent implements OnInit {
   loading = false;
   configured = true;
 
+  /** null means this account has no daily cap. */
+  imagesRemaining: number | null = null;
+  imagesLimit = 0;
+
   constructor(private ai: AiToolsService, private alert: AlertService) {}
 
   ngOnInit(): void {
@@ -46,11 +60,40 @@ export class AiImageGeneratorComponent implements OnInit {
         this.configured = s.configured;
         if (s.imageGenSizes?.length) {
           this.sizes = s.imageGenSizes;
+          if (!this.sizes.includes(this.size)) {
+            this.size = this.widestSize();
+          }
         }
         this.supportsStyleParam = !!s.imageGenSupportsStyle;
+        this.imagesRemaining = s.imagesRemaining ?? null;
+        this.imagesLimit = s.imageDailyLimit ?? 0;
       },
       error: () => { this.configured = false; }
     });
+  }
+
+  /** Falls back to the most landscape option the server offers when 1536x1024 is unavailable. */
+  private widestSize(): string {
+    const ratio = (value: string) => {
+      const [w, h] = value.split('x').map(Number);
+      return w && h ? w / h : 0;
+    };
+    return [...this.sizes].sort((a, b) => ratio(b) - ratio(a))[0] || this.sizes[0];
+  }
+
+  useExample(): void {
+    if (this.loading) return;
+    this.prompt = this.examplePrompt;
+  }
+
+  /** Enter starts generation; Shift+Enter inserts a newline. */
+  onEnter(event: Event): void {
+    const keyEvent = event as KeyboardEvent;
+    if (keyEvent.shiftKey) {
+      return;
+    }
+    keyEvent.preventDefault();
+    this.generate();
   }
 
   generate(): void {
@@ -72,8 +115,18 @@ export class AiImageGeneratorComponent implements OnInit {
         this.imageDataUrl = res.imageDataUrl;
         this.revisedPrompt = res.revisedPrompt;
         this.modelUsed = res.model;
+        if (res.imagesRemaining !== undefined) {
+          this.imagesRemaining = res.imagesRemaining;
+          this.imagesLimit = res.imagesLimit ?? this.imagesLimit;
+        }
       },
-      error: (err) => this.alert.error(err)
+      error: (err) => {
+        // A refused request means the allowance is spent, whatever we last read.
+        if (err?.status === 429 || /daily image limit/i.test(String(err?.message ?? err))) {
+          this.imagesRemaining = 0;
+        }
+        this.alert.error(err);
+      }
     });
   }
 

@@ -1,45 +1,69 @@
 <div class="ai-chat-page">
   <div class="ai-chat-header">
-    <h2>AI Chat</h2>
+    <div class="header-top">
+      <h2>AI Chat</h2>
+
+      <div class="header-tools" *ngIf="configured">
+        <button
+          mat-stroked-button
+          type="button"
+          class="tool-button"
+          *ngIf="voices.length"
+          [matMenuTriggerFor]="voiceMenu"
+          matTooltip="Choose the voice used to read replies">
+          <mat-icon>record_voice_over</mat-icon>
+          {{ selectedVoiceLabel }}
+        </button>
+
+        <mat-menu #voiceMenu="matMenu">
+          <button
+            mat-menu-item
+            type="button"
+            *ngFor="let v of voices"
+            (click)="onVoiceChange(v.id)">
+            <mat-icon>{{ v.id === selectedVoice ? 'check' : '' }}</mat-icon>
+            <span>{{ v.label }}</span>
+          </button>
+        </mat-menu>
+
+        <button
+          mat-icon-button
+          type="button"
+          class="memory-trigger"
+          (click)="openMemory()"
+          [matTooltip]="memoryFactCount
+            ? 'View the ' + memoryFactCount + ' detail' + (memoryFactCount === 1 ? '' : 's') + ' saved about you'
+            : 'No saved details yet'"
+          [attr.aria-label]="'View details saved about you (' + memoryFactCount + ')'">
+          <mat-icon>psychology</mat-icon>
+          <span class="memory-count" *ngIf="memoryFactCount">{{ memoryFactCount }}</span>
+        </button>
+
+        <button
+          mat-stroked-button
+          type="button"
+          class="tool-button danger"
+          (click)="forgetMe()"
+          [disabled]="loading || !memoryFactCount"
+          matTooltip="Delete everything saved about you">
+          <mat-icon>person_off</mat-icon>
+          Forget me
+        </button>
+
+      </div>
+    </div>
+
     <p class="disclaimer">{{ disclaimer }}</p>
   </div>
 
   <p class="hint" *ngIf="!configured">OpenAI API key is not configured on the server.</p>
 
-  <div class="memory-bar" *ngIf="configured">
-    <span class="memory-summary" *ngIf="memoryFactCount > 0">
-      Remembering <strong>{{ memoryFactCount }}</strong> detail{{ memoryFactCount === 1 ? '' : 's' }} about you
-    </span>
-    <span class="memory-summary muted" *ngIf="memoryFactCount === 0">
-      No saved details yet — tell me your name, hobbies, likes…
-    </span>
-    <div class="memory-actions">
-      <button mat-stroked-button type="button" (click)="toggleMemory()" [disabled]="!memoryFactCount">
-        {{ showMemory ? 'Hide memory' : 'View memory' }}
-      </button>
-      <button mat-stroked-button type="button" color="warn" (click)="forgetMe()" [disabled]="loading || !memoryFactCount">
-        Forget me
-      </button>
-    </div>
-  </div>
-
-  <div class="memory-panel" *ngIf="showMemory && memoryFacts.length">
-    <div class="memory-panel-scroll">
-      <div class="memory-fact" *ngFor="let fact of memoryFacts">
-        <div class="memory-fact-text">
-          <span class="memory-cat">{{ fact.category }}</span>
-          <strong>{{ factLabel(fact.key) }}</strong>: {{ fact.value }}
-        </div>
-        <button mat-button type="button" color="warn" (click)="removeFact(fact.key)">Remove</button>
-      </div>
-    </div>
-  </div>
-
   <div class="chat-log" #chatLog>
     <div class="chat-log-messages">
       <p class="chat-empty" *ngIf="loadingHistory">Loading your chat history…</p>
       <p class="chat-empty" *ngIf="!loadingHistory && !messages.length && !loading">
-        Ask a question below. Details you share are saved to your account so I can remember them next time you log in.
+        Switch on Conversation Mode to have a two-way chat, or click “Ask your Query” to type a question.
+        Details you share are saved to your account so I can remember them next time you log in.
       </p>
 
       <div
@@ -48,7 +72,18 @@
         [class.user]="msg.role === 'user'"
         [class.assistant]="msg.role === 'assistant'">
         <div class="chat-bubble" [class.has-images]="!!msg.images?.length">
-          <strong>{{ msg.role === 'user' ? 'You' : 'AI' }}</strong>
+          <div class="chat-bubble-head">
+            <strong>{{ msg.role === 'user' ? 'You' : 'AI' }}</strong>
+            <button
+              type="button"
+              class="speak-message"
+              *ngIf="msg.role === 'assistant' && assistantText(msg)"
+              (click)="speakMessage(msg)"
+              matTooltip="Read this reply aloud"
+              aria-label="Read this reply aloud">
+              <mat-icon>volume_up</mat-icon>
+            </button>
+          </div>
           <p *ngIf="msg.role === 'user'">{{ msg.content }}</p>
           <div
             *ngIf="msg.role === 'assistant' && assistantText(msg)"
@@ -68,24 +103,96 @@
         </div>
       </div>
 
-      <div *ngIf="loading" class="chat-row assistant">
-        <div class="chat-bubble typing">Thinking…</div>
+      <div *ngIf="streamingReply as reply" class="chat-row assistant">
+        <div class="chat-bubble">
+          <div class="chat-bubble-head">
+            <strong>AI</strong>
+          </div>
+          <div
+            class="chat-body-html"
+            [innerHTML]="assistantText(reply) | chatMessageHtml:memoryFactValues"></div>
+          <span class="stream-caret" aria-hidden="true"></span>
+        </div>
+      </div>
+
+      <div *ngIf="loading && !streamingReply" class="chat-row assistant">
+        <div class="chat-bubble typing" aria-live="polite">{{ waitingLabel }}</div>
       </div>
     </div>
   </div>
 
-  <div class="chat-input-row">
-    <textarea
-      [(ngModel)]="input"
-      rows="2"
-      placeholder="Type your message…"
-      (keydown.enter)="onEnter($event)"></textarea>
-    <div class="chat-actions">
-      <button mat-stroked-button type="button" (click)="clearChat()" [disabled]="loading || !messages.length">
+  <div class="chat-actions" *ngIf="configured">
+    <div class="conversation-controls">
+      <mat-checkbox
+        class="conversation-checkbox"
+        [checked]="conversationMode"
+        [disabled]="!conversationSupported"
+        (change)="onConversationModeChange($event.checked)"
+        [matTooltip]="conversationSupported
+          ? 'Talk hands-free — the mic reopens after each reply. Say “exit” to end.'
+          : 'Conversation Mode needs Chrome or Edge'">
+        Conversation Mode
+      </mat-checkbox>
+
+      <span class="status-badge is-warmup" *ngIf="conversationMode && convWarming && !speaking && !loading" aria-live="polite">
+        Getting ready…
+      </span>
+      <span class="status-badge is-listening" *ngIf="showListeningBadge" aria-live="polite">
+        Listening...
+      </span>
+      <span class="status-badge is-thinking" *ngIf="conversationMode && loading" aria-live="polite">
+        {{ waitingLabel }}
+      </span>
+      <span class="status-badge is-speaking" *ngIf="speaking" aria-live="polite">
+        AI is speaking...
+      </span>
+
+      <span
+        class="mic-level"
+        *ngIf="showMicLevel"
+        [title]="micLevelLow
+          ? 'Input is quiet — raise your mic volume or move closer'
+          : 'Microphone input level'"
+        [attr.aria-label]="'Microphone input level ' + micLevel + ' percent'">
+        <span class="mic-level-track">
+          <span class="mic-level-fill" [class.is-low]="micLevelLow" [style.width.%]="micLevel < 2 ? 2 : micLevel"></span>
+        </span>
+      </span>
+
+      <button
+        mat-stroked-button
+        type="button"
+        class="tool-button danger stop-audio"
+        *ngIf="speaking"
+        (click)="stopSpeaking()"
+        matTooltip="Stop playback">
+        <mat-icon>stop</mat-icon>
+        Stop
+      </button>
+    </div>
+
+    <div class="chat-action-buttons">
+      <button
+        mat-stroked-button
+        type="button"
+        class="tool-button"
+        (click)="clearChat()"
+        [disabled]="loading || !messages.length"
+        matTooltip="Delete this conversation">
+        <mat-icon>delete_sweep</mat-icon>
         Clear chat
       </button>
-      <button mat-raised-button color="primary" (click)="send()" [disabled]="loading || !input.trim()">
-        Send
+
+      <button
+        mat-raised-button
+        color="primary"
+        type="button"
+        class="ask-button"
+        [disabled]="loading"
+        (click)="openAsk()"
+        matTooltip="Type a question instead of speaking">
+        <mat-icon>edit</mat-icon>
+        Ask your Query
       </button>
     </div>
   </div>

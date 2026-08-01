@@ -1,0 +1,86 @@
+{
+  "_readme": [
+    "Questions matching any entry below are answered with a live web search instead of the",
+    "model's built-in knowledge. Search adds roughly 11 seconds per turn, so keep this list to",
+    "things that genuinely go stale.",
+    "",
+    "Editing: the file is re-read automatically when it changes — no server restart needed.",
+    "A bad entry is ignored and the previous list stays active, so a typo cannot break chat.",
+    "Verify changes with: node scripts/web-search-trigger-check.js \"your question\"",
+    "",
+    "Entries are matched case-insensitively at word boundaries, so \"news\" matches",
+    "\"any news?\" but not \"newsletter\". Regular expression syntax is allowed:",
+    "  (?:x|y)  either x or y, e.g. \"how much (?:is|are)\"",
+    "  x?       optional, e.g. \"headlines?\" matches headline and headlines",
+    "  [\\s-]?   optional space or hyphen, e.g. \"up[\\s-]?to[\\s-]?date\"",
+    "Backslashes must be doubled in JSON.",
+    "",
+    "Separate from this file, any four digit year from 2020 on also forces a search,",
+    "so \"the 2026 election\" works without a keyword.",
+    "",
+    "The OPENAI_WEB_SEARCH_KEYWORDS environment variable adds to this list.",
+    "Set OPENAI_CHAT_WEB_SEARCH=false to disable web search entirely."
+  ],
+
+  "groups": {
+    "explicitRequests": [
+      "search the web", "web search", "search online", "look (?:it|this) up", "google",
+      "browse", "on the internet"
+    ],
+
+    "recency": [
+      "latest", "current(?:ly)?", "today", "tonight", "tomorrow", "yesterday",
+      "right now", "this (?:week|month|year|morning|evening)", "recent(?:ly)?",
+      "up[\\s-]?to[\\s-]?date", "as of", "these days", "nowadays", "so far this",
+      "still (?:alive|open|available|running)"
+    ],
+
+    "news": ["news", "headlines?", "breaking", "happening", "trending"],
+
+    "weather": ["weather", "forecast"],
+
+    "markets": [
+      "stock price", "share price", "stock market", "ticker", "market cap",
+      "exchange rate", "interest rate", "crypto", "bitcoin", "ethereum"
+    ],
+
+    "sports": ["scores?", "standings", "who won", "playoffs?"],
+
+    "commerce": [
+      "price of", "cost of", "how much (?:is|are|does)", "in stock", "near me", "nearby",
+      "open now", "business hours"
+    ],
+
+    "releases": ["release date", "latest version", "just (?:released|announced|launched)"],
+
+    "_volatileSubjects": [
+      "Answers that change over time even though the question sounds timeless.",
+      "'Who is POTUS' reads like a fixed fact, but the model's training data has a",
+      "cutoff, so answering from memory returns whoever held the office back then."
+    ],
+
+    "offices": [
+      "potus", "flotus", "scotus",
+      "president", "vice president", "prime minister", "chancellor", "monarch",
+      "the pope", "governor", "senator", "congressman", "congresswoman", "mayor",
+      "chief justice", "secretary of state", "attorney general",
+      "ceo", "cfo", "cto", "chairman", "head coach"
+    ],
+
+    "titlesAndRecords": [
+      "world record", "record holder", "reigning", "champion", "title holder",
+      "who (?:is|are|was) (?:the )?(?:current )?(?:leader|winner|owner|boss)",
+      "who (?:owns|runs|leads|founded)"
+    ],
+
+    "movingFigures": [
+      "how old is", "net worth", "population of", "salary of",
+      "still alive", "still in office", "still the"
+    ],
+
+    "superlatives": [
+      "richest", "largest company", "biggest company", "most popular",
+      "best[\\s-]?selling", "tallest building", "fastest"
+    ]
+  }
+}

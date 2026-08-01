@@ -45,6 +45,13 @@ async function getConversation(accountId) {
     return doc?.messages || [];
 }
 
+/**
+ * Appends a turn in one atomic update rather than reading the document,
+ * editing it, and writing it back. Saves now happen after the reply has been
+ * sent, so two quick turns can overlap; $push lets the database merge them
+ * instead of the second save overwriting the first. It is also a single round
+ * trip, which matters because a long conversation is a large document.
+ */
 async function appendConversation(accountId, userContent, assistantContent) {
     const now = new Date();
     const incoming = [
@@ -52,15 +59,15 @@ async function appendConversation(accountId, userContent, assistantContent) {
         { role: 'assistant', content: String(assistantContent || '').slice(0, 16000), createdAt: now }
     ];
 
-    let doc = await db.AiConversation.findOne({ accountId });
-    if (!doc) {
-        doc = new db.AiConversation({ accountId, messages: incoming, updated: now });
-    } else {
-        doc.messages = [...(doc.messages || []), ...incoming].slice(-MAX_MESSAGES);
-        doc.updated = now;
-    }
-    await doc.save();
-    return doc.messages;
+    await db.AiConversation.updateOne(
+        { accountId },
+        {
+            // accountId comes from the filter when this inserts.
+            $push: { messages: { $each: incoming, $slice: -MAX_MESSAGES } },
+            $set: { updated: now }
+        },
+        { upsert: true }
+    );
 }
 
 async function clearConversation(accountId) {

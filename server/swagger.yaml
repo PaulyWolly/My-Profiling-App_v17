@@ -934,10 +934,13 @@ paths:
   /api/ai/status:
     get:
       tags: [AI Tools]
-      summary: OpenAI configuration status (includes memoryFactCount)
+      summary: AI configuration status (includes memoryFactCount)
       responses:
         '200':
-          description: Models, web search, upload limits, remembered fact count
+          description: >
+            Models, web search, upload limits, remembered fact count, plus
+            ttsProvider ("azure" or "openai"), ttsVoices and ttsDefaultVoice for
+            whichever speech provider is active.
 
   /api/ai/conversation:
     get:
@@ -1066,6 +1069,40 @@ paths:
         '200':
           description: image URL or base64 result
 
+  /api/ai/tts:
+    post:
+      tags: [AI Tools]
+      summary: Render text to speech (MP3)
+      description: >
+        Converts text to spoken audio. Azure Neural voices are used when
+        AZURE_SPEECH_KEY and AZURE_SPEECH_REGION are set, otherwise OpenAI
+        text-to-speech is used. Markdown is flattened to speech-friendly plain text
+        first so headings and list items are spoken as sentences instead of read out
+        as punctuation. Input longer than 4000 characters is truncated. Available
+        voices and the active provider come from GET /api/ai/status.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text]
+              properties:
+                text:
+                  type: string
+                voice:
+                  type: string
+                  description: One of the ids from ttsVoices; falls back to the default when omitted or unknown.
+      responses:
+        '200':
+          description: MP3 audio
+          content:
+            audio/mpeg:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: text is required
+
   /api/ai/documents:
     get:
       tags: [AI Tools]
@@ -1090,7 +1127,7 @@ paths:
         '200':
           description: Created document metadata
         '413':
-          description: Document over upload limit (default 50 MB)
+          description: Document over upload limit (default 100 MB)
 
   /api/ai/documents/{id}:
     delete:
@@ -1101,6 +1138,52 @@ paths:
       responses:
         '200':
           description: Document deleted
+
+  /api/ai/documents/ask:
+    post:
+      tags: [AI Tools]
+      summary: Ask a question across one or more documents (RAG)
+      description: >
+        Ranks chunks from every selected document and answers from the best matches.
+        Scores are normalised per document so vector-indexed and keyword-indexed
+        documents can be merged into a single ranking. Each returned source names the
+        document it came from.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [documentIds, question]
+              properties:
+                documentIds:
+                  type: array
+                  items:
+                    type: string
+                question:
+                  type: string
+      responses:
+        '200':
+          description: answer, sources (with documentName), documentNames
+        '400':
+          description: question or documentIds missing
+        '404':
+          description: No matching documents found
+
+  /api/ai/documents/{id}/reindex:
+    post:
+      tags: [AI Tools]
+      summary: Re-embed a document's stored chunks
+      description: >
+        Rebuilds the vector index from the chunk text already stored for the document.
+        Used to upgrade documents that fell back to keyword search because embeddings
+        were unavailable when they were uploaded. The original file is not required.
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: Updated document metadata with the embedding model used
+        '404':
+          description: Document not found
 
   /api/ai/documents/{id}/ask:
     post:

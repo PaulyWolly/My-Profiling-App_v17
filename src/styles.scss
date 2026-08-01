@@ -134,4 +134,18 @@ body.mat-typography {
   border-radius: 12px !important;
 }
 
+/* AI Chat saved-details and ask dialogs: component owns header/footer padding */
+.cdk-overlay-pane:has(.ai-chat-memory-panel) .mat-mdc-dialog-surface,
+.cdk-overlay-pane:has(.ai-chat-memory-panel) .mdc-dialog__surface,
+.ai-chat-memory-panel .mat-mdc-dialog-surface,
+.ai-chat-memory-panel .mdc-dialog__surface,
+.cdk-overlay-pane:has(.ai-chat-ask-panel) .mat-mdc-dialog-surface,
+.cdk-overlay-pane:has(.ai-chat-ask-panel) .mdc-dialog__surface,
+.ai-chat-ask-panel .mat-mdc-dialog-surface,
+.ai-chat-ask-panel .mdc-dialog__surface {
+  padding: 0 !important;
+  overflow: hidden;
+  border-radius: 12px !important;
+}
+
 /* NOTE: no global .mdc-dialog__container tweaks — keep this scoped to gallery modal panel */

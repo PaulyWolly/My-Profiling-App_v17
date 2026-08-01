@@ -1,4 +1,7 @@
 [
+  { "name": "chat-payload-timing-check.js", "input": true },
+  { "name": "chat-search-latency-check.js", "input": true },
+  { "name": "chat-timing-check.js", "input": false },
   { "name": "check-account.js", "input": false },
   { "name": "cleanup-sessions.js", "input": false },
   { "name": "create-accounts.js", "input": false },
@@ -7,6 +10,9 @@
   { "name": "delete-account.js", "input": true },
   { "name": "fix-password-hash.js", "input": false },
   { "name": "hello-user.js", "input": true },
+  { "name": "image-query-check.js", "input": false },
+  { "name": "image-relevance-check.js", "input": false },
+  { "name": "image-search-live.js", "input": false },
   { "name": "list-accounts.js", "input": false },
   { "name": "make-admin.js", "input": true },
   { "name": "mark-all-chats-read-true.js", "input": false },
@@ -15,9 +21,16 @@
   { "name": "revoke-all-but-current-session.js", "input": false },
   { "name": "reset-password.js", "input": false },
   { "name": "sample.js", "input": false },
+  { "name": "tts-smoke-test.js", "input": false },
   { "name": "update-accounts.js", "input": false },
   { "name": "update-password.js", "input": true },
   { "name": "update-pwelby-password.js", "input": false },
   { "name": "update-role.js", "input": true },
-  { "name": "verify-account.js", "input": false }
+  { "name": "verify-account.js", "input": false },
+  { "name": "chat-reasoning-check.js", "input": false },
+  { "name": "conversation-append-check.js", "input": false },
+  { "name": "chat-stream-check.js", "input": false },
+  { "name": "web-search-config-check.js", "input": false },
+  { "name": "web-search-trigger-check.js", "input": false },
+  { "name": "ai-quota-check.js", "input": false }
 ] 

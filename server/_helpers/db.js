@@ -26,5 +26,6 @@ module.exports = {
     CleanupHistory: require('../admin/cleanup-history.model'),
     AiDocument: require('../models/ai-document.model'),
     AiConversation: require('../models/ai-conversation.model'),
-    AiMemory: require('../models/ai-memory.model')
+    AiMemory: require('../models/ai-memory.model'),
+    AiUsage: require('../models/ai-usage.model')
 };

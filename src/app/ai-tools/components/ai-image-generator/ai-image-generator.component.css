@@ -1,17 +1,27 @@
+/* Chrome reserved for the shell: nav + subnav + page heading + fixed footer. The
+   workspace is sized against it so the image and its Download control always land
+   above the fixed footer instead of scrolling underneath it. */
 .ai-gen-page {
+  --gen-chrome: 210px;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  padding-bottom: 0.5rem;
+}
+
+.page-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
 .ai-gen-page h2 {
-  margin: 0 0 0.5rem;
+  margin: 0;
   color: #1a4d6d;
 }
 
 .sub {
-  margin: 0 0 0.75rem;
+  margin: 0;
   color: #555;
 }
 
@@ -20,13 +30,40 @@
   background: #f8d7da;
   padding: 0.5rem 0.75rem;
   border-radius: 4px;
-  margin-bottom: 0.75rem;
+  margin: 0.5rem 0 0;
 }
 
 .gen-workspace {
+  display: grid;
+  grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: stretch;
+  margin-top: 0.75rem;
+  min-height: 0;
+}
+
+.gen-controls,
+.gen-result {
   border: 1px solid #d0e3ef;
   border-radius: 8px;
   background: #f8fbfd;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+/* The Generate button sits outside the scroll area so a short window can never
+   clip it below the panel edge. */
+.gen-controls {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - var(--gen-chrome));
+  overflow: hidden;
+}
+
+.controls-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
   padding: 1rem;
 }
 
@@ -41,14 +78,13 @@
   overflow-wrap: break-word;
   line-height: 1.45;
   resize: vertical;
-  min-height: 5rem;
+  min-height: 7rem;
 }
 
 .options-row {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  margin-bottom: 0.5rem;
 }
 
 .option-field {
@@ -56,22 +92,100 @@
   min-width: 140px;
 }
 
+.style-hint {
+  margin: 0 0 0.5rem;
+  color: #6b8fa8;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.quota-hint {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0.5rem 1rem 0;
+  color: #6b8fa8;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.quota-hint.is-spent {
+  color: #b3261e;
+  font-weight: 500;
+}
+
 .action-row {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
   align-items: center;
-  margin-top: 0.75rem;
+  flex: 0 0 auto;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid #d0e3ef;
+  background: #eef7fc;
+  border-radius: 0 0 8px 8px;
 }
 
-.result-panel {
-  margin-top: 1.25rem;
-  padding-top: 1rem;
-  border-top: 1px solid #d0e3ef;
+.revised-prompt {
+  margin: 1rem 0 0;
+  padding: 0.75rem 1rem;
+  background: #fff;
+  border: 1px solid #d0e3ef;
+  border-radius: 8px;
+  color: #444;
+  line-height: 1.5;
+  font-size: 0.9rem;
+}
+
+/* Result column ------------------------------------------------------------ */
+
+.gen-result {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - var(--gen-chrome));
+  overflow: hidden;
+}
+
+.result-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex: 0 0 auto;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid #d0e3ef;
+  background: #e8f4fc;
+  border-radius: 8px 8px 0 0;
+}
+
+.result-title {
+  font-weight: 600;
+  color: #1a4d6d;
+}
+
+.result-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.model-tag {
+  color: #6b8fa8;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.result-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .status-loading {
-  margin: 0 0 1rem;
+  margin: 0;
   padding: 0.85rem 1rem;
   background: #e8f4fc;
   border: 1px solid #b8d9ee;
@@ -79,23 +193,19 @@
   color: #1a4d6d;
 }
 
-.preview {
-  text-align: center;
-  margin-bottom: 1rem;
+.result-empty {
+  margin: 0;
+  color: #8aa9bd;
+  font-style: italic;
 }
 
-.style-hint {
-  flex: 1 1 180px;
-  margin: 0;
-  padding: 0.75rem 0;
-  color: #6b8fa8;
-  font-size: 0.9rem;
-  line-height: 1.4;
+.preview {
+  text-align: center;
 }
 
 .preview img {
   max-width: 100%;
-  max-height: min(55vh, 520px);
+  max-height: calc(100dvh - var(--gen-chrome) - 90px);
   width: auto;
   height: auto;
   object-fit: contain;
@@ -104,18 +214,18 @@
   box-shadow: 0 2px 12px rgba(26, 77, 109, 0.12);
 }
 
-.revised-prompt {
-  margin: 0 0 1rem;
-  padding: 0.75rem 1rem;
-  background: #fff;
-  border: 1px solid #d0e3ef;
-  border-radius: 8px;
-  color: #444;
-  line-height: 1.5;
-  font-size: 0.95rem;
-}
+/* Stack the columns before they get too cramped to be useful. */
+@media (max-width: 900px) {
+  .gen-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
 
-.model-tag {
-  color: #6b8fa8;
-  font-size: 0.9rem;
+  .gen-controls,
+  .gen-result {
+    max-height: none;
+  }
+
+  .preview img {
+    max-height: 60vh;
+  }
 }

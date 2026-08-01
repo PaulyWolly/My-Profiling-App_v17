@@ -30,6 +30,8 @@
 .alert-content {
     display: flex;
     align-items: flex-start;
+    gap: 10px;
+    padding-right: 24px; /* keep text clear of the close button */
 }
 
 .alert-message {
@@ -40,7 +42,7 @@
 .alert-actions {
     display: flex;
     flex-wrap: wrap;
-    margin-left: 25px;
+    margin-left: 28px; /* line up with the message, past the icon */
 }
 
 .alert-actions button {
@@ -51,10 +53,9 @@
 }
 
 i {
-    position: absolute;
-    left: 16px;
-    top: 14px;
+    flex: 0 0 auto;
     font-size: 18px;
+    line-height: 1.5; /* sit on the first line of the message */
 }
 
 /* Animation for sliding in from right */

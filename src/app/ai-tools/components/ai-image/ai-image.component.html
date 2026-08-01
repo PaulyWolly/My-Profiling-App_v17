@@ -1,57 +1,83 @@
 <div class="ai-image-page">
-  <h2>Image Describe</h2>
+  <div class="page-head">
+    <h2>Image Describe</h2>
+    <p class="sub">Upload an image and the AI identifies the subject and describes what it sees.</p>
+  </div>
   <p class="hint" *ngIf="!configured">OpenAI API key is not configured on the server.</p>
 
   <div class="image-workspace">
-    <div class="upload-row">
-      <div class="file-choose-wrapper">
-        <button mat-stroked-button type="button" class="file-choose-visual" [disabled]="loading">
-          {{ file ? 'Choose Another Image' : 'Choose Image' }}
-        </button>
-        <input
-          #fileInput
-          type="file"
-          class="file-overlay"
-          accept="image/*,.jpg,.jpeg,.png,.gif,.webp,.bmp,.tif,.tiff,.jfif"
-          [disabled]="loading"
-          (change)="onFileSelected($event)" />
+    <section class="image-controls">
+      <div class="controls-scroll">
+        <div class="upload-row">
+          <div class="file-choose-wrapper">
+            <button mat-stroked-button type="button" class="file-choose-visual" [disabled]="loading">
+              {{ file ? 'Choose Another Image' : 'Choose Image' }}
+            </button>
+            <input
+              #fileInput
+              type="file"
+              class="file-overlay"
+              accept="image/*,.jpg,.jpeg,.png,.gif,.webp,.bmp,.tif,.tiff,.jfif"
+              [disabled]="loading"
+              (change)="onFileSelected($event)" />
+          </div>
+          <button
+            mat-stroked-button
+            type="button"
+            *ngIf="file"
+            (click)="resetImage()"
+            [disabled]="loading">
+            Clear
+          </button>
+        </div>
+
+        <p class="file-name" *ngIf="file">{{ file.name }}</p>
+
+        <div class="preview" *ngIf="previewUrl">
+          <img [src]="previewUrl" [attr.alt]="file?.name || 'Preview'" />
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width prompt-field">
+          <mat-label>Prompt (optional)</mat-label>
+          <textarea
+            matInput
+            [(ngModel)]="prompt"
+            rows="4"
+            class="prompt-textarea"
+            placeholder="Press Enter to identify the image (Shift+Enter for a new line)"
+            (keydown.enter)="onEnter($event)"></textarea>
+        </mat-form-field>
       </div>
-      <button
-        mat-stroked-button
-        type="button"
-        *ngIf="file"
-        (click)="resetImage()"
-        [disabled]="loading">
-        Clear
-      </button>
-      <span class="file-name" *ngIf="file">{{ file.name }}</span>
-    </div>
 
-    <div class="preview" *ngIf="previewUrl">
-      <img [src]="previewUrl" [attr.alt]="file?.name || 'Preview'" />
-    </div>
+      <div class="action-row">
+        <button mat-raised-button color="primary" (click)="analyze()" [disabled]="!file || loading">
+          {{ loading ? 'Analyzing…' : 'Identify Image' }}
+        </button>
+      </div>
+    </section>
 
-    <mat-form-field appearance="outline" class="full-width prompt-field">
-      <mat-label>Prompt (optional)</mat-label>
-      <textarea
-        matInput
-        [(ngModel)]="prompt"
-        rows="3"
-        class="prompt-textarea"></textarea>
-    </mat-form-field>
+    <section class="image-result">
+      <div class="result-bar">
+        <span class="result-title">Description</span>
+        <button
+          mat-stroked-button
+          type="button"
+          *ngIf="description"
+          (click)="viewDescription()"
+          [disabled]="loading">
+          Expand
+        </button>
+      </div>
 
-    <div class="action-row">
-      <button mat-raised-button color="primary" (click)="analyze()" [disabled]="!file || loading">
-        {{ loading ? 'Analyzing…' : 'Identify Image' }}
-      </button>
-      <button
-        mat-stroked-button
-        type="button"
-        *ngIf="description"
-        (click)="viewDescription()"
-        [disabled]="loading">
-        View Description
-      </button>
-    </div>
+      <div class="result-scroll">
+        <p class="status-loading" *ngIf="loading">Analyzing your image…</p>
+
+        <p class="result-empty" *ngIf="!loading && !description">
+          Choose an image and click Identify Image. The description will appear here.
+        </p>
+
+        <div class="result-body" *ngIf="!loading && description">{{ description }}</div>
+      </div>
+    </section>
   </div>
 </div>

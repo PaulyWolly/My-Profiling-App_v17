@@ -1,4 +1,4 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { filter } from 'rxjs/operators';
 
@@ -53,7 +53,14 @@ export class AlertService {
     alert(alert: Alert) {
         console.log('[AlertService] Emitting alert:', alert);
         alert.id = alert.id || this.defaultId;
-        alert.autoClose = (alert.autoClose === undefined ? true : alert.autoClose);
+
+        // Errors stay until dismissed so the user can read and act on them.
+        // Everything else is informational and clears itself. An explicit
+        // autoClose in the options still wins.
+        if (alert.autoClose === undefined) {
+            alert.autoClose = alert.type !== AlertType.Error;
+        }
+
         this.subject.next(alert);
     }
 
