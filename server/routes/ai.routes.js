@@ -461,23 +461,26 @@ const MAX_ANSWER_IMAGES = 8;
 /**
  * The pictures worth showing beside an answer.
  *
- * Only the pages the answer was actually built from, so asking about one recipe
- * does not surface the photos from every other recipe in the file. A picture
- * often sits on the page after the text that describes it, so neighbouring pages
- * are tried when the cited pages themselves have none.
+ * Scoped to the pages the answer was built from, so asking about one recipe does
+ * not surface the photos from every other recipe in the file. Pages either side
+ * are then used to fill any room left over, because a page can hold nothing but
+ * photographs: with no text on it there is no chunk to match a question against,
+ * so it can never be cited on its own and its pictures would never be seen.
  */
 function collectAnswerImages(docs, citedPages) {
     if (!citedPages || !citedPages.length) return [];
 
-    const byDocument = new Map(docs.map((doc) => [String(doc.id), doc.images || []]));
-    const pick = (spread) => {
-        const chosen = [];
-        const seen = new Set();
+    const byId = new Map(docs.map((doc) => [String(doc.id), doc]));
+    const chosen = [];
+    const seen = new Set();
 
+    const take = (distance) => {
         for (const cited of citedPages) {
-            const images = byDocument.get(String(cited.documentId)) || [];
-            for (const image of images) {
-                if (Math.abs(image.page - cited.page) > spread) continue;
+            const doc = byId.get(String(cited.documentId));
+            if (!doc) continue;
+
+            for (const image of doc.images || []) {
+                if (Math.abs(image.page - cited.page) !== distance) continue;
                 if (seen.has(image.url)) continue;
                 seen.add(image.url);
                 chosen.push({
@@ -485,16 +488,16 @@ function collectAnswerImages(docs, citedPages) {
                     page: image.page,
                     width: image.width,
                     height: image.height,
-                    documentName: docs.find((d) => String(d.id) === String(cited.documentId))?.originalName
+                    documentName: doc.originalName
                 });
-                if (chosen.length >= MAX_ANSWER_IMAGES) return chosen;
+                if (chosen.length >= MAX_ANSWER_IMAGES) return;
             }
         }
-        return chosen;
     };
 
-    const onCitedPages = pick(0);
-    return onCitedPages.length ? onCitedPages : pick(1);
+    take(0);
+    take(1);
+    return chosen;
 }
 
 router.post('/documents', multerSingle(documentUpload, 'document', DOCUMENT_MAX_BYTES), async (req, res, next) => {
