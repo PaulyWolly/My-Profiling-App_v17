@@ -3,7 +3,20 @@ const Schema = mongoose.Schema;
 
 const chunkSchema = new Schema({
     text: { type: String, required: true },
+    /** Page this text came from, so an answer can show that page's pictures. */
+    page: { type: Number },
     embedding: { type: [Number], default: [] }
+}, { _id: false });
+
+/**
+ * A picture found in the document. The image itself lives in S3 — a document is
+ * capped at 16MB in Mongo and the embeddings already crowd that budget.
+ */
+const imageSchema = new Schema({
+    page: { type: Number, required: true },
+    url: { type: String, required: true },
+    width: Number,
+    height: Number
 }, { _id: false });
 
 const schema = new Schema({
@@ -15,6 +28,7 @@ const schema = new Schema({
     chunkCount: { type: Number, default: 0 },
     embeddingModel: { type: String, default: 'text-embedding-ada-002' },
     chunks: [chunkSchema],
+    images: [imageSchema],
     uploaded: { type: Date, default: Date.now }
 });
 

@@ -126,6 +126,24 @@
         <ng-container *ngIf="!asking && answer">
           <div class="result-body">{{ answer }}</div>
 
+          @if (images.length) {
+            <div class="answer-images">
+              <h4>Images from these pages</h4>
+              <div class="image-grid">
+                @for (img of images; track img.url) {
+                  <button
+                    type="button"
+                    class="image-thumb"
+                    (click)="openImage($index)"
+                    [attr.aria-label]="'View image from page ' + img.page">
+                    <img [src]="img.url" [alt]="'Page ' + img.page" loading="lazy" />
+                    <span class="image-page">p. {{ img.page }}</span>
+                  </button>
+                }
+              </div>
+            </div>
+          }
+
           <div class="sources" *ngIf="sources.length">
             <h4>Sources</h4>
             <div class="source" *ngFor="let s of sources">

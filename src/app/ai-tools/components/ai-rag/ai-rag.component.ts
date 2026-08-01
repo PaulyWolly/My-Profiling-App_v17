@@ -8,10 +8,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { AiToolsService, AiDocumentSummary, AiToolsStatus } from '../../services/ai-tools.service';
+import { AiToolsService, AiDocumentSummary, AiToolsStatus, RagImage } from '../../services/ai-tools.service';
 import { AlertService } from '@app/_services';
 import { ConfirmDialogComponent } from '@app/shared/components/confirm-dialog/confirm-dialog.component';
 import { AiRagAnswerDialogComponent } from './ai-rag-answer-dialog.component';
+import { AiChatImageDialogComponent } from '../ai-chat/ai-chat-image-dialog.component';
 import { AiToolsHelpButtonComponent } from '../ai-tools-help/ai-tools-help-button.component';
 
 @Component({
@@ -36,8 +37,10 @@ export class AiRagComponent implements OnInit {
   selectedIds = new Set<string>();
   question = '';
   answer = '';
-  sources: { excerpt: string; score: number; documentName?: string }[] = [];
+  sources: { excerpt: string; score: number; documentName?: string; page?: number }[] = [];
   answeredFrom: string[] = [];
+  /** Pictures from the pages this answer was built on. */
+  images: RagImage[] = [];
   loadingDocs = false;
   uploading = false;
   asking = false;
@@ -171,6 +174,7 @@ export class AiRagComponent implements OnInit {
             this.answer = '';
             this.sources = [];
             this.answeredFrom = [];
+            this.images = [];
           }
           this.loadDocuments();
         },
@@ -220,6 +224,20 @@ export class AiRagComponent implements OnInit {
     this.ask();
   }
 
+  /** Reuses the chat lightbox, which already handles paging and closing. */
+  openImage(index: number): void {
+    this.dialog.open(AiChatImageDialogComponent, {
+      panelClass: 'chat-image-dialog',
+      data: {
+        images: this.images.map((img) => ({
+          url: img.url,
+          title: img.documentName ? `${img.documentName} — page ${img.page}` : `Page ${img.page}`
+        })),
+        startIndex: index
+      }
+    });
+  }
+
   viewAnswer(): void {
     if (!this.answer) return;
     this.dialog.open(AiRagAnswerDialogComponent, {
@@ -242,12 +260,14 @@ export class AiRagComponent implements OnInit {
     this.answer = '';
     this.sources = [];
     this.answeredFrom = [];
+    this.images = [];
 
     this.ai.askDocuments(ids, this.question.trim()).subscribe({
       next: (res) => {
         this.answer = res.answer;
         this.sources = res.sources || [];
         this.answeredFrom = res.documentNames || [];
+        this.images = res.images || [];
         this.asking = false;
       },
       error: (err) => {

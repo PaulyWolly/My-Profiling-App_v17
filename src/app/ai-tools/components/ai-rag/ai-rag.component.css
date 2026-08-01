@@ -333,6 +333,57 @@
   padding: 0.85rem 1rem;
 }
 
+.answer-images {
+  margin-top: 1rem;
+}
+
+.answer-images h4 {
+  margin: 0 0 0.5rem;
+  color: #1a4d6d;
+}
+
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.5rem;
+}
+
+.image-thumb {
+  position: relative;
+  padding: 0;
+  border: 1px solid #d5e6f2;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.image-thumb:hover {
+  border-color: #1565c0;
+  transform: translateY(-2px);
+}
+
+.image-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.image-page {
+  position: absolute;
+  right: 0.25rem;
+  bottom: 0.25rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  background: rgba(15, 23, 42, 0.75);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
 .sources {
   margin-top: 1rem;
 }

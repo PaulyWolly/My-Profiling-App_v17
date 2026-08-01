@@ -97,10 +97,20 @@ export interface GeneratedImage {
   imagesLimit?: number;
 }
 
+/** A picture taken from a document, on the page the answer was drawn from. */
+export interface RagImage {
+  url: string;
+  page: number;
+  width?: number;
+  height?: number;
+  documentName?: string;
+}
+
 export interface RagMultiAnswer {
   answer: string;
   documentNames: string[];
-  sources: { excerpt: string; score: number; documentName: string }[];
+  sources: { excerpt: string; score: number; documentName: string; page?: number }[];
+  images?: RagImage[];
 }
 
 @Injectable({ providedIn: 'root' })

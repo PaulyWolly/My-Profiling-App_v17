@@ -293,6 +293,27 @@ function cosineSimilarity(a, b) {
     return dot / (Math.sqrt(magA) * Math.sqrt(magB) || 1);
 }
 
+function isPdf(mimeType, originalName) {
+    return mimeType === 'application/pdf' || (originalName || '').toLowerCase().endsWith('.pdf');
+}
+
+/**
+ * Text split by page, plus any pictures found.
+ *
+ * Non-PDFs have no pages, so they come back as a single page: the rest of the
+ * pipeline then treats every document the same way.
+ */
+async function extractContentFromFile(buffer, mimeType, originalName) {
+    if (isPdf(mimeType, originalName)) {
+        const { extractPdfContent } = require('./pdf-content.service');
+        const { pages, images } = await extractPdfContent(buffer);
+        return { pages, images };
+    }
+
+    const text = await extractTextFromFile(buffer, mimeType, originalName);
+    return { pages: [{ page: 1, text }], images: [] };
+}
+
 async function extractTextFromFile(buffer, mimeType, originalName) {
     const lower = (originalName || '').toLowerCase();
 
@@ -1125,7 +1146,9 @@ function assertChunksFitInMongoDocument(chunkData, charCount) {
 async function ingestDocument(buffer, mimeType, originalName) {
     return withOpenAiError('ingestDocument', async () => {
         const client = getClient();
-        const text = await extractTextFromFile(buffer, mimeType, originalName);
+        const { pages, images } = await extractContentFromFile(buffer, mimeType, originalName);
+        const text = pages.map((p) => p.text).join('\n\n');
+
         if (!text.trim()) {
             throw 'No readable text found in this document';
         }
@@ -1135,15 +1158,26 @@ async function ingestDocument(buffer, mimeType, originalName) {
             throw `Document is too large to index (${text.length.toLocaleString()} characters). Maximum is ${maxChars.toLocaleString()} characters of extracted text. Try a smaller file or split the document.`;
         }
 
-        const chunks = chunkText(text);
+        // Chunked per page rather than across the whole document, so every chunk
+        // knows where it came from and an answer can show that page's pictures.
+        const pageChunks = [];
+        for (const { page, text: pageText } of pages) {
+            if (!pageText.trim()) continue;
+            for (const chunk of chunkText(pageText)) {
+                pageChunks.push({ text: chunk, page });
+            }
+        }
+
+        const chunks = pageChunks.map((c) => c.text);
         let embeddingModel;
         let chunkData;
 
         try {
             const { model, embeddings } = await embedTexts(client, chunks);
             embeddingModel = model;
-            chunkData = chunks.map((chunkTextValue, index) => ({
-                text: chunkTextValue,
+            chunkData = pageChunks.map((chunk, index) => ({
+                text: chunk.text,
+                page: chunk.page,
                 embedding: embeddings[index]
             }));
         } catch (err) {
@@ -1152,8 +1186,9 @@ async function ingestDocument(buffer, mimeType, originalName) {
             }
             console.warn('[OpenAI] Embeddings unavailable — indexing document with keyword search instead');
             embeddingModel = KEYWORD_RAG_MODEL;
-            chunkData = chunks.map((chunkTextValue) => ({
-                text: chunkTextValue,
+            chunkData = pageChunks.map((chunk) => ({
+                text: chunk.text,
+                page: chunk.page,
                 embedding: []
             }));
         }
@@ -1163,7 +1198,8 @@ async function ingestDocument(buffer, mimeType, originalName) {
         return {
             text,
             embeddingModel,
-            chunks: chunkData
+            chunks: chunkData,
+            images
         };
     });
 }
@@ -1221,6 +1257,7 @@ async function rankDocumentChunks(client, doc, question, questionEmbeddingCache)
             scored = chunks
                 .map((chunk) => ({
                     text: chunk.text,
+                    page: chunk.page,
                     score: cosineSimilarity(questionEmbedding, chunk.embedding)
                 }))
                 .sort((a, b) => b.score - a.score)
@@ -1235,7 +1272,9 @@ async function rankDocumentChunks(client, doc, question, questionEmbeddingCache)
     const best = Math.max(...scored.map((row) => row.score), 0);
     return scored.map((row) => ({
         text: row.text,
+        page: row.page,
         score: best > 0 ? row.score / best : 0,
+        documentId: doc.id,
         documentName: doc.name
     }));
 }
@@ -1291,8 +1330,15 @@ async function askDocuments(documents, question) {
             sources: ranked.map((r) => ({
                 excerpt: r.text.slice(0, 200) + (r.text.length > 200 ? '...' : ''),
                 score: r.score,
+                documentId: r.documentId,
+                page: r.page,
                 documentName: r.documentName
-            }))
+            })),
+            // Which pages the answer was built from, so the caller can show the
+            // pictures on those pages and not every picture in the file.
+            citedPages: ranked
+                .filter((r) => r.page)
+                .map((r) => ({ documentId: r.documentId, page: r.page }))
         };
     });
 }

@@ -7,6 +7,7 @@ const azureTtsService = require('../services/azure-tts.service');
 const aiMemoryService = require('../services/ai-memory.service');
 const aiUsageService = require('../services/ai-usage.service');
 const imageSearchService = require('../services/image-search.service');
+const s3Service = require('../services/s3.service');
 
 const router = express.Router();
 
@@ -427,6 +428,75 @@ router.get('/documents', async (req, res, next) => {
     }
 });
 
+/**
+ * Puts a document's pictures in S3 and returns what to record against it.
+ *
+ * They are stored outside Mongo because a document is capped at 16MB there and
+ * the embeddings already take most of that. A failure to store one is not worth
+ * failing the upload over: the text is what makes the document answerable, and
+ * the pictures only enrich it.
+ */
+async function storeDocumentImages(accountId, images) {
+    if (!images || !images.length) return [];
+
+    const stored = [];
+    for (let i = 0; i < images.length; i += 1) {
+        const image = images[i];
+        try {
+            const name = `rag-${accountId}-${Date.now()}-p${image.page}-${i}.jpg`;
+            const url = await s3Service.uploadFile(image.buffer, name, image.contentType, 'rag-images');
+            stored.push({ page: image.page, url, width: image.width, height: image.height });
+        } catch (err) {
+            console.warn(`[AI] rag: could not store page ${image.page} image —`, err.message || err);
+        }
+    }
+
+    console.log(`[AI] rag: stored ${stored.length} of ${images.length} document image(s)`);
+    return stored;
+}
+
+/** Matches the thumbnail grid the chat already uses. */
+const MAX_ANSWER_IMAGES = 8;
+
+/**
+ * The pictures worth showing beside an answer.
+ *
+ * Only the pages the answer was actually built from, so asking about one recipe
+ * does not surface the photos from every other recipe in the file. A picture
+ * often sits on the page after the text that describes it, so neighbouring pages
+ * are tried when the cited pages themselves have none.
+ */
+function collectAnswerImages(docs, citedPages) {
+    if (!citedPages || !citedPages.length) return [];
+
+    const byDocument = new Map(docs.map((doc) => [String(doc.id), doc.images || []]));
+    const pick = (spread) => {
+        const chosen = [];
+        const seen = new Set();
+
+        for (const cited of citedPages) {
+            const images = byDocument.get(String(cited.documentId)) || [];
+            for (const image of images) {
+                if (Math.abs(image.page - cited.page) > spread) continue;
+                if (seen.has(image.url)) continue;
+                seen.add(image.url);
+                chosen.push({
+                    url: image.url,
+                    page: image.page,
+                    width: image.width,
+                    height: image.height,
+                    documentName: docs.find((d) => String(d.id) === String(cited.documentId))?.originalName
+                });
+                if (chosen.length >= MAX_ANSWER_IMAGES) return chosen;
+            }
+        }
+        return chosen;
+    };
+
+    const onCitedPages = pick(0);
+    return onCitedPages.length ? onCitedPages : pick(1);
+}
+
 router.post('/documents', multerSingle(documentUpload, 'document', DOCUMENT_MAX_BYTES), async (req, res, next) => {
     try {
         if (!req.file) {
@@ -439,6 +509,8 @@ router.post('/documents', multerSingle(documentUpload, 'document', DOCUMENT_MAX_
             req.file.originalname
         );
 
+        const images = await storeDocumentImages(req.user.id, ingested.images);
+
         const doc = await db.AiDocument.create({
             accountId: req.user.id,
             filename: req.file.originalname,
@@ -447,7 +519,8 @@ router.post('/documents', multerSingle(documentUpload, 'document', DOCUMENT_MAX_
             charCount: ingested.text.length,
             chunkCount: ingested.chunks.length,
             embeddingModel: ingested.embeddingModel,
-            chunks: ingested.chunks
+            chunks: ingested.chunks,
+            images
         });
 
         res.json(doc);
@@ -493,6 +566,7 @@ router.post('/documents/ask', async (req, res, next) => {
 
         const result = await openaiService.askDocuments(
             docs.map((doc) => ({
+                id: doc.id,
                 name: doc.originalName,
                 chunks: doc.chunks,
                 embeddingModel: doc.embeddingModel
@@ -503,6 +577,7 @@ router.post('/documents/ask', async (req, res, next) => {
         res.json({
             answer: result.answer,
             sources: result.sources,
+            images: collectAnswerImages(docs, result.citedPages),
             documentNames: docs.map((doc) => doc.originalName)
         });
     } catch (err) {
