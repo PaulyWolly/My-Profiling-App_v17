@@ -6,6 +6,10 @@ services:
     name: my-profiling-app-api
     runtime: node
 
+    # Left unset so it does not override the branch already configured on an
+    # existing service. Work lands on dev, while the repo default is main.
+    # branch: dev
+
     # Build and run from the server directory
     rootDir: server
 

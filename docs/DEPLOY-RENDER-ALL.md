@@ -135,10 +135,18 @@ With **Root Directory** = `server`, the build runs inside `server/`, installs mo
 2. Connect your GitHub repo for this project.
 3. Configure (backend has **no** `build` script—do **not** use `npm run build` here):
    - **Name**: e.g. `my-profiling-app-api`
+   - **Branch**: `dev` — see the note below before changing this
    - **Root Directory**: `server`
    - **Runtime**: Node
    - **Build Command**: `npm install` only (not `npm install; npm run build`—that will fail)
    - **Start Command**: `npm run start:prod`
+
+   > **Which branch does Render deploy?** Active work lands on `dev`, but the repository's default
+   > branch is `main`, and `main` currently trails `dev` by a long way. Render picks a branch when
+   > the service is created and never revisits it, so the two can drift apart silently: pushes
+   > succeed, Render stays quiet, and the site keeps serving an old build with no error anywhere.
+   > Both the backend Web Service and the frontend Static Site have their own Branch setting, and
+   > they need to agree. If you ever switch this to `main`, merge `dev` into it first.
 
    Node version comes from `engines` in `server/package.json`, currently `20.x`. The repo-root
    `.nvmrc` does **not** apply here, because Root Directory is `server`. Do not drop below Node
@@ -214,6 +222,7 @@ With **Root Directory** = `server`, the build runs inside `server/`, installs mo
 2. Connect the **same** GitHub repo.
 3. Configure:
    - **Name**: e.g. `my-profiling-app`
+   - **Branch**: same branch as the backend Web Service (`dev`)
    - **Root Directory**: leave **empty** (repo root)
    - **Build Command**: `npm install && npm run build`
    - **Publish Directory**: `dist/angular15-signup-verify-mongodb`
