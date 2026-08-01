@@ -43,5 +43,6 @@
   { "name": "email-config-check.js", "input": true },
   { "name": "signup-access-check.js", "input": true },
   { "name": "auth0-forgery-check.js", "input": true },
-  { "name": "rag-images-check.js", "input": true }
+  { "name": "rag-images-check.js", "input": true },
+  { "name": "password-hash-compat-check.js", "input": false }
 ] 
