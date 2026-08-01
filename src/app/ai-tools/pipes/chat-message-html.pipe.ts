@@ -62,12 +62,40 @@ export class ChatMessageHtmlPipe implements PipeTransform {
   }
 
   /**
-   * Rewrite slash-joined list items as CSV English.
+   * Anything whose slashes carry meaning: links, markdown link targets, and code
+   * spans. A path like ".../wikipedia/commons/0/0b/" reads as a list to the
+   * rewrite below, which turned real URLs into "org, wikipedia, commons".
+   */
+  private static readonly LITERAL_SPANS = /(?:https?:\/\/|www\.)[^\s<>()]+|`[^`]*`|\]\([^)]*\)/gi;
+
+  /**
+   * Rewrite slash-joined list items as CSV English, skipping any span whose
+   * slashes are structural.
    * **avocados/olives** → **avocados**, **olives**
    * avocados/olives → avocados, olives
-   * Leaves URLs, dates, and non-list slashes alone.
    */
   private rewriteSlashJoinedMemoryItems(text: string, factValues?: string[] | null): string {
+    const literals = ChatMessageHtmlPipe.LITERAL_SPANS;
+    literals.lastIndex = 0;
+
+    let out = '';
+    let cursor = 0;
+    let span: RegExpExecArray | null;
+
+    while ((span = literals.exec(text)) !== null) {
+      out += this.slashItemsToCsv(text.slice(cursor, span.index), factValues);
+      out += span[0];
+      cursor = span.index + span[0].length;
+    }
+
+    return out + this.slashItemsToCsv(text.slice(cursor), factValues);
+  }
+
+  private slashItemsToCsv(text: string, factValues?: string[] | null): string {
+    if (!text.includes('/')) {
+      return text;
+    }
+
     const known = new Set(
       (factValues?.length ? this.expandFactPhrases(factValues) : []).map((p) => p.toLowerCase())
     );
