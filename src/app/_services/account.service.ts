@@ -254,6 +254,8 @@ export class AccountService {
 
                 // Store auth data
                 this.storeAuthData(account, false, account.email);
+                sessionStorage.removeItem('google_signin_pending');
+                sessionStorage.removeItem('auth_logging_out');
 
                 // Update signals
                 this._accountSignal.set(account);
@@ -411,16 +413,17 @@ export class AccountService {
         console.log('[AccountService] Clearing authentication data for tab:', this.currentTabId);
         this.stopRefreshTokenTimer();
         // DON'T remove rememberMe data - user wants to keep their email remembered
-        // localStorage.removeItem(this.REMEMBER_ME_KEY); // Keep remembered email
         sessionStorage.removeItem(this.JWT_TOKEN_KEY);
         sessionStorage.removeItem(this.REFRESH_TOKEN_KEY);
+        // Google handoff UI must not appear on logout just because Auth0 is still signed in.
+        sessionStorage.removeItem('google_signin_pending');
+        sessionStorage.setItem('auth_logging_out', '1');
 
         // Update signals - ensure complete cleanup
         this._accountSignal.set(null);
         this._loadingSignal.set(false);
         this._errorSignal.set(null);
 
-        // Force clear any cached account data
         console.log('[AccountService] Forcing complete account state reset');
     }
 

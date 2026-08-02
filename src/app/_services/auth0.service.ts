@@ -39,29 +39,31 @@ export class Auth0Service {
     private handleAuth0Login(user: User) {
         console.log('[Auth0Service] Auth0 user logged in:', user);
 
-        // Check if we're on a login page and redirect immediately
-        const currentUrl = this.router.url;
-        if (currentUrl.includes('/account/login') || currentUrl.includes('/login')) {
-            console.log('[Auth0Service] On login page - redirecting to profile immediately');
-            this.router.navigate(['/profile']);
+        // App logout clears the JWT first; Auth0 may still be signed in for a
+        // moment. Do not mint a new session or flash "Logging you in..." then.
+        if (sessionStorage.getItem('auth_logging_out') === '1') {
+            console.log('[Auth0Service] Ignoring Auth0 session during logout');
+            return;
         }
 
-        // Create or update account in your system
+        // Create or update account in your system — navigate only AFTER the JWT exists.
+        // Navigating to /profile before that made AuthGuard bounce back to login
+        // and flash the form for a second.
         this.createOrUpdateAccountFromAuth0(user).subscribe({
             next: (account) => {
                 console.log('[Auth0Service] Account created/updated:', account);
-                // The account service has already stored the JWT token from the backend
                 console.log('[Auth0Service] Authentication complete - JWT token stored by AccountService');
 
-                // Navigate to profile page for ALL users after successful authentication
-                if (!currentUrl.includes('/profile') && !currentUrl.includes('/admin') && !currentUrl.includes('/super-admin')) {
+                const url = this.router.url.split('?')[0];
+                const alreadyInApp =
+                    url.startsWith('/profile') ||
+                    url.startsWith('/admin') ||
+                    url.startsWith('/super-admin') ||
+                    url.startsWith('/ai-tools');
+
+                if (!alreadyInApp) {
                     console.log('[Auth0Service] Navigating to /profile for role:', account.role);
-                    console.log('[Auth0Service] Current URL before navigation:', this.router.url);
-                    this.router.navigate(['/profile']).then(success => {
-                        console.log('[Auth0Service] Navigation result:', success);
-                    }).catch(error => {
-                        console.error('[Auth0Service] Navigation error:', error);
-                    });
+                    this.router.navigate(['/profile']);
                 }
             },
             error: (error) => {

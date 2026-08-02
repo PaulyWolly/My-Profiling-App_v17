@@ -18,7 +18,7 @@ export interface AiRagAnswerDialogData {
   imports: [CommonModule, MatDialogModule, MatButtonModule],
   template: `
     <h2 mat-dialog-title>Answer</h2>
-    <p class="doc-names" *ngIf="data.documentNames?.length">{{ data.documentNames.join(', ') }}</p>
+    <p class="doc-names" *ngIf="data.documentNames.length">{{ data.documentNames.join(', ') }}</p>
     <mat-dialog-content class="answer-scroll">
       <div class="answer-body">{{ data.answer }}</div>
 
@@ -40,7 +40,7 @@ export interface AiRagAnswerDialogData {
         </div>
       }
 
-      <div class="sources" *ngIf="data.sources?.length">
+      <div class="sources" *ngIf="data.sources.length">
         <h3>Sources</h3>
         <div class="source" *ngFor="let s of data.sources">
           <span class="source-doc" *ngIf="s.documentName">{{ s.documentName }}</span>

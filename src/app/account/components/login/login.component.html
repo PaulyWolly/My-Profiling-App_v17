@@ -1,6 +1,14 @@
 <app-welcome></app-welcome>
 <div class="centered-form-container">
-    <div class="login-card">
+
+    <!-- Replaces the login form during the ~2s Auth0 → app JWT handoff. -->
+    <div *ngIf="completingGoogleSignIn" class="auth0-handoff-card">
+        <div class="loading-spinner auth0-handoff-spinner"></div>
+        <h2 class="sign-in-title">Logging you in…</h2>
+        <p class="auth0-handoff-copy">Finishing Google sign-in. This only takes a moment.</p>
+    </div>
+
+    <div class="login-card" *ngIf="!completingGoogleSignIn">
         <div class="card-body">
             <h2 class="sign-in-title">Sign In</h2>
             <form [formGroup]="form" (ngSubmit)="onSubmit()" class="login-form">
@@ -47,7 +55,7 @@
                     Login
                 </button>
 
-                <!-- Social Login Options (only works when Auth0 domain + clientId are set in environment) -->
+                <!-- Social Login Options -->
                 <div class="social-login">
                     <button type="button" class="btn btn-google" (click)="loginWithGoogle()" [disabled]="loading || !isGoogleLoginEnabled"
                             [title]="!isGoogleLoginEnabled ? 'Set Auth0 domain and clientId in environment to enable' : ''">
@@ -62,18 +70,11 @@
                     <a routerLink="../forgot-password" class="forgot-password-link">Forgot Password?</a>
                 </div>
             </form>
-
         </div>
-
     </div>
 
-    <!-- Auth0 Loading Message - Show below the form when returning from Auth0 -->
-    <div *ngIf="loading" class="auth0-loading-message">
-        <div class="loading-spinner"></div>
-        <span>Logging you in...</span>
-    </div>
-    <!-- Disclaimer shown only when Remember Me is checked, below the form, with fixed height -->
-    <div style="height: 18px; margin-top: 8px;">
+    <!-- Disclaimer for email/password form only -->
+    <div *ngIf="!completingGoogleSignIn" style="height: 18px; margin-top: 8px;">
       <span *ngIf="form.get('rememberMe')?.value" class="text-muted small" style="font-size: 11px;">
         We'll remember your email for next time, but you'll need to log in again for security.
       </span>
