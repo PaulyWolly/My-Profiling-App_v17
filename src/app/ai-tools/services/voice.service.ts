@@ -225,6 +225,25 @@ export class VoiceService {
     return this.speaking$.value;
   }
 
+  /**
+   * Call from a click/tap (e.g. enabling Conversation Mode) so later TTS
+   * play() calls are allowed. Browsers block unmuted audio until then.
+   */
+  unlockPlayback(): void {
+    try {
+      const audio = new Audio(
+        // Tiny silent WAV — unmuted play during a gesture unlocks later clips.
+        'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQQAAAAAAA=='
+      );
+      void audio.play().then(() => {
+        audio.pause();
+        audio.currentTime = 0;
+      }).catch(() => undefined);
+    } catch {
+      /* ignore */
+    }
+  }
+
   speak(text: string, voice?: string): void {
     void this.speakAndWait(text, voice);
   }
@@ -504,10 +523,8 @@ export class VoiceService {
       audio.onerror = finish;
 
       audio.play().catch(() => {
-        // Autoplay can be blocked until the user interacts with the page.
-        this.zone.run(() => {
-          this.error$.next('The browser blocked audio playback. Click anywhere on the page and try again.');
-        });
+        // Autoplay can be blocked until a recent user gesture. Do not toast —
+        // production should stay quiet; unlockPlayback() covers the common case.
         finish();
       });
     });

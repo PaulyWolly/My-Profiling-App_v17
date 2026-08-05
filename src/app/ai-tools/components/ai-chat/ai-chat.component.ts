@@ -18,6 +18,7 @@ import {
   TtsVoice
 } from '../../services/ai-tools.service';
 import { AlertService } from '@app/_services';
+import { environment } from '@environments/environment';
 import { ChatMessageHtmlPipe } from '../../pipes/chat-message-html.pipe';
 import { ConfirmDialogComponent } from '@app/shared/components/confirm-dialog/confirm-dialog.component';
 import { AiChatImageDialogComponent } from './ai-chat-image-dialog.component';
@@ -223,7 +224,10 @@ export class AiChatComponent implements OnInit, OnDestroy {
 
   private setupVoice(): void {
     this.voiceSubs.add(this.voice.speaking$.subscribe((v) => { this.speaking = v; }));
-    this.voiceSubs.add(this.voice.error$.subscribe((message) => this.alert.error(message)));
+    // Voice/mic guidance toasts are for local debugging only — never on production.
+    if (!environment.production) {
+      this.voiceSubs.add(this.voice.error$.subscribe((message) => this.alert.error(message)));
+    }
   }
 
   // Conversation Mode -------------------------------------------------------
@@ -236,13 +240,17 @@ export class AiChatComponent implements OnInit, OnDestroy {
     this.voiceSubs.add(this.conversation.warming$.subscribe((v) => { this.convWarming = v; }));
     this.voiceSubs.add(this.conversation.listening$.subscribe((v) => { this.convListening = v; }));
     this.voiceSubs.add(this.conversation.micLevel$.subscribe((v) => { this.micLevel = v; }));
-    this.voiceSubs.add(this.conversation.error$.subscribe((message) => this.alert.error(message)));
+    if (!environment.production) {
+      this.voiceSubs.add(this.conversation.error$.subscribe((message) => this.alert.error(message)));
+    }
 
     this.voiceSubs.add(this.conversation.transcript$.subscribe((text) => this.onSpokenTurn(text)));
   }
 
   onConversationModeChange(enabled: boolean): void {
     if (enabled) {
+      // Checkbox click is a user gesture — unlock TTS before the first reply speaks.
+      this.voice.unlockPlayback();
       // A reply still playing would be heard by the mic as it opens.
       this.voice.stopSpeaking();
     }
