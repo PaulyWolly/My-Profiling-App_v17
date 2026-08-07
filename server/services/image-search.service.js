@@ -91,6 +91,10 @@ function extractImageSearchQuery(text) {
     q = q.replace(/\b(pictures?|photos?|images?|pics?)\b/gi, ' ');
     q = q.replace(/\b(tell me about|tell me|what is|what are|who is|who are|look up)\b/gi, ' ');
     q = q.replace(/\b(please|can you|could you|would you|explain|describe)\b/gi, ' ');
+    // Genre wrappers pad the query without appearing in photo titles
+    // ("television show Big Bang Theory" → cast shots titled only "Big Bang Theory").
+    q = q.replace(/\b(television|tv)\s+(show|series|programme|program|sitcom)\b/gi, ' ');
+    q = q.replace(/\b(sitcom|tv\s*show|tv\s*series)\b/gi, ' ');
     q = q.replace(/[-\u2013\u2014]+/g, ' ');
     q = q.replace(/[?!.,;:'"()]+/g, ' ');
     q = q.replace(/\s+/g, ' ').trim();
@@ -131,7 +135,11 @@ function relevanceScore(img, query) {
     const tokens = significantTokens(query);
     if (!tokens.length) return 0;
 
-    if (DISTRACTOR_PATTERN.test(hay)) {
+    // Reject theme-park / TV / celebrity collisions for unrelated subjects
+    // (e.g. animal searches). When the user asked for that topic — "Big Bang
+    // Theory", a sitcom, a celebrity — those same words are the match signal,
+    // not noise, so do not discard them.
+    if (DISTRACTOR_PATTERN.test(hay) && !DISTRACTOR_PATTERN.test(query)) {
         return -80;
     }
 
@@ -191,7 +199,13 @@ function relevanceScore(img, query) {
     if (!animalQuery) {
         const distinctive = [...tokens].sort((a, b) => b.length - a.length)[0];
         if (distinctive && distinctive.length >= 4 && !hay.includes(distinctive)) {
-            return -20;
+            // Hard-reject only when almost nothing else matched. Otherwise a
+            // leftover genre word (e.g. "television") would wipe out on-topic
+            // titles like "The Big Bang Theory".
+            if (matched < 2) {
+                return -20;
+            }
+            score -= 4;
         }
         if (tokens.length >= 2 && matched < Math.min(2, tokens.length)) {
             score -= 6;
