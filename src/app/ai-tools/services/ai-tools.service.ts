@@ -42,6 +42,7 @@ export type ChatStreamStatus = 'searching' | 'writing' | 'images';
 export type ChatStreamEvent =
   | { type: 'status'; value: ChatStreamStatus }
   | { type: 'delta'; value: string }
+  | { type: 'rewrite'; value: string }
   | { type: 'images'; value: ChatImage[]; query?: string }
   | { type: 'done'; reply: string; memoryFactCount?: number }
   | { type: 'error'; message: string };

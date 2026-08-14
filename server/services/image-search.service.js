@@ -747,11 +747,63 @@ async function fetchMoreImages(query, options = {}) {
     return { query: subject, images };
 }
 
+/**
+ * The model still sometimes writes "I can't display images" and a list of
+ * guessed URLs. The gallery below the reply is the only picture source, so
+ * that chatter is removed before the reply is shown or saved.
+ */
+function stripModelImageMentions(text) {
+    let out = String(text || '');
+
+    out = out.replace(/!\[[^\]]*\]\(\s*https?:\/\/[^)]+\)/gi, '');
+    out = out.replace(
+        /\[([^\]]*)\]\(\s*https?:\/\/[^)]+\.(?:jpe?g|png|gif|webp|svg)(?:\?[^)]*)?\s*\)/gi,
+        '$1'
+    );
+    out = out.replace(
+        /https?:\/\/(?:upload\.wikimedia\.org|commons\.wikimedia\.org|(?:[\w.-]+\.)?staticflickr\.com|live\.staticflickr\.com)\S*/gi,
+        ''
+    );
+    out = out.replace(/https?:\/\/\S+\.(?:jpe?g|png|gif|webp|svg)(?:\?\S*)?/gi, '');
+
+    out = out.replace(/^\s*#{0,3}\s*\*{0,2}(?:images?|image options|photos?|pictures?|gallery)\*{0,2}\s*$/gim, '');
+    out = out.replace(
+        /^\s*(?:\d+[.)]|[-*])\s+[^\n]*(?:https?:\/\/|example image|wikimedia commons|flickr|source:\s)/gim,
+        ''
+    );
+    out = out.replace(/^\s*Source:\s*(?:Wikimedia Commons|Flickr|Wikipedia|Openverse).*$/gim, '');
+
+    out = out.replace(
+        /(?:^|\n)[^\n]*(?:can(?:not|'t)|\bunable to\b|\bnot able to\b)\s+(?:display|show|embed|render|include)\s+images?[^\n]*/gi,
+        ''
+    );
+    out = out.replace(/(?:^|\n)[^\n]*here are (?:some )?(?:image|photo|picture) options[^\n]*/gi, '');
+    out = out.replace(
+        /(?:^|\n)[^\n]*if you(?:'d| would) like[^\n]*(?:images?|photos?|pictures?|galler(?:y|ies))[^\n]*/gi,
+        ''
+    );
+    out = out.replace(
+        /(?:^|\n)[^\n]*i can (?:fetch|pull|compile|provide|search for|look up|find|show)[^\n]*(?:images?|photos?|pictures?|galler(?:y|ies))[^\n]*/gi,
+        ''
+    );
+    out = out.replace(
+        /[^.!?\n]*(?:and )?i can fetch a gallery of images[^.!?\n]*[.!?]?/gi,
+        ''
+    );
+    out = out.replace(
+        /[^.!?\n]*(?:fetch|compile|pull)\s+(?:a |an |higher[^.!\n]*?)?(?:galler(?:y|ies)|images?)[^.!?\n]*[.!?]?/gi,
+        ''
+    );
+
+    return out.replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+
 module.exports = {
     wantsImages,
     extractImageSearchQuery,
     fetchImagesForChat,
     fetchMoreImages,
+    stripModelImageMentions,
     relevanceScore,
     MAX_IMAGES
 };

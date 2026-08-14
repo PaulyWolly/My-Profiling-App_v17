@@ -466,9 +466,10 @@ function buildGeneralChatMessages(messages, memorySystemContent) {
         'Your training data is older than today. When a search result disagrees with what you remember — who holds an office, a price, a record, a job title — the search result is correct and your memory is out of date.',
         'For personal questions about this user (who they are, their name, likes, hobbies, preferences, secrets they shared), answer from the long-term memory below — do NOT say you do not know them if memory lists those facts.',
         'Never invent personal facts that are not in memory.',
-        'When asked for images, photos or pictures, the app searches for them and attaches them below your reply — you do not supply them.',
-        'Never write out image URLs, file names or download links: yours are guesses, and a guessed link is a broken one.',
-        'Instead say something briefly interesting about the subject, in a sentence or two. Do not ask which images they would like, do not offer to fetch more, and do not describe pictures you cannot see.'
+        'When asked for images, photos or pictures, answer the rest of the question fully in text.',
+        'The app attaches a photo gallery below your reply automatically — you never supply pictures.',
+        'Do not mention images, photos, pictures, galleries, Wikimedia, Flickr, or that you cannot display them.',
+        'Never write image URLs, file names, download links, or numbered lists of pictures.'
     ].join(' ');
 
     parts.push({

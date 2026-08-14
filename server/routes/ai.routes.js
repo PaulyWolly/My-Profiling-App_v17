@@ -179,8 +179,12 @@ router.post('/chat', async (req, res, next) => {
 
         const wantsImages = imageSearchService.wantsImages(lastUser.content);
 
-        // Chat first; then image search (can also reuse Wikimedia URLs from the reply)
-        const replyText = await openaiService.chat(sanitized, { memorySystemContent });
+        // Chat first; then image search. The model must not list pictures —
+        // the gallery below the reply is the only image source.
+        let replyText = await openaiService.chat(sanitized, { memorySystemContent });
+        if (wantsImages) {
+            replyText = imageSearchService.stripModelImageMentions(replyText);
+        }
 
         let imageResult = { wanted: false, images: [], markdown: '' };
         if (wantsImages) {
@@ -221,6 +225,7 @@ router.post('/chat', async (req, res, next) => {
  * The body is newline-delimited JSON, one event per line:
  *   {"type":"status","value":"searching"|"writing"}
  *   {"type":"delta","value":"next piece of text"}
+ *   {"type":"rewrite","value":"reply with image chatter removed"}
  *   {"type":"images","value":[...],"query":"what they were found under"}
  *   {"type":"done","reply":"...","memoryFactCount":N}
  *   {"type":"error","message":"..."}
@@ -277,11 +282,19 @@ router.post('/chat/stream', async (req, res) => {
         const wantsImages = imageSearchService.wantsImages(lastUser.content);
 
         const replyAt = Date.now();
-        const replyText = await openaiService.chatStream(sanitized, { memorySystemContent }, send);
+        let replyText = await openaiService.chatStream(sanitized, { memorySystemContent }, send);
         const replyMs = Date.now() - replyAt;
 
         if (aborted) {
             return;
+        }
+
+        if (wantsImages) {
+            const cleaned = imageSearchService.stripModelImageMentions(replyText);
+            if (cleaned !== replyText) {
+                send({ type: 'rewrite', value: cleaned });
+                replyText = cleaned;
+            }
         }
 
         const imagesAt = Date.now();

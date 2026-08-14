@@ -356,6 +356,12 @@ export class AiChatComponent implements OnInit, OnDestroy {
             this.scrollToBottom();
             break;
 
+          case 'rewrite':
+            streamed = event.value || streamed;
+            this.streamingReply = { role: 'assistant', content: streamed, displayContent: streamed };
+            this.scrollToBottom();
+            break;
+
           case 'images':
             images = (event.value || []).slice(0, 8);
             imageQuery = event.query || '';
@@ -682,6 +688,26 @@ export class AiChatComponent implements OnInit, OnDestroy {
 
     text = text
       .replace(/\*\*Images\*\*[^\n]*\n*/gi, '')
+      .replace(/^\s*#{0,3}\s*\*{0,2}(?:images?|image options|photos?|pictures?|gallery)\*{0,2}\s*$/gim, '')
+      .replace(
+        /(?:^|\n)[^\n]*(?:can(?:not|'t)|\bunable to\b|\bnot able to\b)\s+(?:display|show|embed|render|include)\s+images?[^\n]*/gi,
+        ''
+      )
+      .replace(/(?:^|\n)[^\n]*here are (?:some )?(?:image|photo|picture) options[^\n]*/gi, '')
+      .replace(
+        /(?:^|\n)[^\n]*if you(?:'d| would) like[^\n]*(?:images?|photos?|pictures?|galler(?:y|ies))[^\n]*/gi,
+        ''
+      )
+      .replace(
+        /(?:^|\n)[^\n]*i can (?:fetch|pull|compile|provide|search for|look up|find|show)[^\n]*(?:images?|photos?|pictures?|galler(?:y|ies))[^\n]*/gi,
+        ''
+      )
+      .replace(/[^.!?\n]*(?:and )?i can fetch a gallery of images[^.!?\n]*[.!?]?/gi, '')
+      .replace(
+        /^\s*(?:\d+[.)]|[-*])\s+[^\n]*(?:https?:\/\/|example image|wikimedia commons|flickr|source:\s)/gim,
+        ''
+      )
+      .replace(/https?:\/\/(?:upload\.wikimedia\.org|commons\.wikimedia\.org|(?:[\w.-]+\.)?staticflickr\.com)\S*/gi, '')
       .replace(/\n{3,}/g, '\n\n')
       .trim();
 
