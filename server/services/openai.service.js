@@ -466,10 +466,7 @@ function buildGeneralChatMessages(messages, memorySystemContent) {
         'Your training data is older than today. When a search result disagrees with what you remember — who holds an office, a price, a record, a job title — the search result is correct and your memory is out of date.',
         'For personal questions about this user (who they are, their name, likes, hobbies, preferences, secrets they shared), answer from the long-term memory below — do NOT say you do not know them if memory lists those facts.',
         'Never invent personal facts that are not in memory.',
-        'When asked for images, photos or pictures, answer the rest of the question fully in text.',
-        'The app attaches a photo gallery below your reply automatically — you never supply pictures.',
-        'Do not mention images, photos, pictures, galleries, Wikimedia, Flickr, or that you cannot display them.',
-        'Never write image URLs, file names, download links, or numbered lists of pictures.'
+        'Be concise and informative. Use short sections or bullets when they help, and stop when the question is answered.'
     ].join(' ');
 
     parts.push({
@@ -894,9 +891,7 @@ async function chatAboutImage(messages, buffer, mimeType, options = {}) {
 
         const prepared = buildGeneralChatMessages(messages, options.memorySystemContent || '');
 
-        // The base rules tell the model it never supplies pictures and must not
-        // describe what it cannot see. Both are true of searched images and
-        // wrong here, so this turn says otherwise.
+        // This turn can see the attached picture; answer about it directly.
         prepared.push({
             role: 'system',
             content:

@@ -7,9 +7,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Subscription, forkJoin } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 import {
   AiToolsService,
+  ChatConversationSummary,
   ChatImage,
   ChatMessage,
   ChatResponse,
@@ -23,6 +25,7 @@ import { ChatMessageHtmlPipe } from '../../pipes/chat-message-html.pipe';
 import { ConfirmDialogComponent } from '@app/shared/components/confirm-dialog/confirm-dialog.component';
 import { AiChatImageDialogComponent } from './ai-chat-image-dialog.component';
 import { AiChatMemoryDialogComponent } from './ai-chat-memory-dialog.component';
+import { AiChatHistoryDialogComponent } from './ai-chat-history-dialog.component';
 import { AiChatAskDialogComponent, AiChatAskResult } from './ai-chat-ask-dialog.component';
 import { AiToolsHelpButtonComponent } from '../ai-tools-help/ai-tools-help-button.component';
 import { SpokenStream, VoiceService } from '../../services/voice.service';
@@ -72,6 +75,8 @@ export class AiChatComponent implements OnInit, OnDestroy {
 
   messages: ChatMessage[] = [];
   memoryFacts: MemoryFact[] = [];
+  conversationId = '';
+  conversationTitle = 'New chat';
   loading = false;
   loadingHistory = true;
   configured = false;
@@ -125,9 +130,12 @@ export class AiChatComponent implements OnInit, OnDestroy {
     this.setupVoice();
     this.setupConversation();
 
+    const savedId = this.readStoredConversationId();
     forkJoin({
       status: this.ai.getStatus(),
-      conversation: this.ai.getConversation(),
+      conversation: savedId
+        ? this.ai.getConversationById(savedId).pipe(catchError(() => this.ai.getConversation()))
+        : this.ai.getConversation(),
       memory: this.ai.getMemory()
     }).subscribe({
       next: ({ status, conversation, memory }) => {
@@ -149,6 +157,7 @@ export class AiChatComponent implements OnInit, OnDestroy {
         this.messages = (conversation.messages || [])
           .filter((m) => m.role === 'user' || m.role === 'assistant')
           .map((m) => this.normalizeMessage(m));
+        this.setActiveConversation(conversation.id, conversation.title);
         this.memoryFacts = memory.facts || [];
         this.loadingHistory = false;
         setTimeout(() => this.scrollToBottom(), 0);
@@ -204,6 +213,9 @@ export class AiChatComponent implements OnInit, OnDestroy {
       displayContent: text,
       attachmentUrl
     });
+    if (!this.conversationId) {
+      this.conversationTitle = (text || 'Sent a picture').replace(/\s+/g, ' ').trim().slice(0, 72);
+    }
     this.loading = true;
     this.conversation.setThinking(true);
     this.conversation.pauseForTurn();
@@ -214,7 +226,7 @@ export class AiChatComponent implements OnInit, OnDestroy {
       .filter((m) => m.role === 'user' || m.role === 'assistant')
       .map((m) => ({ role: m.role, content: m.content }));
 
-    this.ai.chatWithImage(payload, file).subscribe({
+    this.ai.chatWithImage(payload, file, this.conversationId || undefined).subscribe({
       next: (res) => void this.onReply(res, null),
       error: (err) => this.failReply(err)
     });
@@ -313,6 +325,9 @@ export class AiChatComponent implements OnInit, OnDestroy {
     }
 
     this.messages.push({ role: 'user', content: text });
+    if (!this.conversationId) {
+      this.conversationTitle = text.replace(/\s+/g, ' ').trim().slice(0, 72) || 'New chat';
+    }
     this.loading = true;
     // The mic must not hear the reply being composed or spoken.
     this.conversation.setThinking(true);
@@ -339,7 +354,7 @@ export class AiChatComponent implements OnInit, OnDestroy {
       this.conversation.setStatus(CONVERSATION_STATUS.SPEAKING);
     }
 
-    this.ai.chatStream(payload).subscribe({
+    this.ai.chatStream(payload, this.conversationId || undefined).subscribe({
       next: (event) => {
         switch (event.type) {
           case 'status':
@@ -368,6 +383,7 @@ export class AiChatComponent implements OnInit, OnDestroy {
             break;
 
           case 'done':
+            this.setActiveConversation(event.conversationId, this.conversationTitle);
             this.finishReply(event.reply || streamed, images, event.memoryFactCount, spoken, imageQuery);
             break;
 
@@ -426,6 +442,9 @@ export class AiChatComponent implements OnInit, OnDestroy {
   }
 
   private async onReply(res: ChatResponse, spoken: SpokenStream | null): Promise<void> {
+    if (res.conversationId) {
+      this.setActiveConversation(res.conversationId, this.conversationTitle);
+    }
     const images = (res.images || []).slice(0, 8);
     const normalized = this.normalizeMessage({
       role: 'assistant',
@@ -536,35 +555,97 @@ export class AiChatComponent implements OnInit, OnDestroy {
   }
 
   clearChat(): void {
+    this.startNewChat();
+  }
+
+  startNewChat(): void {
     if (this.loading) {
       return;
     }
 
-    // Wiping the transcript mid-conversation would leave the mic talking to nothing.
     void this.conversation.setEnabled(false);
     this.voice.stopSpeaking();
+    this.revokeAttachmentUrls();
+    this.messages = [];
+    this.streamingReply = null;
+    this.setActiveConversation('', 'New chat');
+  }
 
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '420px',
-      data: {
-        title: 'Clear chat?',
-        message: 'Clear this chat transcript? Your long-term memory facts will be kept.',
-        confirmText: 'Clear chat',
-        cancelText: 'Cancel'
-      }
+  openHistory(): void {
+    this.ai.listConversations().subscribe({
+      next: (res) => this.showHistoryDialog(res.conversations || []),
+      error: (err) => this.alert.error(err)
+    });
+  }
+
+  private showHistoryDialog(conversations: ChatConversationSummary[]): void {
+    const dialogRef = this.dialog.open(AiChatHistoryDialogComponent, {
+      data: { conversations, activeId: this.conversationId },
+      panelClass: 'ai-chat-history-panel'
     });
 
-    dialogRef.afterClosed().subscribe((confirmed) => {
-      if (!confirmed) {
+    dialogRef.afterClosed().subscribe((result) => {
+      if (!result) return;
+      if (result.action === 'new' || (result.action === 'deleted' && result.id === this.conversationId)) {
+        this.startNewChat();
         return;
       }
-      this.ai.clearConversation().subscribe({
-        next: () => {
-          this.messages = [];
-        },
-        error: (err) => this.alert.error(err)
-      });
+      if (result.action === 'open' && result.id) {
+        this.loadConversation(result.id);
+      }
     });
+  }
+
+  private loadConversation(id: string): void {
+    this.loadingHistory = true;
+    this.ai.getConversationById(id).subscribe({
+      next: (convo) => {
+        this.revokeAttachmentUrls();
+        this.messages = (convo.messages || [])
+          .filter((m) => m.role === 'user' || m.role === 'assistant')
+          .map((m) => this.normalizeMessage(m));
+        this.setActiveConversation(convo.id, convo.title);
+        this.loadingHistory = false;
+        setTimeout(() => this.scrollToBottom(), 0);
+      },
+      error: (err) => {
+        this.loadingHistory = false;
+        this.alert.error(err);
+      }
+    });
+  }
+
+  private setActiveConversation(id?: string, title?: string): void {
+    this.conversationId = id || '';
+    if (title) {
+      this.conversationTitle = title;
+    } else if (!this.conversationId) {
+      this.conversationTitle = 'New chat';
+    }
+    try {
+      if (this.conversationId) {
+        sessionStorage.setItem('ai-chat-conversation-id', this.conversationId);
+      } else {
+        sessionStorage.removeItem('ai-chat-conversation-id');
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
+  private readStoredConversationId(): string {
+    try {
+      return sessionStorage.getItem('ai-chat-conversation-id') || '';
+    } catch {
+      return '';
+    }
+  }
+
+  private revokeAttachmentUrls(): void {
+    for (const url of this.attachmentUrls) {
+      URL.revokeObjectURL(url);
+    }
+    this.attachmentUrls = [];
   }
 
   forgetMe(): void {
@@ -576,7 +657,7 @@ export class AiChatComponent implements OnInit, OnDestroy {
       width: '420px',
       data: {
         title: 'Forget me?',
-        message: 'Forget all remembered details about you (name, hobbies, secrets, etc.)? Chat history will stay unless you Clear chat.',
+        message: 'Forget all remembered details about you (name, hobbies, secrets, etc.)? Saved chats stay in History.',
         confirmText: 'Forget me',
         cancelText: 'Cancel'
       }
@@ -695,16 +776,16 @@ export class AiChatComponent implements OnInit, OnDestroy {
       )
       .replace(/(?:^|\n)[^\n]*here are (?:some )?(?:image|photo|picture) options[^\n]*/gi, '')
       .replace(
-        /(?:^|\n)[^\n]*if you(?:'d| would) like[^\n]*(?:images?|photos?|pictures?|galler(?:y|ies))[^\n]*/gi,
+        /(?:^|\n)[^\n]*if you(?:'d| would) like[^\n]*(?:images?|photos?|pictures?|galler(?:y|ies)|captions?|references)[^\n]*/gi,
         ''
       )
       .replace(
-        /(?:^|\n)[^\n]*i can (?:fetch|pull|compile|provide|search for|look up|find|show)[^\n]*(?:images?|photos?|pictures?|galler(?:y|ies))[^\n]*/gi,
+        /(?:^|\n)[^\n]*i can (?:fetch|pull|compile|provide|search for|look up|find|show|assemble|curate|put together)[^\n]*(?:images?|photos?|pictures?|galler(?:y|ies)|captions?)[^\n]*/gi,
         ''
       )
       .replace(/[^.!?\n]*(?:and )?i can fetch a gallery of images[^.!?\n]*[.!?]?/gi, '')
       .replace(
-        /^\s*(?:\d+[.)]|[-*])\s+[^\n]*(?:https?:\/\/|example image|wikimedia commons|flickr|source:\s)/gim,
+        /^\s*(?:\d+[.)]|[-*])\s+[^\n]*(?:https?:\/\/|example image|wikimedia commons|flickr|source:\s|images?|photos?|pictures?|galler(?:y|ies)|close-?ups?|thumbnails?|captions?|context image)[^\n]*/gim,
         ''
       )
       .replace(/https?:\/\/(?:upload\.wikimedia\.org|commons\.wikimedia\.org|(?:[\w.-]+\.)?staticflickr\.com)\S*/gi, '')

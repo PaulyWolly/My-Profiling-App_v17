@@ -118,6 +118,26 @@ function extractImageSearchQuery(text) {
     return q.slice(0, 120);
 }
 
+/**
+ * Keep the user's real question, but hide that they also asked for pictures.
+ * The gallery is fetched separately, so the model should only write the article.
+ */
+function stripImageRequestFromQuestion(text) {
+    let q = String(text || '');
+    q = q.replace(
+        new RegExp(
+            `\\b(${REQUEST_VERBS})\\s+((me|us)\\s+)?(with\\s+)?(some\\s+|a few\\s+|an?\\s+|more\\s+)?(pictures?|photos?|images?|pics?)\\b`,
+            'gi'
+        ),
+        ' '
+    );
+    q = q.replace(/\b(with|including|plus|and)\s+(some\s+|a few\s+|an?\s+|more\s+)?(pictures?|photos?|images?|pics?)\b/gi, ' ');
+    q = q.replace(/\b(pictures?|photos?|images?|pics?)\b/gi, ' ');
+    q = q.replace(/\s*(?:,|;|\band\b)\s*$/i, '');
+    q = q.replace(/\s+/g, ' ').trim();
+    return q || String(text || '').trim();
+}
+
 function significantTokens(query) {
     return String(query || '')
         .toLowerCase()
@@ -767,10 +787,6 @@ function stripModelImageMentions(text) {
     out = out.replace(/https?:\/\/\S+\.(?:jpe?g|png|gif|webp|svg)(?:\?\S*)?/gi, '');
 
     out = out.replace(/^\s*#{0,3}\s*\*{0,2}(?:images?|image options|photos?|pictures?|gallery)\*{0,2}\s*$/gim, '');
-    out = out.replace(
-        /^\s*(?:\d+[.)]|[-*])\s+[^\n]*(?:https?:\/\/|example image|wikimedia commons|flickr|source:\s)/gim,
-        ''
-    );
     out = out.replace(/^\s*Source:\s*(?:Wikimedia Commons|Flickr|Wikipedia|Openverse).*$/gim, '');
 
     out = out.replace(
@@ -779,11 +795,11 @@ function stripModelImageMentions(text) {
     );
     out = out.replace(/(?:^|\n)[^\n]*here are (?:some )?(?:image|photo|picture) options[^\n]*/gi, '');
     out = out.replace(
-        /(?:^|\n)[^\n]*if you(?:'d| would) like[^\n]*(?:images?|photos?|pictures?|galler(?:y|ies))[^\n]*/gi,
+        /(?:^|\n)[^\n]*if you(?:'d| would) like[^\n]*(?:images?|photos?|pictures?|galler(?:y|ies)|captions?|references)[^\n]*/gi,
         ''
     );
     out = out.replace(
-        /(?:^|\n)[^\n]*i can (?:fetch|pull|compile|provide|search for|look up|find|show)[^\n]*(?:images?|photos?|pictures?|galler(?:y|ies))[^\n]*/gi,
+        /(?:^|\n)[^\n]*i can (?:fetch|pull|compile|provide|search for|look up|find|show|assemble|curate|put together)[^\n]*(?:images?|photos?|pictures?|galler(?:y|ies)|captions?)[^\n]*/gi,
         ''
     );
     out = out.replace(
@@ -791,16 +807,66 @@ function stripModelImageMentions(text) {
         ''
     );
     out = out.replace(
-        /[^.!?\n]*(?:fetch|compile|pull)\s+(?:a |an |higher[^.!\n]*?)?(?:galler(?:y|ies)|images?)[^.!?\n]*[.!?]?/gi,
+        /[^.!?\n]*(?:fetch|compile|pull|assemble|curate)\s+(?:a |an |higher[^.!\n]*?)?(?:galler(?:y|ies)|images?)[^.!?\n]*[.!?]?/gi,
+        ''
+    );
+
+    // Drop a trailing numbered "photo options" list as a whole, then mop up
+    // any remaining caption lines that still mention pictures.
+    out = stripTrailingImageOptionList(out);
+    out = out.replace(
+        /^\s*(?:\d+[.)]|[-*])\s+[^\n]*(?:https?:\/\/|example image|wikimedia commons|flickr|source:\s|images?|photos?|pictures?|galler(?:y|ies)|close-?ups?|thumbnails?|captions?|context image)[^\n]*/gim,
         ''
     );
 
     return out.replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
+/** Numbered leftovers like "3) Close-up..." after URL lines were already removed. */
+function stripTrailingImageOptionList(text) {
+    const lines = String(text || '').split('\n');
+    let end = lines.length - 1;
+    while (end >= 0 && !lines[end].trim()) end -= 1;
+
+    const listItem = /^\s*(?:\d+[.)]|[-*])\s+/;
+    const imageish = /\b(images?|photos?|pictures?|galler(?:y|ies)|close-?ups?|thumbnails?|captions?|wikimedia|flickr|context image)\b/i;
+
+    let start = end;
+    let sawImageish = false;
+    while (start >= 0 && listItem.test(lines[start])) {
+        if (imageish.test(lines[start])) sawImageish = true;
+        start -= 1;
+    }
+    start += 1;
+
+    if (sawImageish && end >= start) {
+        lines.splice(start, end - start + 1);
+    }
+    return lines.join('\n');
+}
+
+/**
+ * Conversation sent to the model: no picture request, no leftover gallery markdown.
+ */
+function hideImageRequestFromMessages(messages) {
+    return (messages || []).map((m) => {
+        if (m.role === 'user') {
+            return { ...m, content: stripImageRequestFromQuestion(m.content) };
+        }
+        if (m.role === 'assistant') {
+            let content = String(m.content || '').replace(/\n*\*\*Images\*\*[^\n]*\n*/gi, '\n');
+            content = stripModelImageMentions(content);
+            return { ...m, content };
+        }
+        return m;
+    });
+}
+
 module.exports = {
     wantsImages,
     extractImageSearchQuery,
+    stripImageRequestFromQuestion,
+    hideImageRequestFromMessages,
     fetchImagesForChat,
     fetchMoreImages,
     stripModelImageMentions,

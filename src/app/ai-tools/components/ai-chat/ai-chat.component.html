@@ -1,7 +1,12 @@
 <div class="ai-chat-page">
   <div class="ai-chat-header">
     <div class="header-top">
-      <h2>AI Chat</h2>
+      <div class="header-heading">
+        <h2>AI Chat</h2>
+        <span class="chat-title" *ngIf="conversationTitle && conversationTitle !== 'New chat'">
+          {{ conversationTitle }}
+        </span>
+      </div>
 
       <div class="header-tools" *ngIf="configured">
         <button
@@ -25,6 +30,16 @@
             <span>{{ v.label }}</span>
           </button>
         </mat-menu>
+
+        <button
+          mat-icon-button
+          type="button"
+          class="memory-trigger"
+          (click)="openHistory()"
+          matTooltip="Open conversation history"
+          aria-label="Open conversation history">
+          <mat-icon>history</mat-icon>
+        </button>
 
         <button
           mat-icon-button
@@ -217,9 +232,9 @@
         class="tool-button"
         (click)="clearChat()"
         [disabled]="loading || !messages.length"
-        matTooltip="Delete this conversation">
-        <mat-icon>delete_sweep</mat-icon>
-        Clear chat
+        matTooltip="Start a new conversation. Previous chats stay in History.">
+        <mat-icon>add_comment</mat-icon>
+        New chat
       </button>
 
       <button

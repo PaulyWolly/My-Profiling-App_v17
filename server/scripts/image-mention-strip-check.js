@@ -4,7 +4,11 @@
  *
  *   node scripts/image-mention-strip-check.js
  */
-const { stripModelImageMentions } = require('../services/image-search.service');
+const {
+    stripModelImageMentions,
+    stripImageRequestFromQuestion,
+    hideImageRequestFromMessages
+} = require('../services/image-search.service');
 
 const SAMPLE = `
 Blue-ringed octopuses are small but venomous.
@@ -19,26 +23,71 @@ I can't display images directly here, but here are image options you can view. I
 If you'd like, I can pull more precise, citable images from official sources or compile a small gallery with captions.
 `.trim();
 
-const cleaned = stripModelImageMentions(SAMPLE);
-const keep = /Blue-ringed octopuses are small but venomous/.test(cleaned);
-const drop = [
-    /can't display images/i,
-    /image options/i,
-    /upload\.wikimedia\.org/i,
-    /staticflickr/i,
-    /If you'd like/i,
-    /gallery with captions/i,
-    /^\s*Images\s*$/m
-];
+const LEFTOVER_LIST = `
+They live in tide pools.
 
-const leftover = drop.filter((re) => re.test(cleaned));
-const ok = keep && leftover.length === 0;
+3) Blue-ringed octopus in a tidal pool
+4) Close-up showing blue rings (when threatened)
+5) General context image
 
-console.log(ok ? 'ok    stripped image chatter, kept the article' : 'FAIL  strip result:');
-if (!ok) {
-    console.log(cleaned);
-    if (!keep) console.log('  missing article text');
-    leftover.forEach((re) => console.log(`  still matches ${re}`));
+If you'd like, I can assemble a curated gallery with captions from reputable sources... or pull a few verified, citable references about behavior, venom, and safety.
+`.trim();
+
+function assertStrip(name, input, mustKeep, mustDrop) {
+    const cleaned = stripModelImageMentions(input);
+    const missing = mustKeep.filter((re) => !re.test(cleaned));
+    const leftover = mustDrop.filter((re) => re.test(cleaned));
+    const ok = missing.length === 0 && leftover.length === 0;
+    console.log(ok ? `ok    ${name}` : `FAIL  ${name}`);
+    if (!ok) {
+        console.log(cleaned);
+        missing.forEach((re) => console.log(`  missing ${re}`));
+        leftover.forEach((re) => console.log(`  still matches ${re}`));
+    }
+    return ok;
 }
 
-process.exitCode = ok ? 0 : 1;
+let passed = true;
+passed = assertStrip(
+    'stripped image chatter, kept the article',
+    SAMPLE,
+    [/Blue-ringed octopuses are small but venomous/],
+    [
+        /can't display images/i,
+        /image options/i,
+        /upload\.wikimedia\.org/i,
+        /staticflickr/i,
+        /If you'd like/i,
+        /gallery with captions/i,
+        /^\s*Images\s*$/m
+    ]
+) && passed;
+
+passed = assertStrip(
+    'stripped leftover captions and gallery offer',
+    LEFTOVER_LIST,
+    [/They live in tide pools/],
+    [
+        /tidal pool/i,
+        /Close-up showing/i,
+        /context image/i,
+        /curated gallery/i,
+        /If you'd like/i
+    ]
+) && passed;
+
+const question = stripImageRequestFromQuestion(
+    'Tell me about the blue ringed octopus and provide images'
+);
+const questionOk = /^tell me about the blue ringed octopus$/i.test(question);
+console.log(questionOk ? 'ok    hid the image request from the question' : `FAIL  question became "${question}"`);
+passed = passed && questionOk;
+
+const hidden = hideImageRequestFromMessages([
+    { role: 'user', content: 'Tell me about the blue ringed octopus and provide images' }
+]);
+const hiddenOk = !/\bimages?\b/i.test(hidden[0].content);
+console.log(hiddenOk ? 'ok    model messages have no image request' : `FAIL  ${hidden[0].content}`);
+passed = passed && hiddenOk;
+
+process.exitCode = passed ? 0 : 1;

@@ -9,6 +9,16 @@
   background-color: transparent;
 }
 
+/* Always green so AI Tools stands out from the rest of the bar. */
+.navbar-nav .nav-link.ai-tools-link {
+  color: #3ddc84 !important;
+}
+
+.navbar-nav .nav-link.ai-tools-link:hover,
+.navbar-nav .nav-link.ai-tools-link.active {
+  color: #69f0ae !important;
+}
+
 /* Only the active nav-link gets a bottom border (underline) */
 .navbar-nav .nav-link.active {
   color: #0d6efd !important; /* Bootstrap blue */

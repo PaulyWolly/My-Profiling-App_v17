@@ -34,6 +34,21 @@ export interface ChatResponse {
   memoryFactCount?: number;
   images?: ChatImage[];
   imageQuery?: string;
+  conversationId?: string;
+}
+
+export interface ChatConversationSummary {
+  id: string;
+  title: string;
+  updated?: string | Date;
+  created?: string | Date;
+  preview?: string;
+}
+
+export interface ChatConversation {
+  id: string;
+  title: string;
+  messages: ChatMessage[];
 }
 
 /** What the reply is waiting on, so the UI can say more than "Thinking…". */
@@ -44,7 +59,7 @@ export type ChatStreamEvent =
   | { type: 'delta'; value: string }
   | { type: 'rewrite'; value: string }
   | { type: 'images'; value: ChatImage[]; query?: string }
-  | { type: 'done'; reply: string; memoryFactCount?: number }
+  | { type: 'done'; reply: string; memoryFactCount?: number; conversationId?: string }
   | { type: 'error'; message: string };
 
 export interface MemoryFact {
@@ -132,8 +147,20 @@ export class AiToolsService {
     return this.http.get<AiToolsStatus>(`${baseUrl}/status`);
   }
 
-  getConversation(): Observable<{ messages: ChatMessage[] }> {
-    return this.http.get<{ messages: ChatMessage[] }>(`${baseUrl}/conversation`);
+  getConversation(): Observable<ChatConversation> {
+    return this.http.get<ChatConversation>(`${baseUrl}/conversation`);
+  }
+
+  listConversations(): Observable<{ conversations: ChatConversationSummary[] }> {
+    return this.http.get<{ conversations: ChatConversationSummary[] }>(`${baseUrl}/conversations`);
+  }
+
+  getConversationById(id: string): Observable<ChatConversation> {
+    return this.http.get<ChatConversation>(`${baseUrl}/conversations/${encodeURIComponent(id)}`);
+  }
+
+  deleteConversation(id: string): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${baseUrl}/conversations/${encodeURIComponent(id)}`);
   }
 
   clearConversation(): Observable<{ message: string }> {
@@ -152,8 +179,8 @@ export class AiToolsService {
     return this.http.delete<{ facts: MemoryFact[] }>(`${baseUrl}/memory/${encodeURIComponent(key)}`);
   }
 
-  chat(messages: ChatMessage[]): Observable<ChatResponse> {
-    return this.http.post<ChatResponse>(`${baseUrl}/chat`, { messages });
+  chat(messages: ChatMessage[], conversationId?: string): Observable<ChatResponse> {
+    return this.http.post<ChatResponse>(`${baseUrl}/chat`, { messages, conversationId });
   }
 
   /**
@@ -161,10 +188,13 @@ export class AiToolsService {
    * image travels with it, and unstreamed because the vision model answers in
    * one piece.
    */
-  chatWithImage(messages: ChatMessage[], image: File): Observable<ChatResponse> {
+  chatWithImage(messages: ChatMessage[], image: File, conversationId?: string): Observable<ChatResponse> {
     const form = new FormData();
     form.append('image', image);
     form.append('messages', JSON.stringify(messages));
+    if (conversationId) {
+      form.append('conversationId', conversationId);
+    }
     return this.http.post<ChatResponse>(`${baseUrl}/chat/vision`, form);
   }
 
@@ -184,11 +214,11 @@ export class AiToolsService {
    * carries the whole body received so far, so only the newly completed lines
    * are parsed.
    */
-  chatStream(messages: ChatMessage[]): Observable<ChatStreamEvent> {
+  chatStream(messages: ChatMessage[], conversationId?: string): Observable<ChatStreamEvent> {
     let consumed = 0;
 
     return this.http
-      .post(`${baseUrl}/chat/stream`, { messages }, {
+      .post(`${baseUrl}/chat/stream`, { messages, conversationId }, {
         observe: 'events',
         responseType: 'text',
         reportProgress: true

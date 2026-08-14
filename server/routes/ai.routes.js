@@ -103,11 +103,54 @@ router.get('/status', async (req, res, next) => {
     }
 });
 
+router.get('/conversations', async (req, res, next) => {
+    try {
+        const conversations = await aiMemoryService.listConversations(req.user.id);
+        res.json({ conversations });
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/conversations/:id', async (req, res, next) => {
+    try {
+        const convo = await aiMemoryService.getConversation(req.user.id, req.params.id);
+        if (!convo.id) {
+            return res.status(404).json({ message: 'Conversation not found' });
+        }
+        res.json({
+            id: convo.id,
+            title: convo.title,
+            messages: (convo.messages || []).map((m) => ({
+                role: m.role,
+                content: m.content,
+                createdAt: m.createdAt
+            }))
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.delete('/conversations/:id', async (req, res, next) => {
+    try {
+        const removed = await aiMemoryService.deleteConversation(req.user.id, req.params.id);
+        if (!removed) {
+            return res.status(404).json({ message: 'Conversation not found' });
+        }
+        res.json({ message: 'Conversation deleted' });
+    } catch (err) {
+        next(err);
+    }
+});
+
 router.get('/conversation', async (req, res, next) => {
     try {
-        const messages = await aiMemoryService.getConversation(req.user.id);
+        const convo = await aiMemoryService.getConversation(req.user.id);
         res.json({
-            messages: messages.map((m) => ({
+            id: convo.id || '',
+            title: convo.title || 'New chat',
+            messages: (convo.messages || []).map((m) => ({
                 role: m.role,
                 content: m.content,
                 createdAt: m.createdAt
@@ -178,10 +221,12 @@ router.post('/chat', async (req, res, next) => {
         const memorySystemContent = aiMemoryService.formatFactsForPrompt(facts);
 
         const wantsImages = imageSearchService.wantsImages(lastUser.content);
+        const textMessages = wantsImages
+            ? imageSearchService.hideImageRequestFromMessages(sanitized)
+            : sanitized;
 
-        // Chat first; then image search. The model must not list pictures —
-        // the gallery below the reply is the only image source.
-        let replyText = await openaiService.chat(sanitized, { memorySystemContent });
+        // The model only sees the text question. Pictures are attached afterward.
+        let replyText = await openaiService.chat(textMessages, { memorySystemContent });
         if (wantsImages) {
             replyText = imageSearchService.stripModelImageMentions(replyText);
         }
@@ -196,7 +241,12 @@ router.post('/chat', async (req, res, next) => {
             reply = `${replyText}${imageResult.markdown}`;
         }
 
-        await aiMemoryService.appendConversation(req.user.id, lastUser.content, reply);
+        const saved = await aiMemoryService.appendConversation(
+            req.user.id,
+            lastUser.content,
+            reply,
+            req.body?.conversationId
+        );
 
         res.json({
             reply,
@@ -204,7 +254,8 @@ router.post('/chat', async (req, res, next) => {
             images: imageResult.images || [],
             // The subject the pictures were found under, so "more images" asks
             // for the same thing without re-deriving it from the conversation.
-            imageQuery: imageResult.query || ''
+            imageQuery: imageResult.query || '',
+            conversationId: saved.id
         });
 
         // Fact extraction is a second model call that adds a few seconds to every
@@ -280,9 +331,12 @@ router.post('/chat/stream', async (req, res) => {
 
         const memorySystemContent = aiMemoryService.formatFactsForPrompt(facts);
         const wantsImages = imageSearchService.wantsImages(lastUser.content);
+        const textMessages = wantsImages
+            ? imageSearchService.hideImageRequestFromMessages(sanitized)
+            : sanitized;
 
         const replyAt = Date.now();
-        let replyText = await openaiService.chatStream(sanitized, { memorySystemContent }, send);
+        let replyText = await openaiService.chatStream(textMessages, { memorySystemContent }, send);
         const replyMs = Date.now() - replyAt;
 
         if (aborted) {
@@ -314,9 +368,22 @@ router.post('/chat/stream', async (req, res) => {
             send({ type: 'images', value: imageResult.images, query: imageResult.query || '' });
         }
 
+        let conversationId = String(req.body?.conversationId || '').trim();
+        try {
+            const saved = await aiMemoryService.appendConversation(
+                req.user.id,
+                lastUser.content,
+                reply,
+                conversationId
+            );
+            conversationId = saved.id;
+        } catch (saveErr) {
+            console.warn('[AI] Conversation save failed:', saveErr?.message || saveErr);
+        }
+
         // The full reply is repeated here so the client can settle on one final
         // string rather than trusting its own reassembly of the deltas.
-        send({ type: 'done', reply, memoryFactCount: facts.length });
+        send({ type: 'done', reply, memoryFactCount: facts.length, conversationId });
         res.end();
 
         console.log(
@@ -326,13 +393,6 @@ router.post('/chat/stream', async (req, res) => {
             `${wantsImages ? `, images ${imagesMs}ms` : ''}` +
             `, total ${Date.now() - startedAt}ms`
         );
-
-        // Saving the turn and extracting facts both happen once the reply is on
-        // its way. Neither result is needed by the browser, and waiting on the
-        // database here would delay the spoken reply by however long Atlas takes.
-        aiMemoryService
-            .appendConversation(req.user.id, lastUser.content, reply)
-            .catch((saveErr) => console.warn('[AI] Conversation save failed:', saveErr?.message || saveErr));
 
         aiMemoryService
             .extractAndStoreFacts(req.user.id, lastUser.content, replyText)
@@ -392,14 +452,16 @@ router.post('/chat/vision', multerSingle(imageUpload, 'image', IMAGE_MAX_BYTES),
             memorySystemContent
         });
 
-        res.json({ reply, memoryFactCount: facts.length });
-
         const lastUser = [...sanitized].reverse().find((m) => m.role === 'user');
         const asked = lastUser?.content?.trim() || '[sent a picture]';
+        const saved = await aiMemoryService.appendConversation(
+            req.user.id,
+            asked,
+            reply,
+            req.body?.conversationId
+        );
 
-        aiMemoryService
-            .appendConversation(req.user.id, asked, reply)
-            .catch((saveErr) => console.warn('[AI] Conversation save failed:', saveErr?.message || saveErr));
+        res.json({ reply, memoryFactCount: facts.length, conversationId: saved.id });
 
         aiMemoryService
             .extractAndStoreFacts(req.user.id, asked, reply)

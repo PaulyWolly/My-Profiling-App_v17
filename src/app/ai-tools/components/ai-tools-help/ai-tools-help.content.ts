@@ -68,7 +68,8 @@ function chatGuide(status: AiToolsStatus | null): HelpGuide {
         items: [
           'Click "Ask your Query" to open a text box, type your question, and press Enter to send.',
           'Shift+Enter adds a new line instead of sending, for longer questions.',
-          '"Clear Chat" empties the transcript but keeps what the assistant remembers about you.'
+          'Use History to reopen earlier chats, or New chat to start a fresh one without losing the others.',
+          '"New chat" leaves previous conversations in History. Delete a chat from History if you want it gone.'
         ]
       },
       {

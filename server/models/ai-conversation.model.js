@@ -8,10 +8,14 @@ const messageSchema = new Schema({
 }, { _id: false });
 
 const schema = new Schema({
-    accountId: { type: Schema.Types.ObjectId, ref: 'Account', required: true, unique: true, index: true },
+    accountId: { type: Schema.Types.ObjectId, ref: 'Account', required: true, index: true },
+    title: { type: String, default: 'New chat', trim: true, maxlength: 80 },
     messages: { type: [messageSchema], default: [] },
+    created: { type: Date, default: Date.now },
     updated: { type: Date, default: Date.now }
 });
+
+schema.index({ accountId: 1, updated: -1 });
 
 schema.set('toJSON', {
     virtuals: true,
