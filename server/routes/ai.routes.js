@@ -197,6 +197,27 @@ router.delete('/memory/:key', async (req, res, next) => {
     }
 });
 
+router.put('/memory/:key', async (req, res, next) => {
+    try {
+        const value = String(req.body?.value || '').trim();
+        if (!value) {
+            return res.status(400).json({ message: 'value is required' });
+        }
+        const facts = await aiMemoryService.updateMemoryFact(
+            req.user.id,
+            req.params.key,
+            value,
+            req.body?.category
+        );
+        res.json({ facts });
+    } catch (err) {
+        if (err?.status === 404) {
+            return res.status(404).json({ message: err.message });
+        }
+        next(err);
+    }
+});
+
 router.post('/chat', async (req, res, next) => {
     try {
         const messages = req.body?.messages;

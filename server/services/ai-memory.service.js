@@ -253,6 +253,28 @@ async function deleteMemoryFact(accountId, key) {
     return doc.facts;
 }
 
+/** Update one remembered detail by key; keeps category unless a new one is sent. */
+async function updateMemoryFact(accountId, key, value, category) {
+    const normalized = normalizeKey(key);
+    if (!normalized) {
+        return getMemory(accountId);
+    }
+
+    const facts = await getMemory(accountId);
+    const existing = facts.find((f) => normalizeKey(f.key) === normalized);
+    if (!existing) {
+        const err = new Error('Memory detail not found');
+        err.status = 404;
+        throw err;
+    }
+
+    return upsertFacts(accountId, [{
+        key: normalized,
+        value,
+        category: category || existing.category
+    }]);
+}
+
 /**
  * Ask the model to extract durable personal facts from the latest turn.
  * Failures are swallowed so chat still succeeds.
@@ -282,6 +304,7 @@ module.exports = {
     upsertFacts,
     clearMemory,
     deleteMemoryFact,
+    updateMemoryFact,
     extractAndStoreFacts,
     MAX_MESSAGES,
     MAX_FACTS,

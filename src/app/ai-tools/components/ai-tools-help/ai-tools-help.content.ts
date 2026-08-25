@@ -66,7 +66,7 @@ function chatGuide(status: AiToolsStatus | null): HelpGuide {
       {
         heading: 'Asking a question',
         items: [
-          'Click "Ask your Query" to open a text box, type your question, and press Enter to send.',
+          'Click "Type your query" to open a text box, type your question, and press Enter to send.',
           'Shift+Enter adds a new line instead of sending, for longer questions.',
           'Use History to reopen earlier chats, or New chat to start a fresh one without losing the others.',
           '"New chat" leaves previous conversations in History. Delete a chat from History if you want it gone.'
@@ -106,7 +106,7 @@ function chatGuide(status: AiToolsStatus | null): HelpGuide {
         items: [
           'Tell it your name, hobbies, or what you like and it will recall that on your next visit.',
           'The icon at the top right of the chat shows everything saved about you.',
-          'You can delete any single detail from there, or use "Forget me" to erase all of them at once.'
+          'You can edit or delete any single detail from there, or use "Forget me" to erase all of them at once.'
         ]
       }
     ],

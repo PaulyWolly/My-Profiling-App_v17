@@ -29,7 +29,7 @@ export interface AiChatAskResult {
   template: `
     <div class="ask-dialog">
       <div class="ask-dialog-header">
-        <h2 class="ask-dialog-title">Ask your query</h2>
+        <h2 class="ask-dialog-title">Type your query</h2>
         <button mat-icon-button type="button" aria-label="Close" (click)="cancel()">
           <mat-icon>close</mat-icon>
         </button>

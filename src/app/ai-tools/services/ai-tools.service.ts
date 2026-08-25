@@ -179,6 +179,13 @@ export class AiToolsService {
     return this.http.delete<{ facts: MemoryFact[] }>(`${baseUrl}/memory/${encodeURIComponent(key)}`);
   }
 
+  updateMemoryFact(key: string, value: string, category?: string): Observable<{ facts: MemoryFact[] }> {
+    return this.http.put<{ facts: MemoryFact[] }>(
+      `${baseUrl}/memory/${encodeURIComponent(key)}`,
+      { value, category }
+    );
+  }
+
   chat(messages: ChatMessage[], conversationId?: string): Observable<ChatResponse> {
     return this.http.post<ChatResponse>(`${baseUrl}/chat`, { messages, conversationId });
   }
